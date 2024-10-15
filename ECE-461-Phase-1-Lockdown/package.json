@@ -1,0 +1,43 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "Group Repository For ECE 461 Project",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "find . -type f -name '*.js' -exec rm -f {} + && find dist -mindepth 1 -delete",
+    "pretest_url": "make test_url",
+    "test": "jest --coverage",
+    "test_url": "echo 'Running test_url...'",
+    "test_githubAPI": "ts-node test/githubAPI_test.ts",
+    "pretest_githubAPI": "echo 'Preparing to run test_githubAPI...'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miller11k/ECE-461.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Miller11k/ECE-461/issues"
+  },
+  "homepage": "https://github.com/Miller11k/ECE-461#readme",
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.6.1",
+    "isomorphic-git": "^1.27.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.2",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
+    "ts-node": "^10.9.2",
+    "winston": "^3.15.0"
+  }
+}
