@@ -2,7 +2,8 @@
   "version": "4",
   "specifiers": {
     "jsr:@std/assert@1": "1.0.6",
-    "jsr:@std/internal@^1.0.4": "1.0.4"
+    "jsr:@std/internal@^1.0.4": "1.0.4",
+    "npm:create-next-app@latest": "14.2.15"
   },
   "jsr": {
     "@std/assert@1.0.6": {
@@ -13,6 +14,11 @@
     },
     "@std/internal@1.0.4": {
       "integrity": "62e8e4911527e5e4f307741a795c0b0a9e6958d0b3790716ae71ce085f755422"
+    }
+  },
+  "npm": {
+    "create-next-app@14.2.15": {
+      "integrity": "sha512-MAeeAk107mrLmGfaLymL2X9rGjD+ZXsczcu7wb78BULZgWI4U4dc2QGYdk6LckD+dew+TVQHcZ6qd1tJsfgK4Q=="
     }
   },
   "workspace": {
