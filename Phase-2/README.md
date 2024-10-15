@@ -14,3 +14,5 @@ deno task start
 ```
 
 This will watch the project directory and restart as necessary.
+
+For info on Fresh see https://fresh.deno.dev/docs/introduction
