@@ -2,6 +2,7 @@ import { calculateDependencyPinning } from '../src/metrics/dependencyPinning';
 import { fetchJsonFromApi } from '../src/API';
 import { getGitHubAPILink } from '../src/githubData';
 import { getTimestampWithThreeDecimalPlaces } from '../src/metrics/getLatency';
+import exp from 'constants';
 
 // Mock dependencies
 jest.mock('../src/API');
@@ -19,5 +20,6 @@ describe('calculateDependencyPinning', () => {
         const { score, latency } = await calculateDependencyPinning(mockURLNoDependencies);
 
         expect(score).toEqual(1); // No dependencies, so score should be 1
+        expect(latency).toBeGreaterThan(0); // Latency should be greater than 0
     });
 });
