@@ -4,7 +4,16 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $api_index from "./routes/api-index.tsx";
+import * as $api_authenticate from "./routes/api/authenticate.ts";
 import * as $api_joke from "./routes/api/joke.ts";
+import * as $api_package_id_ from "./routes/api/package/[id].ts";
+import * as $api_package_id_cost from "./routes/api/package/[id]/cost.ts";
+import * as $api_package_id_rate from "./routes/api/package/[id]/rate.ts";
+import * as $api_package_byName_name_ from "./routes/api/package/byName/[name].ts";
+import * as $api_packages from "./routes/api/packages.ts";
+import * as $api_reset from "./routes/api/reset.ts";
+import * as $api_tracks from "./routes/api/tracks.ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $Counter from "./islands/Counter.tsx";
@@ -14,7 +23,16 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/api-index.tsx": $api_index,
+    "./routes/api/authenticate.ts": $api_authenticate,
     "./routes/api/joke.ts": $api_joke,
+    "./routes/api/package/[id].ts": $api_package_id_,
+    "./routes/api/package/[id]/cost.ts": $api_package_id_cost,
+    "./routes/api/package/[id]/rate.ts": $api_package_id_rate,
+    "./routes/api/package/byName/[name].ts": $api_package_byName_name_,
+    "./routes/api/packages.ts": $api_packages,
+    "./routes/api/reset.ts": $api_reset,
+    "./routes/api/tracks.ts": $api_tracks,
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
   },
