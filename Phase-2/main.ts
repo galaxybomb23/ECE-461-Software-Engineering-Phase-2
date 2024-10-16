@@ -6,8 +6,13 @@
 
 import "$std/dotenv/load.ts";
 
-import { start } from "$fresh/server.ts";
+import { start, serve } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 import config from "./fresh.config.ts";
+import { serveStatic } from "$fresh/plugins.ts";
+
+await serve(manifest, {
+  plugins: [serveStatic("./static")],
+});
 
 await start(manifest, config);
