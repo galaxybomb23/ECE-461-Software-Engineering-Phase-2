@@ -19,6 +19,8 @@ interface DataObject {
     ResponsiveMaintainer_Latency: number | null;    // Latency for responsive maintainer score
     License: number | null;                         // License metric
     License_Latency: number | null;                 // Latency for license metric
+    dependencyPinning: number | null;               // Dependency pinning metric
+    dependencyPinning_Latency: number | null;       // Latency for dependency pinning metric
 }
 
 /**
@@ -41,7 +43,9 @@ export function initJSON(): DataObject {
         ResponsiveMaintainer: null,
         ResponsiveMaintainer_Latency: null,
         License: null,
-        License_Latency: null
+        License_Latency: null,
+        dependencyPinning: null,
+        dependencyPinning_Latency: null
     };
     
     return defaultData;

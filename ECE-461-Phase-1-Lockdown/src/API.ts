@@ -41,7 +41,7 @@ export async function fetchJsonFromApi(apiLink: string): Promise<any> {
         logger.debug('fetchJsonFromApi - Response Received Successfully received data from the API. Data successfully fetched and returned as JSON.');
         return response.data; // Return the response as JSON
     } catch (error: any) {
-        logger.error('fetchJsonFromApi - Error Error occurred during the API request. Error message: ${error.message}');
+        logger.error(`fetchJsonFromApi - Error Error occurred during the API request. Error message: ${error.message}`);
 
         // If the error is from the license endpoint, return an empty object
         if (apiLink.includes('/license')) {

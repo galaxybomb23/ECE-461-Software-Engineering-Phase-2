@@ -1,6 +1,6 @@
 import { getGitHubAPILink } from '../githubData';
 import { fetchJsonFromApi } from '../API';
-// import { getTimestampWithThreeDecimalPlaces } from './getLatency';
+import { getTimestampWithThreeDecimalPlaces } from './getLatency';
 import { logger } from '../logFile';
 
 /**
@@ -13,9 +13,9 @@ import { logger } from '../logFile';
 export async function calculateDependencyPinning(repoURL: string): Promise<{ score: number, latency: number }> {
     // Start latency tracking
     const latency_start = getTimestampWithThreeDecimalPlaces();
+    process.stdout.write(`calculateDependencyPinning latency_start: ${latency_start}\n`);
     const apiLink = getGitHubAPILink(repoURL);
 
-    // Define common dependency file paths (these are examples, extend as needed)
     const manifestPaths = ['package.json', 'requirements.txt', 'Pipfile', 'Cargo.toml'];
 
     let pinnedCount = 0;
@@ -23,39 +23,38 @@ export async function calculateDependencyPinning(repoURL: string): Promise<{ sco
 
     // Fetch repository data from GitHub
     let repoData;
-    try {
-        for (const path of manifestPaths) {
-            const fileApiLink = `${apiLink}/contents/${path}`;
-            const fileData = await fetchJsonFromApi(fileApiLink);
+    for (const path of manifestPaths) {
+        const fileApiLink = `${apiLink}/contents/${path}`;
+        const fileData = await fetchJsonFromApi(fileApiLink);
 
-            if (!fileData) continue; // Skip if file not found
+        if (!fileData){
+            continue;
+        }
 
-            const decodedContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
-            const dependencies = parseDependencies(decodedContent, path); // Parse based on file type
+        const decodedContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+        const dependencies = parseDependencies(decodedContent, path); // Parse based on file type
 
-            totalDependencies += dependencies.length;
+        totalDependencies += dependencies.length;
 
-            // Check if dependencies are pinned (pinned to major+minor)
-            for (const dep of dependencies) {
-                if (isPinnedToMajorMinor(dep.version)) {
-                    pinnedCount++;
-                }
+        // Check if dependencies are pinned (pinned to major+minor)
+        for (const dep of dependencies) {
+            if (isPinnedToMajorMinor(dep.version)) {
+                pinnedCount++;
             }
         }
-    } catch (error) {
-        logger.error(`calculateDependencyPinning Error fetching repository data from GitHub. ${error}`);
-        throw new Error('Error fetching repository data from GitHub');
     }
+    
+
 
 
     // Calculate the DependencyPinning score (between 0 and 1)
-    const score = totalDependencies ? pinnedCount / totalDependencies : 1;
-    logger.debug('calculateRampUp Calculated RampUp score.', `Score: ${score}`);
+    const score = totalDependencies === 0 ? 1 : pinnedCount / totalDependencies;
+    logger.debug(`calculateDependencyPinning Calculated DependencyPinning score. Score: ${score}`);
 
     // Calculate latency in milliseconds
     const latencyMs = parseFloat((getTimestampWithThreeDecimalPlaces() - latency_start).toFixed(3));
-    logger.debug(`calculateRampUp', ['Calculated fetch latency. Latency: ${latencyMs} ms`);
-
+    logger.debug(`calculateDependencyPinning Calculated fetch latency. Latency: ${latencyMs} ms`);
+    
     return { score, latency: latencyMs }; // Return score and latency
 }
 
@@ -105,16 +104,4 @@ function isPinnedToMajorMinor(version: string): boolean {
     const regex = /^\d+\.\d+(\.\d+|\.x)?$/;
 
     return regex.test(version);
-}
-
-function getTimestampWithThreeDecimalPlaces(): number {
-
-    const now = new Date(); // Get the current date and time
-    const milliseconds = now.getMilliseconds(); // Get the milliseconds part
-    const seconds = Math.floor(now.getTime() / 1000); // Get the total seconds since the epoch
-
-    logger.debug(`getTimestampWithThreeDecimalPlaces. Timestamp calculated. Seconds: ${seconds}, Milliseconds: ${milliseconds}`);
-
-    // Return the timestamp in seconds, including milliseconds as a fraction
-    return seconds + milliseconds / 1000;
 }

@@ -18,7 +18,8 @@ export async function getNetScore(
     correctness: number,
     bus_factor: number,
     responsive_maintainer: number,
-    license: number
+    license: number,
+    dependencyPinning: number
 ): Promise<number> {
 
     // Initialize net score to zero
@@ -55,7 +56,8 @@ export async function getNetScoreLatency(
     correctness_latency: number,
     bus_factor_latency: number,
     responsive_maintainer_latency: number,
-    license_latency: number
+    license_latency: number,
+    dependencyPinning_latency: number
 ): Promise<number> {
     // Calculate total latency by summing individual latencies
     let netScore_Latency = ramp_up_latency + correctness_latency + bus_factor_latency + responsive_maintainer_latency + license_latency;
