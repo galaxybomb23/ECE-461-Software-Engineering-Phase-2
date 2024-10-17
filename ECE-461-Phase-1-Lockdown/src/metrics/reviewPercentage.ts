@@ -15,6 +15,8 @@ export async function getReviewPercentage(URL: string): Promise<{ score: number,
         const pullRequestAPI = `${getGitHubAPILink(URL)}/pulls?state=closed`;
         const pullRequests = await fetch(pullRequestAPI).then(res => res.json());
 
+        console.log('GitHub API Pull Request Response:', pullRequests);
+
         // Filter the pull requests that have been merged
         const mergedPRs = pullRequests.filter((pr: any) => pr.merged_at !== null);
 

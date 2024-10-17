@@ -21,6 +21,8 @@ interface DataObject {
     License_Latency: number | null;                 // Latency for license metric
     dependencyPinning: number | null;               // Dependency pinning metric
     dependencyPinning_Latency: number | null;       // Latency for dependency pinning metric
+    ReviewPercenage: number | null;
+    ReviewPercenage_Latency: number | null; 
 }
 
 /**
@@ -45,7 +47,9 @@ export function initJSON(): DataObject {
         License: null,
         License_Latency: null,
         dependencyPinning: null,
-        dependencyPinning_Latency: null
+        dependencyPinning_Latency: null,
+        ReviewPercenage: null,
+        ReviewPercenage_Latency: null
     };
     
     return defaultData;

@@ -50,4 +50,9 @@ async function main() {
 }
 
 // Execute the main function
-main();
+// main();
+import { getReviewPercentage } from "./metrics/reviewPercentage";
+async function main2() {
+    console.log(await getReviewPercentage("https://github.com/cloudinary/cloudinary_npm"))
+}
+main2()

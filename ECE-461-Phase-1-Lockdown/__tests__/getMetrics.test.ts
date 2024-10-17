@@ -10,6 +10,7 @@ import { calculateResponsiveMaintainer } from '../src/metrics/responsiveMaintain
 import { getNetScore, getNetScoreLatency } from '../src/metrics/netScore';
 import { getNumberOfCores } from '../src/multithread';
 import { calculateDependencyPinning } from '../src/metrics/dependencyPinning';
+import { getReviewPercentage } from '../src/metrics/reviewPercentage'
 // Mock dependencies
 jest.mock('../src/metrics/busFactor');
 jest.mock('../src/metrics/license');
@@ -22,6 +23,7 @@ jest.mock('../src/json');
 jest.mock('../src/URL');
 jest.mock('../src/multithread');
 jest.mock('../src/metrics/dependencyPinning');
+jest.mock('../src/metrics/reviewPercentage')
 describe('getMetrics', () => {
   const mockURL = 'https://github.com/example/repo';
   const mockNpmURL = 'https://www.npmjs.com/package/example';
@@ -40,7 +42,9 @@ describe('getMetrics', () => {
     NetScore: 0.75,
     NetScore_Latency: 40,
     DependencyPinning: 1,
-    DependencyPinning_Latency: 5
+    DependencyPinning_Latency: 5,
+    ReviewPercentage: 0.2,
+    ReviewPercentage_Latency: 10,
   };
 
   beforeEach(() => {
@@ -61,6 +65,7 @@ describe('getMetrics', () => {
     (getNetScoreLatency as jest.Mock).mockResolvedValue(40);
     (formatJSON as jest.Mock).mockReturnValue(JSON.stringify(mockRepoData));
     (calculateDependencyPinning as jest.Mock).mockResolvedValue({ score: 1, latency: 5 });
+    (getReviewPercentage as jest.Mock).mockResolvedValue({ score: 0.2, latency: 10});
 
     const result = await getMetrics(mockURL);
 
@@ -71,10 +76,11 @@ describe('getMetrics', () => {
     expect(getLicenseScore).toHaveBeenCalledWith(mockURL);
     expect(calculateRampUp).toHaveBeenCalledWith(mockURL);
     expect(calculateResponsiveMaintainer).toHaveBeenCalledWith(mockURL);
-    expect(getNetScore).toHaveBeenCalledWith(0.9, 0.7, 0.5, 0.6, 1, 1);
-    expect(getNetScoreLatency).toHaveBeenCalledWith(7, 8, 10, 9, 6, 5);
+    expect(getNetScore).toHaveBeenCalledWith(0.9, 0.7, 0.5, 0.6, 1, 1, 0.2);
+    expect(getNetScoreLatency).toHaveBeenCalledWith(7, 8, 10, 9, 6, 5, 10);
     expect(formatJSON).toHaveBeenCalledWith(expect.any(Object)); // Ensure the JSON is formatted
     expect(calculateDependencyPinning).toHaveBeenCalledWith(mockURL);
+    expect(getReviewPercentage).toHaveBeenCalledWith(mockURL);
     expect(result).toEqual(JSON.stringify(mockRepoData));
   });
 
@@ -92,6 +98,7 @@ describe('getMetrics', () => {
     (getNetScore as jest.Mock).mockResolvedValue(0.75);
     (getNetScoreLatency as jest.Mock).mockResolvedValue(40);
     (calculateDependencyPinning as jest.Mock).mockResolvedValue({ score: 1, latency: 5 });
+    (getReviewPercentage as jest.Mock).mockResolvedValue({ score: 0.2, latency: 10})
     (formatJSON as jest.Mock).mockReturnValue(JSON.stringify(mockRepoData));
 
     const result = await getMetrics(mockNpmURL);
@@ -103,8 +110,8 @@ describe('getMetrics', () => {
     expect(getLicenseScore).toHaveBeenCalledWith(mockNodeJsAPIURL);
     expect(calculateRampUp).toHaveBeenCalledWith(mockNodeJsAPIURL);
     expect(calculateResponsiveMaintainer).toHaveBeenCalledWith(mockNodeJsAPIURL);
-    expect(getNetScore).toHaveBeenCalledWith(0.9, 0.7, 0.5, 0.6, 1, 1);
-    expect(getNetScoreLatency).toHaveBeenCalledWith(7, 8, 10, 9, 6, 5);
+    expect(getNetScore).toHaveBeenCalledWith(0.9, 0.7, 0.5, 0.6, 1, 1, 0.2);
+    expect(getNetScoreLatency).toHaveBeenCalledWith(7, 8, 10, 9, 6, 5, 10);
     expect(formatJSON).toHaveBeenCalledWith(expect.any(Object)); // Ensure the JSON is formatted
     expect(result).toEqual(JSON.stringify(mockRepoData));
   });

@@ -11,6 +11,7 @@ import { logger } from '../logFile';
  * @returns {Promise<{ score: number, latency: number }>} - The DependencyPinning score and latency.
  */
 export async function calculateDependencyPinning(repoURL: string): Promise<{ score: number, latency: number }> {
+    return { score: 0, latency: 1 }; // Return score and latency
     // Start latency tracking
     const latency_start = getTimestampWithThreeDecimalPlaces();
     process.stdout.write(`calculateDependencyPinning latency_start: ${latency_start}\n`);
