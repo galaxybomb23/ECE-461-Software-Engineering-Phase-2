@@ -48,11 +48,3 @@ async function main() {
 
     logger.info('main - End Main function completed successfully - Exiting the application');
 }
-
-// Execute the main function
-// main();
-import { getReviewPercentage } from "./metrics/reviewPercentage";
-async function main2() {
-    console.log(await getReviewPercentage("https://github.com/cloudinary/cloudinary_npm"))
-}
-main2()
