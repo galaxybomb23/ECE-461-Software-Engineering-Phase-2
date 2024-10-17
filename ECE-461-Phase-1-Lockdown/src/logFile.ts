@@ -8,7 +8,7 @@ dotenv.config();
 
 // Environment variables for the log file path and name
 const logFilePath = process.env.LOG_FILE;
-const env_logLevel = process.env.LOG_LEVEL; 
+const env_logLevel = process.env.LOG_LEVEL?.toLowerCase();
 
 if (!logFilePath || !env_logLevel) {
     // this logic does not check to see if the input variables are invalid or not 

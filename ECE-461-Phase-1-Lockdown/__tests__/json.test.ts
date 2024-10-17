@@ -26,6 +26,8 @@ describe('JSON Utility Functions', () => {
         ResponsiveMaintainer_Latency: null,
         License: null,
         License_Latency: null,
+        dependencyPinning: null,
+        dependencyPinning_Latency: null
       });
 
       // Ensure logMessage was called correctly
@@ -48,6 +50,8 @@ describe('JSON Utility Functions', () => {
         ResponsiveMaintainer_Latency: 3,
         License: 1,
         License_Latency: 2,
+        dependencyPinning: 0.75,
+        dependencyPinning_Latency: 6
       };
 
       const formattedJSON = formatJSON(dataObject);
