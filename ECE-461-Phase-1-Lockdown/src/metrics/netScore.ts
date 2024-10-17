@@ -62,7 +62,7 @@ export async function getNetScoreLatency(
     review_percentage_latency: number
 ): Promise<number> {
     // Calculate total latency by summing individual latencies
-    let netScore_Latency = ramp_up_latency + correctness_latency + bus_factor_latency + responsive_maintainer_latency + license_latency;
+    let netScore_Latency = ramp_up_latency + correctness_latency + bus_factor_latency + responsive_maintainer_latency + license_latency + dependencyPinning_latency + review_percentage_latency;
 
     logger.debug(`getNetScoreLatency Net score latency calculated before rounding. Net score latency: ${netScore_Latency}`);
 

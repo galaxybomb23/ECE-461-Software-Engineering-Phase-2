@@ -60,8 +60,8 @@ export async function getMetrics(URL: string): Promise<string> {
     repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
     repo_data.dependencyPinning = dependencyPinningScore;
     repo_data.dependencyPinning_Latency = dependencyPinningLatency;
-    repo_data.ReviewPercenage = reviewPercentageScore;
-    repo_data.ReviewPercenage_Latency = reviewPercentageLatency;
+    repo_data.ReviewPercentage = reviewPercentageScore;
+    repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 
     const netScore = await getNetScore(
         rampUpScore,

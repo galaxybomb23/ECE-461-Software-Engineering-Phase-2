@@ -55,7 +55,7 @@ describe('JSON Utility Functions', () => {
         dependencyPinning: 0.75,
         dependencyPinning_Latency: 6,
         ReviewPercentage: 0.5,
-        ReviewPrecentage: 6
+        ReviewPercentage_Latency: 6
       };
 
       const formattedJSON = formatJSON(dataObject);

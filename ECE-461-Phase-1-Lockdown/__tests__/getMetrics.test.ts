@@ -98,7 +98,7 @@ describe('getMetrics', () => {
     (getNetScore as jest.Mock).mockResolvedValue(0.75);
     (getNetScoreLatency as jest.Mock).mockResolvedValue(40);
     (calculateDependencyPinning as jest.Mock).mockResolvedValue({ score: 1, latency: 5 });
-    (getReviewPercentage as jest.Mock).mockResolvedValue({ score: 0.2, latency: 10})
+    (getReviewPercentage as jest.Mock).mockResolvedValue({ score: 0.2, latency: 10});
     (formatJSON as jest.Mock).mockReturnValue(JSON.stringify(mockRepoData));
 
     const result = await getMetrics(mockNpmURL);
