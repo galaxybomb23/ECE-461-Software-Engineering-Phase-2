@@ -4,14 +4,13 @@
 
 /* Custom styles */
 body {
-    color: #1b1b1c;
-  background-color: #f7f7f7;
+    color: #F5F5F5;
+    background-color: #1a1715;
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  body {
-    color: #f7f7f7;
-    background-color: #1b1b1c;
-  }
+.title {
+    padding-top: 6rem;
+    padding-left: 1rem;
+    font-size: 1.5rem;
+    font-weight: 500;
 }

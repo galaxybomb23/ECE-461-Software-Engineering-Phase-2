@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { SearchBar } from "../components/SearchBar.tsx";
 
-export default function Home() {
+export default function Login() {
   const searchQuery = signal("");
 
   return (
@@ -17,7 +17,7 @@ export default function Home() {
             </nav>
         </div>
         <div className = "title">
-            Home
+            Login
         </div>
     </div>
   );

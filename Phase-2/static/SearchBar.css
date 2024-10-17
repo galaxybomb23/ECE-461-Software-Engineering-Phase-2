@@ -1,0 +1,67 @@
+/* static/SearchBar.css */
+.search-form {
+    max-width: 28rem;
+}
+  
+.search-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+    display: none;
+}
+
+.search-input-container {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.75rem;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.search-input {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    padding-left: 2.5rem;
+    font-size: 0.875rem;
+    color: #afbbcc;
+    border: 1px solid #A5A5AF;
+    border-radius: 0.2rem;
+    background-color: #2e2b29;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: "Courier New", monospace;
+}
+
+.search-input:focus {
+    border-color: #57BC90;
+    box-shadow: 0 0 0 4px #015249;
+}
+
+.search-button {
+    position: absolute;
+    right: 0.625rem;
+    bottom: 0.625rem;
+    background-color: #57BC90;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.2rem;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #015249;
+}
+
+.search-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px #015249;
+}

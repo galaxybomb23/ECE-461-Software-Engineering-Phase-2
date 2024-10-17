@@ -7,6 +7,11 @@ export default function App({ Component }: PageProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Phase-2</title>
         <link rel="stylesheet" href="/styles.css" />
+        <link rel="stylesheet" href="/SearchBar.css" />
+        <link rel="stylesheet" href="/Navbar.css" />
+        <link rel="stylesheet" href="/Home.css" />
+        <link rel="stylesheet" href="/Login.css" />
+        <link rel="stylesheet" href="/Admin.css" />
       </head>
       <body>
         <Component />
