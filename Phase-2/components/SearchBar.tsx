@@ -2,34 +2,43 @@ import type { Signal } from "@preact/signals";
 
 interface SearchBarProps {
     search: Signal<string>;
+    searchResults: Signal<any[]>; // Pass in searchResults as a prop
 }
 
-export function SearchBar({ search }: SearchBarProps) {
+export function SearchBar({ search, searchResults }: SearchBarProps) {
     const handleSearchSubmit = async (event: Event) => {
-        event.preventDefault();
-        const searchQuery = search.value;
+        event.preventDefault(); // Prevent form submission
         
-        // Dynamically update the endpoint with the search term
-        const endpoint = `/api/package/byName/${encodeURIComponent(searchQuery)}`;
-        console.log("Searching for:", searchQuery);
-        console.log("API Endpoint:", endpoint);
+        const searchQuery = search.value.trim(); // Get trimmed search value
 
-        try {
-            // Fetching data from the dynamic API endpoint
-            const response = await fetch(endpoint);
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
+        if (searchQuery) {
+            const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}/cost`;
+            console.log("Fetching results from:", redirectUrl);
+
+            try {
+                const response = await fetch(redirectUrl);
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                const result = await response.json();
+                console.log("Fetched result:", result); // Log fetched result
+
+                // Check if result has data for the searched query
+                if (result[searchQuery]) {
+                    searchResults.value = [result[searchQuery]]; // Update results based on fetched data
+                } else {
+                    searchResults.value = []; // Clear results if no data found
+                }
+            } catch (error) {
+                console.error("Error fetching search results:", error);
             }
-            const data = await response.json();
-            console.log("Search results:", data);
-            // Handle the search results here (e.g., updating state, displaying results)
-        } catch (error) {
-            console.error("Error fetching search results:", error);
+        } else {
+            console.error("Search query is empty. Not redirecting.");
         }
     };
 
     return (
-        <form className="search-form" onSubmit={handleSearchSubmit}>   
+        <form className="search-form" onSubmit={handleSearchSubmit}>
             <label htmlFor="default-search" className="search-label">Search</label>
             <div className="search-input-container">
                 <div className="search-icon">
@@ -45,8 +54,7 @@ export function SearchBar({ search }: SearchBarProps) {
                     required
                     value={search.value || ""}
                     onInput={(e) => {
-                        search.value = (e.target as HTMLInputElement).value;  // Updates the signal value
-                        console.log("Search value updated to:", search.value);  // Log updates for debugging
+                        search.value = (e.target as HTMLInputElement).value; // Updates the signal value
                     }}
                 />
                 <button type="submit" className="search-button">Search</button>

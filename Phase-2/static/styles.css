@@ -5,7 +5,7 @@
 /* Custom styles */
 body {
     color: #F5F5F5;
-    background-color: #1a1715;
+    background-color: #0c0c0c;
 }
 
 .title {
@@ -13,4 +13,5 @@ body {
     padding-left: 1rem;
     font-size: 1.5rem;
     font-weight: 500;
+    font-family: ;
 }

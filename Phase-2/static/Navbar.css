@@ -1,6 +1,6 @@
 /* static/Navbar.css */
 .navbar {
-    background-color: #015249;
+    background-image: linear-gradient(90deg, #0c0c0c, #023c84, #023c84, #1768AC);
     display: flex;
     padding: 1rem;
     justify-content: space-between;
@@ -11,6 +11,9 @@
     top: 0;
     left: 0;
     z-index: 1000;
+    border-bottom: 1px solid #a5a5af8a;
+    border-top: 1px solid #a5a5af8a;
+
 }
   
 .navbar ul {
@@ -20,18 +23,18 @@
 }
 
 .navbar a {
-    color: #57BC90;
+    color: #afbbcc;
     transition: color 0.3s ease-in-out;
     white-space: nowrap;
     width: auto;
 }
 
 .navbar a:hover {
-    color: #015249;
+    color: #8a94a1;
 }
 
 .navbar a.active {
-    color: #015249;
+    color: #8a94a1;
 }
 
 .search-form {
