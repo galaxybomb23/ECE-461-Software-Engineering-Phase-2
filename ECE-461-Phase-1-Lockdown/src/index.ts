@@ -49,4 +49,5 @@ async function main() {
     logger.info('main - End Main function completed successfully - Exiting the application');
 }
 
-main()
+// Execute the main function
+main();
