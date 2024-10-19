@@ -1,9 +1,14 @@
 import { signal } from "@preact/signals";
-import { SearchBar } from "../components/SearchBar.tsx";
+import { useEffect } from "preact/hooks";
+import { SearchBar } from "../islands/SearchBar.tsx";
 
 export default function Home() {
     const searchQuery = signal("");
     const searchResults = signal<any[]>([]);
+
+    useEffect(() => {
+        console.log("Updated search results in Home:", searchResults.value);
+    }, [searchResults.value]);
 
     return (
         <div>

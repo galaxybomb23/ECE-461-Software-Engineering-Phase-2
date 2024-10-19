@@ -10,11 +10,11 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
         event.preventDefault(); // Prevent form submission
         
         const searchQuery = search.value.trim(); // Get trimmed search value
-
+    
         if (searchQuery) {
             const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}/cost`;
             console.log("Fetching results from:", redirectUrl);
-
+    
             try {
                 const response = await fetch(redirectUrl);
                 if (!response.ok) {
@@ -22,10 +22,12 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
                 }
                 const result = await response.json();
                 console.log("Fetched result:", result); // Log fetched result
-
-                // Check if result has data for the searched query
-                if (result[searchQuery]) {
-                    searchResults.value = [result[searchQuery]]; // Update results based on fetched data
+    
+                // Extract the first key from the result object
+                const resultKey = Object.keys(result)[0]; // Get the first key in the result object
+                
+                if (resultKey && result[resultKey]) {
+                    searchResults.value = [result[resultKey]]; // Update results based on fetched data
                 } else {
                     searchResults.value = []; // Clear results if no data found
                 }
@@ -36,6 +38,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
             console.error("Search query is empty. Not redirecting.");
         }
     };
+    
 
     return (
         <form className="search-form" onSubmit={handleSearchSubmit}>
