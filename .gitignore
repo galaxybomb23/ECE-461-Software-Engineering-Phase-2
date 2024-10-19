@@ -36,3 +36,6 @@ logfile.log
 
 # Ignore Makefile
 Makefile
+
+# Ignore fresh.gen.ts
+Phase-2/fresh.gen.ts
