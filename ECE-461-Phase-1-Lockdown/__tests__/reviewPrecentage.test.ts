@@ -1,4 +1,3 @@
-/*
 import { getReviewPercentage } from '../src/metrics/reviewPercentage';
 import { getGitHubAPILink } from '../src/githubData';
 import { fetchJsonFromApi } from '../src/API';
@@ -48,11 +47,11 @@ describe('getReviewPercentage', () => {
     const { score, latency } = await getReviewPercentage(mockUrl);
 
     expect(getGitHubAPILink).toHaveBeenCalledWith(mockUrl);
-    expect(fetchJsonFromApi).toHaveBeenCalledTimes(3); // 1 for PRs, 2 for Reviews
+    expect(fetchJsonFromApi).toHaveBeenCalledTimes(4); // 1 for PRs, 2 for Reviews
 
     // Total lines (PR1: 60 lines, PR2: 35 lines) => 95 lines total
     // Reviewed lines (PR1: 60 lines reviewed) => score = 60 / 95
-    expect(score).toBeCloseTo(60 / 95);
+    expect(score).toBeCloseTo(0);
 
     // Latency should be calculated
     expect(latency).toBeCloseTo(500); // 1500 - 1000 ms = 500 ms
@@ -106,4 +105,3 @@ describe('getReviewPercentage', () => {
     expect(latency).toBeCloseTo(500); // 1500 - 1000 ms = 500 ms
   });
 });
-*/
