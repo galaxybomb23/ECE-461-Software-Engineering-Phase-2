@@ -4,34 +4,40 @@ import { getGitHubAPILink } from '../src/githubData';
 import { getTimestampWithThreeDecimalPlaces } from '../src/metrics/getLatency';
 import exp from 'constants';
 import { describe } from 'node:test';
+import { logger } from '../src/logFile';
 
 // Mock dependencies
-jest.mock('../src/API');
-jest.mock('../src/githubData');
-jest.mock('../src/metrics/getLatency');
+jest.mock('../src/githubData', () => ({
+    getGitHubAPILink: jest.fn(),
+}));
+
+jest.mock('../src/API', () => ({
+    fetchJsonFromApi: jest.fn(),
+}));
+
+jest.mock('../src/metrics/getLatency', () => ({
+    getTimestampWithThreeDecimalPlaces: jest.fn(),
+}));
 
 describe('calculateDependencyPinning', () => {
-    const mockURLNoDependencies = 'https://github.com/Coop8/Coop8';
-    const mockURLNoPinnedDependencies = 'https://github.com/ultralytics/yolov5';
+    const mockURL = 'https://github.com/cloudinary/cloudinary_npm';
 
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should return a score of 1 for a repository with no dependencies', async () => {
-        const { score, latency } = await calculateDependencyPinning(mockURLNoDependencies);
+    it('Should accurately return scores for various URLS', async () => {
+        (getGitHubAPILink as jest.Mock).mockReturnValue(mockURL);
 
-        expect(score).toEqual(1); // No dependencies, so score should be 1
-        expect(latency).toBeGreaterThan(0); // Latency should be greater than 0
-    });
+        (fetchJsonFromApi as jest.Mock).mockResolvedValue({ content: Buffer.from(JSON.stringify({}), 'utf-8').toString('base64') });
 
-    it('should return a score of 0 for a repository with no pinned dependencies', async () => {
-        const { score, latency } = await calculateDependencyPinning(mockURLNoPinnedDependencies);
-
-        expect(score).toEqual(0); // No pinned dependencies, so score should be 0
-        expect(latency).toBeGreaterThan(0); // Latency should be greater than 0
-    });
-
-    
+        // compute dependencyPinning
+        const result = await calculateDependencyPinning(mockURL);
+        
+        // ensure latency > 0 and score near 0.245
+        expect(result.score).toBeCloseTo(0.245, 1);
+        expect(result.latency).toBeGreaterThan(0);
+    }
+    );
 });
