@@ -7,6 +7,7 @@ export async function calculateDependencyPinning(URL: string): Promise<{ score: 
     // default scores and latency
     let totalDependencies = 0;
     let pinnedDependencies = 0;
+    
     const latency_start = getTimestampWithThreeDecimalPlaces();
     const API_link = getGitHubAPILink(URL);
     const manifestPaths = ['package.json', 'requirements.txt', 'Pipfile', 'Cargo.toml'];
@@ -19,15 +20,19 @@ export async function calculateDependencyPinning(URL: string): Promise<{ score: 
             const manifestData = await fetchJsonFromApi(manifestApiUrl);
             const manifestContent = Buffer.from(manifestData.content, 'base64').toString('utf-8');
 
-           logger.debug(`calculateDependencyPinning - Manifest: ${manifest}`);
-
             const dependencies = parseDependencies(manifestContent, manifest);
             totalDependencies += dependencies.length;
+
+            logger.debug(`calculateDependencyPinning - Manifest: ${manifest}`);
 
             // Check if all dependencies are pinned to major.minor
             for (const dependency of dependencies) {
                 if (isPinnedToMajorMinor(dependency.version)) {
                     pinnedDependencies++;
+                    logger.debug(`calculateDependencyPinning - Pinned: ${dependency.name} - ${dependency.version}`);
+                }
+                else {
+                    logger.debug(`calculateDependencyPinning - Not Pinned: ${dependency.name} - ${dependency.version}`);
                 }
             }
             
@@ -52,11 +57,11 @@ function parseDependencies(fileContent: string, fileType: string): Array<{ name:
 
         // Handle both dependencies and devDependencies
         const allDependencies = {
-            ...parsed.dependencies,
-            ...parsed.devDependencies
+            ...(parsed.dependencies || {}),
+            ...(parsed.devDependencies || {})
         };
 
-        dependencies = Object.entries(allDependencies || {}).map(([name, version]) => ({
+        dependencies = Object.entries(allDependencies).map(([name, version]) => ({
             name,
             version: version as string
         }));
@@ -70,9 +75,29 @@ function parseDependencies(fileContent: string, fileType: string): Array<{ name:
         });
 
     } else if (fileType === 'Pipfile') {
-        // Parse Pipfile (Python)
-        const parsed = JSON.parse(fileContent);
-        dependencies = Object.entries(parsed.packages || {}).map(([name, version]) => ({ name, version: version as string }));
+        // Parse Pipfile (Python, TOML format)
+        const lines = fileContent.split('\n').filter(line => line.trim() && !line.startsWith('#')); // Ignore comments
+        let inPackagesSection = false;
+        let inDevPackagesSection = false;
+
+        for (const line of lines) {
+            // Check which section we're in
+            if (line.startsWith('[packages]')) {
+                inPackagesSection = true;
+                inDevPackagesSection = false;
+                continue;
+            } else if (line.startsWith('[dev-packages]')) {
+                inDevPackagesSection = true;
+                inPackagesSection = false;
+                continue;
+            }
+
+            // If we're in a packages or dev-packages section, extract the dependency
+            if ((inPackagesSection || inDevPackagesSection) && line.includes('=')) {
+                const [name, version] = line.split('=').map(item => item.trim().replace(/["']/g, '')); // Remove quotes around version
+                dependencies.push({ name, version: version === '*' ? 'latest' : version });
+            }
+        }
 
     } else if (fileType === 'Cargo.toml') {
         // Parse Cargo.toml (Rust)
