@@ -16,12 +16,7 @@ describe('getNetScore', () => {
     const review_percentage = 1.0;
     const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
-    // Net score formula:
-    // 0.2 * license + 0.25 * bus_factor + 0.25 * responsive_maintainer + 0.2 * correctness + 0.1 * ramp_up_time
-    // = (0.2 * 1.0) + (0.25 * 0.7) + (0.25 * 0.85) + (0.2 * 0.9) + (0.1 * 0.8)
-    // = 0.2 + 0.175 + 0.2125 + 0.18 + 0.08 = 0.8475, rounded to 0.8
-
-    expect(result).toEqual(0.8); // Final rounded net score
+    expect(result).toEqual(0.9); // Final rounded net score
   });
 
   it('should handle a case with all zeros and return 0', async () => {

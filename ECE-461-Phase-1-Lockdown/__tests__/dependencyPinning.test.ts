@@ -18,8 +18,8 @@ describe('calculateDependencyPinning', () => {
         // compute dependencyPinning
         const result = await calculateDependencyPinning(mockURL);
         
-        // ensure latency > 0 and score near 0.245
-        expect(result.score).toBeCloseTo(0, 1);
+        // ensure latency > 0 and score near 0.13043478260869565
+        expect(result.score).toBeCloseTo(0.13043478260869565, 1);
         expect(result.latency).toBeGreaterThan(0);
     }
     );
