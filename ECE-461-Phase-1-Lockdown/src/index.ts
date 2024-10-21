@@ -3,7 +3,6 @@ import { get_valid_urls } from "./URL";
 import { getMetrics } from "./metrics/getMetrics";
 import { logger } from './logFile';
 import { checkGitHubToken, checkLogFile } from "./checkEnv";
-import { calculateDependencyPinning } from "./metrics/dependencyPinning";
 
 /**
  * Main function to process command line arguments, fetch valid URLs,
