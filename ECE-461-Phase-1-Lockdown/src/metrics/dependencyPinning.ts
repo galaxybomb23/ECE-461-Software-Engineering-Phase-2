@@ -1,60 +1,50 @@
-import { getGitHubAPILink } from '../githubData';
-import { fetchJsonFromApi } from '../API';
-import { getTimestampWithThreeDecimalPlaces } from './getLatency';
 import { logger } from '../logFile';
+import { getTimestampWithThreeDecimalPlaces } from './getLatency';
+import { fetchJsonFromApi } from '../API';
+import { getGitHubAPILink } from '../githubData';
 
-/**
- * Calculates the percentage of dependencies pinned to a specific major+minor version.
- * No dependencies pinned to a specific version will result in a score of 1.0
- * 
- * @param {string} repoURL - The GitHub repository URL.
- * @returns {Promise<{ score: number, latency: number }>} - The DependencyPinning score and latency.
- */
-export async function calculateDependencyPinning(repoURL: string): Promise<{ score: number, latency: number }> {
-    // Start latency tracking
+export async function calculateDependencyPinning(URL: string): Promise<{ score: number, latency: number }> {
+    // default scores and latency
+    let totalDependencies = 0;
+    let pinnedDependencies = 0;
+    
     const latency_start = getTimestampWithThreeDecimalPlaces();
-    process.stdout.write(`calculateDependencyPinning latency_start: ${latency_start}\n`);
-    const apiLink = getGitHubAPILink(repoURL);
-
+    const API_link = getGitHubAPILink(URL);
     const manifestPaths = ['package.json', 'requirements.txt', 'Pipfile', 'Cargo.toml'];
 
-    let pinnedCount = 0;
-    let totalDependencies = 0;
+    for (const manifest of manifestPaths) {
+        const manifestApiUrl = `${API_link}/contents/${manifest}`;
 
-    // Fetch repository data from GitHub
-    let repoData;
-    for (const path of manifestPaths) {
-        const fileApiLink = `${apiLink}/contents/${path}`;
-        const fileData = await fetchJsonFromApi(fileApiLink);
+        try {
+            // Fetch the manifest file from the GitHub API
+            const manifestData = await fetchJsonFromApi(manifestApiUrl);
+            const manifestContent = Buffer.from(manifestData.content, 'base64').toString('utf-8');
 
-        if (!fileData){
-            continue;
-        }
+            const dependencies = parseDependencies(manifestContent, manifest);
+            totalDependencies += dependencies.length;
 
-        const decodedContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
-        const dependencies = parseDependencies(decodedContent, path); // Parse based on file type
+            logger.debug(`calculateDependencyPinning - Manifest: ${manifest}`);
 
-        totalDependencies += dependencies.length;
-
-        // Check if dependencies are pinned (pinned to major+minor)
-        for (const dep of dependencies) {
-            if (isPinnedToMajorMinor(dep.version)) {
-                pinnedCount++;
+            // Check if all dependencies are pinned to major.minor
+            for (const dependency of dependencies) {
+                if (isPinnedToMajorMinor(dependency.version)) {
+                    pinnedDependencies++;
+                    logger.debug(`calculateDependencyPinning - Pinned: ${dependency.name} - ${dependency.version}`);
+                }
+                else {
+                    logger.debug(`calculateDependencyPinning - Not Pinned: ${dependency.name} - ${dependency.version}`);
+                }
             }
+            
+        } catch (error) {
+            // Files not found, this is ok
         }
     }
-    
 
-
-
-    // Calculate the DependencyPinning score (between 0 and 1)
-    const score = totalDependencies === 0 ? 1 : pinnedCount / totalDependencies;
-    logger.debug(`calculateDependencyPinning Calculated DependencyPinning score. Score: ${score}`);
-
-    // Calculate latency in milliseconds
+    // Score is 1 if there are no dependencies, otherwise it is the ratio of pinned dependencies to total dependencies
+    const score = totalDependencies === 0 ? 1 : pinnedDependencies / totalDependencies;
+    logger.log('info', `calculateDependencyPinning - Score: ${score}, Latency: ${getTimestampWithThreeDecimalPlaces() - latency_start}ms for URL: ${URL}`);
     const latencyMs = parseFloat((getTimestampWithThreeDecimalPlaces() - latency_start).toFixed(3));
-    logger.debug(`calculateDependencyPinning Calculated fetch latency. Latency: ${latencyMs} ms`);
-    
     return { score, latency: latencyMs }; // Return score and latency
 }
 
@@ -64,7 +54,17 @@ function parseDependencies(fileContent: string, fileType: string): Array<{ name:
     if (fileType === 'package.json') {
         // Parse package.json (JavaScript/Node.js)
         const parsed = JSON.parse(fileContent);
-        dependencies = Object.entries(parsed.dependencies || {}).map(([name, version]) => ({ name, version: version as string }));
+
+        // Handle both dependencies and devDependencies
+        const allDependencies = {
+            ...(parsed.dependencies || {}),
+            ...(parsed.devDependencies || {})
+        };
+
+        dependencies = Object.entries(allDependencies).map(([name, version]) => ({
+            name,
+            version: version as string
+        }));
 
     } else if (fileType === 'requirements.txt') {
         // Parse requirements.txt (Python)
@@ -75,9 +75,29 @@ function parseDependencies(fileContent: string, fileType: string): Array<{ name:
         });
 
     } else if (fileType === 'Pipfile') {
-        // Parse Pipfile (Python)
-        const parsed = JSON.parse(fileContent);
-        dependencies = Object.entries(parsed.packages || {}).map(([name, version]) => ({ name, version: version as string }));
+        // Parse Pipfile (Python, TOML format)
+        const lines = fileContent.split('\n').filter(line => line.trim() && !line.startsWith('#')); // Ignore comments
+        let inPackagesSection = false;
+        let inDevPackagesSection = false;
+
+        for (const line of lines) {
+            // Check which section we're in
+            if (line.startsWith('[packages]')) {
+                inPackagesSection = true;
+                inDevPackagesSection = false;
+                continue;
+            } else if (line.startsWith('[dev-packages]')) {
+                inDevPackagesSection = true;
+                inPackagesSection = false;
+                continue;
+            }
+
+            // If we're in a packages or dev-packages section, extract the dependency
+            if ((inPackagesSection || inDevPackagesSection) && line.includes('=')) {
+                const [name, version] = line.split('=').map(item => item.trim().replace(/["']/g, '')); // Remove quotes around version
+                dependencies.push({ name, version: version === '*' ? 'latest' : version });
+            }
+        }
 
     } else if (fileType === 'Cargo.toml') {
         // Parse Cargo.toml (Rust)
@@ -100,8 +120,8 @@ function parseDependencies(fileContent: string, fileType: string): Array<{ name:
 }
 
 function isPinnedToMajorMinor(version: string): boolean {
-    // matches versions pinned to major+minor like 1.2.3, 1.2.x, of any length
-    const regex = /^\d+\.\d+(\.\d+|\.x)?$/;
+    // Matches versions pinned to major+minor or those starting with ~, like 1.0, ~1.0, 1.0.x
+    const regex = /^(~?)(\d+)\.(\d+)(\.\d+|\.x)?$/;
 
     return regex.test(version);
 }
