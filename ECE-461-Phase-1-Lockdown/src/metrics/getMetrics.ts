@@ -6,6 +6,8 @@ import { getNodeJsAPILink } from "../npmjsData";
 import { calculateCorrectness } from "./correctness";
 import { calculateRampUp } from "./rampUp";
 import { calculateResponsiveMaintainer } from "./responsiveMaintainer";
+import { calculateDependencyPinning } from "./dependencyPinning";
+import { getReviewPercentage } from "./reviewPercentage";
 import { getNetScore, getNetScoreLatency } from "./netScore";
 import { getNumberOfCores } from "../multithread";
 import { logger } from '../logFile';
@@ -32,13 +34,17 @@ export async function getMetrics(URL: string): Promise<string> {
         { score: correctnessScore, latency: correctnessLatency },
         { score: licenseScore, latency: licenseLatency },
         { score: rampUpScore, latency: rampUpLatency },
-        { score: responsiveMaintainerScore, latency: responsiveMaintainerLatency }
+        { score: responsiveMaintainerScore, latency: responsiveMaintainerLatency },
+        { score: dependencyPinningScore, latency: dependencyPinningLatency },
+        { score: reviewPercentageScore, latency: reviewPercentageLatency }
     ] = await Promise.all([
         getBusFactor(URL),
         calculateCorrectness(URL),
         getLicenseScore(URL),
         calculateRampUp(URL),
-        calculateResponsiveMaintainer(URL)
+        calculateResponsiveMaintainer(URL),
+        calculateDependencyPinning(URL),
+        getReviewPercentage(URL)
     ]);
 
     // Store the calculated metrics and their latencies in the JSON object
@@ -52,13 +58,19 @@ export async function getMetrics(URL: string): Promise<string> {
     repo_data.RampUp_Latency = rampUpLatency;
     repo_data.ResponsiveMaintainer = responsiveMaintainerScore;
     repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
+    repo_data.dependencyPinning = dependencyPinningScore;
+    repo_data.dependencyPinning_Latency = dependencyPinningLatency;
+    repo_data.ReviewPercentage = reviewPercentageScore;
+    repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 
     const netScore = await getNetScore(
         rampUpScore,
         correctnessScore,
         busFactorScore,
         responsiveMaintainerScore,
-        licenseScore
+        licenseScore,
+        dependencyPinningScore,
+        reviewPercentageScore
     );
 
     const netScore_Latency = await getNetScoreLatency(
@@ -66,9 +78,12 @@ export async function getMetrics(URL: string): Promise<string> {
         correctnessLatency,
         busFactorLatency,
         responsiveMaintainerLatency,
-        licenseLatency
+        licenseLatency,
+        dependencyPinningLatency,
+        reviewPercentageLatency
     );
 
+    logger.debug(`getMetrics Score Latency calculated. Net Score Latency: ${netScore}`);
     logger.debug(`getMetrics Net Score Latency calculated. Net Score Latency: ${netScore_Latency}`);
 
     // Store the Net Score and latency

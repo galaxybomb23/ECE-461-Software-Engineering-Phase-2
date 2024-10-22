@@ -18,18 +18,22 @@ export async function getNetScore(
     correctness: number,
     bus_factor: number,
     responsive_maintainer: number,
-    license: number
+    license: number,
+    dependencyPinning: number,
+    review_percentage: number
 ): Promise<number> {
 
     // Initialize net score to zero
     let net_score = 0;
 
     // Add weighted contributions to the net score
-    net_score += (0.25) * bus_factor;         // Weighted Bus Factor Score (25%)
-    net_score += (0.25) * responsive_maintainer; // Weighted Responsive Maintainer Score (25%)
+    net_score += (0.2) * bus_factor;         // Weighted Bus Factor Score (20%)
+    net_score += (0.2) * responsive_maintainer; // Weighted Responsive Maintainer Score (20%)
     net_score += (0.2) * correctness;         // Weighted Correctness score (20%)
-    net_score += (0.1) * ramp_up_time;       // Weighted Ramp-Up Time score (10%)
-    net_score = license ? net_score + 0.2 : 0;          // Weighted License score (20%)
+    net_score += (0.2) * ramp_up_time;       // Weighted Ramp-Up Time score (10%)
+    net_score += (0.1) * dependencyPinning;
+    net_score += (0.1) * review_percentage;
+    net_score = license ? net_score : 0;          // Weighted License score (10%)
 
 
     // Round the net score to one decimal place
@@ -55,10 +59,12 @@ export async function getNetScoreLatency(
     correctness_latency: number,
     bus_factor_latency: number,
     responsive_maintainer_latency: number,
-    license_latency: number
+    license_latency: number,
+    dependencyPinning_latency: number,
+    review_percentage_latency: number
 ): Promise<number> {
     // Calculate total latency by summing individual latencies
-    let netScore_Latency = ramp_up_latency + correctness_latency + bus_factor_latency + responsive_maintainer_latency + license_latency;
+    let netScore_Latency = ramp_up_latency + correctness_latency + bus_factor_latency + responsive_maintainer_latency + license_latency + dependencyPinning_latency + review_percentage_latency;
 
     logger.debug(`getNetScoreLatency Net score latency calculated before rounding. Net score latency: ${netScore_Latency}`);
 
