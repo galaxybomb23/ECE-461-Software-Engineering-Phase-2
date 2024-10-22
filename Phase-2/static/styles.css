@@ -6,6 +6,7 @@
 body {
     color: #F5F5F5;
     background-color: #0c0c0c;
+    font-family: 'Roboto', sans-serif;
 }
 
 .title {
@@ -13,5 +14,4 @@ body {
     padding-left: 1rem;
     font-size: 1.5rem;
     font-weight: 500;
-    font-family: ;
 }

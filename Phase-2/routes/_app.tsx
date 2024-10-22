@@ -9,7 +9,7 @@ export default function App({ Component }: PageProps) {
         <link rel="stylesheet" href="/styles.css" />
         <link rel="stylesheet" href="/SearchBar.css" />
         <link rel="stylesheet" href="/Navbar.css" />
-        <link rel="stylesheet" href="/Home.css" />
+        <link rel="stylesheet" href="/UploadForm.css" />
       </head>
       <body>
         <Component />

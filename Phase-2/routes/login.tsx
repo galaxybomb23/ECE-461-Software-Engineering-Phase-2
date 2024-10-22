@@ -1,16 +1,10 @@
-import { signal } from "@preact/signals";
+import Navbar from "../components/NavBar.tsx";
 
 export default function Login() {
   return (
     <div>
         <div>
-            <nav className = "navbar">
-                <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/login">Login</a></li>
-                <li><a href="/admin">Admin</a></li>
-                </ul>
-            </nav>
+            <Navbar />
         </div>
         <div className = "title">
             Login

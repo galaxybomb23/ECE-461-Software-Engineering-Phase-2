@@ -18,7 +18,9 @@ import * as $api_tracks from "./routes/api/tracks.ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
+import * as $upload from "./routes/upload.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
+import * as $UploadForm from "./islands/UploadForm.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -39,9 +41,11 @@ const manifest = {
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
     "./routes/login.tsx": $login,
+    "./routes/upload.tsx": $upload,
   },
   islands: {
     "./islands/SearchBar.tsx": $SearchBar,
+    "./islands/UploadForm.tsx": $UploadForm,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

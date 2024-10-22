@@ -1,0 +1,66 @@
+/* static/UploadForm.css */
+
+/* General form container styling */
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #2e2b298d;
+    border: 1px solid #a5a5af8a;
+    border-radius: 0.2rem;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+/* Label and input styling */
+.upload-label {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #afbbcc;
+}
+
+.upload-input[type="file"] {
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 0.2rem;
+    margin-bottom: 20px;
+    width: 100%;
+    font-size: 14px;
+    color: red;
+}
+
+/* Button styling */
+.upload-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+    background-color: #45a049;
+}
+
+/* Status message styling */
+p {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #afbbcc;
+}
+
+/* Success or error message */
+p.success {
+    color: #4CAF50;
+}
+
+p.error {
+    color: #f44336;
+}
