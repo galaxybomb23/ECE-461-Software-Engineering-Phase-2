@@ -18,6 +18,7 @@ import * as $api_tracks from "./routes/api/tracks.ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
+import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
 import * as $UploadForm from "./islands/UploadForm.tsx";
@@ -41,6 +42,7 @@ const manifest = {
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
     "./routes/login.tsx": $login,
+    "./routes/search-results.tsx": $search_results,
     "./routes/upload.tsx": $upload,
   },
   islands: {

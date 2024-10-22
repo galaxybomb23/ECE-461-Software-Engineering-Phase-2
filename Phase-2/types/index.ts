@@ -1,4 +1,3 @@
-// Define all the types from the OpenAPI spec here
 export interface Package {
   metadata: PackageMetadata;
   data: PackageData;

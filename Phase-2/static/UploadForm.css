@@ -1,66 +1,177 @@
-/* static/UploadForm.css */
+.center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60vh;
+}
 
-/* General form container styling */
 .upload-form {
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 1.5rem;
     background-color: #2e2b298d;
     border: 1px solid #a5a5af8a;
-    border-radius: 0.2rem;
-    max-width: 400px;
-    margin: 20px auto;
+    border-radius: 0.3rem;
+    max-width: 600px;
+    width: 100%;
+    gap: 1rem; /* Add gap between elements */
 }
 
-/* Label and input styling */
+.file-input-row {
+    display: flex;
+    justify-content: space-between; /* Space between label and button */
+    align-items: center;
+    width: 100%; /* Ensure the row takes full width */
+}
+
 .upload-label {
     font-size: 16px;
     font-weight: 500;
-    margin-bottom: 10px;
     color: #afbbcc;
 }
 
-.upload-input[type="file"] {
-    padding: 10px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 0.2rem;
-    margin-bottom: 20px;
-    width: 100%;
-    font-size: 14px;
-    color: red;
+input[type="file"] {
+    display: none;
 }
 
-/* Button styling */
-.upload-button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 0.2rem;
+.upload-input {
+    padding: 10px;
+    background-color: #023c84;
+    border: 1px solid #a5a5af8a;
+    border-radius: 0.3rem;
+    width: 100%;
+    font-size: 14px;
+    color: #fafafa;
+    text-align: center;
+    transition: background-color 0.15s ease;
+}
+
+.upload-input:hover {
+    background-color: #1768AC;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+}
+
+.upload-button {
+    padding: 12px 24px;
+    background-color: #023c84;
+    border: 1px solid #a5a5af8a;
+    border-radius: 0.3rem;
+    color: #fafafa;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    width: 100%; /* Make button full width */
 }
 
 .upload-button:hover {
-    background-color: #45a049;
+    background-color: #1768AC;
 }
 
-/* Status message styling */
-p {
-    margin-top: 20px;
-    font-size: 14px;
+.upload-form p {
+    font-size: 16px;
     color: #afbbcc;
 }
 
-/* Success or error message */
-p.success {
-    color: #4CAF50;
+.file-info {
+    font-size: 1rem;
+    color: #afbbcc;
 }
 
-p.error {
-    color: #f44336;
+.custom-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.selector-option {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #023c84;
+    border: 1px solid #a5a5af8a;
+    border-radius: 0.3rem;
+    color: #fafafa;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.selector-option.active {
+    background-color: #1768AC;
+    transform: scale(1.05);
+}
+
+.selector-option:hover {
+    background-color: #175ea0;
+}
+
+.url-input-row, .file-input-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.url-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #a5a5af8a;
+    border-radius: 0.3rem;
+    background-color: #2e2b298d;
+}
+
+.url-input-row .upload-label {
+    margin-right: 10px;
+}
+
+.debloat-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.custom-checkbox {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background-color: #2e2b29;
+    border: 2px solid #afbbcc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.custom-checkbox.checked {
+    background-color: #1768AC;
+}
+
+.hidden-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background-color: #fafafa;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.2s ease;
+}
+
+.custom-checkbox.checked .checkmark {
+    transform: translate(-50%, -50%) scale(1);
 }

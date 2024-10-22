@@ -1,8 +1,9 @@
 import type { Signal } from "@preact/signals";
+import type { Package } from "~/types/index.ts";
 
 interface SearchBarProps {
     search: Signal<string>;
-    searchResults: Signal<any[]>; // Pass in searchResults as a prop
+    searchResults: Signal<Package[]>; // Pass in searchResults as a prop
 }
 
 export function SearchBar({ search, searchResults }: SearchBarProps) {
@@ -12,25 +13,30 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
         const searchQuery = search.value.trim(); // Get trimmed search value
     
         if (searchQuery) {
-            const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}/cost`;
+            const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}`;
             console.log("Fetching results from:", redirectUrl);
     
             try {
-                const response = await fetch(redirectUrl);
+                const response = await fetch(redirectUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Authorization': 'your-token-here'
+                    },
+                    body: JSON.stringify({ RegEx: searchQuery }),
+                });
+    
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
-                const result = await response.json();
-                console.log("Fetched result:", result); // Log fetched result
-    
-                // Extract the first key from the result object
-                const resultKey = Object.keys(result)[0]; // Get the first key in the result object
                 
-                if (resultKey && result[resultKey]) {
-                    searchResults.value = [result[resultKey]]; // Update results based on fetched data
-                } else {
-                    searchResults.value = []; // Clear results if no data found
-                }
+                const result: Package[] = await response.json();
+                console.log("Fetched result:", result);
+    
+                searchResults.value = result; // Update the results
+    
+                // Use window.location.href for redirection
+                window.location.href = `/search-results?query=${encodeURIComponent(searchQuery)}`;
             } catch (error) {
                 console.error("Error fetching search results:", error);
             }
@@ -38,7 +44,6 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
             console.error("Search query is empty. Not redirecting.");
         }
     };
-    
 
     return (
         <form className="search-form" onSubmit={handleSearchSubmit}>

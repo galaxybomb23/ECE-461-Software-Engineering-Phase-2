@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import { exit } from 'process';
-import { logger } from './logFile';
+import * as fs from "node:fs";
+import { logger } from "./logFile.ts";
+import process from "node:process";
 
 /**
  * Checks if a given URL is accessible by making a HEAD request.
