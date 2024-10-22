@@ -38,7 +38,7 @@ export interface PackageHistoryEntry {
   User: User;
   Date: string;
   PackageMetadata: PackageMetadata;
-  Action: 'CREATE' | 'UPDATE' | 'DOWNLOAD' | 'RATE';
+  Action: "CREATE" | "UPDATE" | "DOWNLOAD" | "RATE";
 }
 
 export interface User {

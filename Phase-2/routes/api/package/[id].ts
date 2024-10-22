@@ -1,4 +1,4 @@
-// API Endpoints: 
+// API Endpoints:
 // GET /package/{id} - Retrieve a package (BASELINE)
 // PUT /package/{id} - Update a package (BASELINE)
 // DELETE /package/{id} - Delete a package (NON-BASELINE)
@@ -11,7 +11,7 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const { id } = ctx.params;
     // Implement package retrieval logic here
-    const pkg: Package = { /* ... */ };
+    const pkg: Package = {/* ... */};
     return new Response(JSON.stringify(pkg), {
       headers: { "Content-Type": "application/json" },
     });
