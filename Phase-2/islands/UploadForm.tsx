@@ -57,7 +57,7 @@ export default function UploadForm() {
             const payload: { 
                 debloat: boolean;
                 Content?: string; 
-                Url?: string; 
+                URL?: string; 
             } = {
                 debloat: debloat,
             };
@@ -66,7 +66,7 @@ export default function UploadForm() {
                 const base64File = await convertFileToBase64(selectedFile);
                 payload.Content = base64File;
             } else if (selectedOption === "url" && inputUrl) {
-                payload.Url = inputUrl;
+                payload.URL = inputUrl;
             }
 
             const headers = {
