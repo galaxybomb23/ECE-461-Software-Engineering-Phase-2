@@ -1,10 +1,10 @@
 import { signal } from "@preact/signals";
 import { SearchBar } from "../islands/SearchBar.tsx";
-import type { PackageMetadata } from "~/types/index.ts";
+import type { Package } from "~/types/index.ts";
 
 export default function NavBar() {
   const searchQuery = signal("");
-  const searchResults = signal<PackageMetadata[]>([]);
+  const searchResults = signal<Package[]>([]);
 
   return (
     <nav className="navbar">
