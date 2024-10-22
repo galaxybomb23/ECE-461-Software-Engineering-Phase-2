@@ -1,11 +1,11 @@
 import Navbar from "../components/NavBar.tsx";
 
 export default function Home() {
-    return (
-        <div>
-            <Navbar />
+  return (
+    <div>
+      <Navbar />
 
-            <div className="title">Home</div>
-        </div>
-    );
+      <div className="title">Home</div>
+    </div>
+  );
 }

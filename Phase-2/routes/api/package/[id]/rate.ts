@@ -9,7 +9,7 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const { id } = ctx.params;
     // Implement package rating logic here
-    const rating: PackageRating = { /* ... */ };
+    const rating: PackageRating = {/* ... */};
     return new Response(JSON.stringify(rating), {
       headers: { "Content-Type": "application/json" },
     });

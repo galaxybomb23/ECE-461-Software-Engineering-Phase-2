@@ -8,4 +8,3 @@ export const handler: Handlers = {
     return new Response("Welcome to the Package Registry API");
   },
 };
-

@@ -9,7 +9,7 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const { id } = ctx.params;
     // Implement package cost calculation logic here
-    const cost: PackageCost = { 
+    const cost: PackageCost = {
       [id]: {
         standaloneCost: 0, //ADD CODE HERE
         totalCost: 0, //ADD CODE HERE
