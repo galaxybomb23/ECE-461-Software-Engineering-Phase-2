@@ -9,17 +9,17 @@ import { NpmPackageData } from "../types/Phase1Types.ts";
  * @returns {string} The cleaned-up GitHub URL (e.g., https://github.com/browserify/browserify).
  */
 function convertGitUrlToHttps(repoUrl: string): string {
-  if (repoUrl.startsWith("git+")) {
-    // Remove 'git+' and replace 'git@' with 'https://'
-    repoUrl = repoUrl.replace("git+ssh://git@", "https://");
-  }
+	if (repoUrl.startsWith("git+")) {
+		// Remove 'git+' and replace 'git@' with 'https://'
+		repoUrl = repoUrl.replace("git+ssh://git@", "https://");
+	}
 
-  // Remove the '.git' extension if present
-  if (repoUrl.endsWith(".git")) {
-    repoUrl = repoUrl.slice(0, -4);
-  }
+	// Remove the '.git' extension if present
+	if (repoUrl.endsWith(".git")) {
+		repoUrl = repoUrl.slice(0, -4);
+	}
 
-  return repoUrl; // Return the cleaned GitHub URL
+	return repoUrl; // Return the cleaned GitHub URL
 }
 
 /**
@@ -29,34 +29,34 @@ function convertGitUrlToHttps(repoUrl: string): string {
  * @returns {Promise<string>} A promise that resolves to the cleaned GitHub repository URL.
  */
 export async function getNodeJsAPILink(url: string): Promise<string> {
-  const url_parts = url.split("/");
-  const repo = url_parts[url_parts.length - 1]; // Extract the repository name
-  const registry_url = `https://registry.npmjs.org/${repo}`; // Construct the registry URL
+	const url_parts = url.split("/");
+	const repo = url_parts[url_parts.length - 1]; // Extract the repository name
+	const registry_url = `https://registry.npmjs.org/${repo}`; // Construct the registry URL
 
-  try {
-    // Fetch JSON data from the npm registry
-    const data = (await fetchJsonFromApi(registry_url)) as NpmPackageData;
+	try {
+		// Fetch JSON data from the npm registry
+		const data = (await fetchJsonFromApi(registry_url)) as NpmPackageData;
 
-    // Extract the GitHub repository link from the npm package data
-    const repositoryUrl = data?.repository?.url;
+		// Extract the GitHub repository link from the npm package data
+		const repositoryUrl = data?.repository?.url;
 
-    logger.debug(
-      `getNodeJsAPILink Extracted repository URL from package data. Repository URL: ${repositoryUrl}`,
-    );
+		logger.debug(
+			`getNodeJsAPILink Extracted repository URL from package data. Repository URL: ${repositoryUrl}`,
+		);
 
-    if (repositoryUrl) {
-      const httpsRepoUrl = convertGitUrlToHttps(repositoryUrl); // Convert to HTTPS format
-      return httpsRepoUrl; // Return the cleaned GitHub repository URL
-    } else {
-      logger.debug(
-        "getNodeJsAPILink - no GitHub link found - This may be an issue",
-      );
-      return ""; // Return an empty string if no GitHub link is found
-    }
-  } catch (error) {
-    logger.error(
-      `getNodeJsAPILink Error fetching data from npm API. Error: ${error}`,
-    );
-    return ""; // Return an empty string in case of an error
-  }
+		if (repositoryUrl) {
+			const httpsRepoUrl = convertGitUrlToHttps(repositoryUrl); // Convert to HTTPS format
+			return httpsRepoUrl; // Return the cleaned GitHub repository URL
+		} else {
+			logger.debug(
+				"getNodeJsAPILink - no GitHub link found - This may be an issue",
+			);
+			return ""; // Return an empty string if no GitHub link is found
+		}
+	} catch (error) {
+		logger.error(
+			`getNodeJsAPILink Error fetching data from npm API. Error: ${error}`,
+		);
+		return ""; // Return an empty string in case of an error
+	}
 }

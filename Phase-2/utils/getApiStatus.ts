@@ -7,12 +7,12 @@ import { Octokit } from "https://esm.sh/octokit@2.0.11";
 // logger.debug(`Rate limit status: ${status.data.rate.remaining} remaining out of ${status.data.rate.limit}`);
 
 export async function getApiStatus(apiKey: string) {
-  const OCTOKIT = new Octokit({
-    auth: apiKey,
-  });
+	const OCTOKIT = new Octokit({
+		auth: apiKey,
+	});
 
-  const status = await OCTOKIT.rateLimit.get();
-  logger.debug(
-    `Rate limit status: ${status.data.rate.remaining} remaining out of ${status.data.rate.limit}`,
-  );
+	const status = await OCTOKIT.rateLimit.get();
+	logger.debug(
+		`Rate limit status: ${status.data.rate.remaining} remaining out of ${status.data.rate.limit}`,
+	);
 }

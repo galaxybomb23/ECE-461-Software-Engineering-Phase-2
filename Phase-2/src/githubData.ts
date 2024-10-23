@@ -10,19 +10,19 @@ import { Contributor } from "../types/Phase1Types.ts";
  * @returns {string} The GitHub API URL for the specified endpoint.
  */
 export function getGitHubAPILink(url: string, endpoint: string = ""): string {
-  const urlParts = url.split("/"); // Split link into parts
-  const owner = urlParts[urlParts.length - 2]; // Isolate owner
-  let repo = urlParts[urlParts.length - 1]; // Isolate repository name
+	const urlParts = url.split("/"); // Split link into parts
+	const owner = urlParts[urlParts.length - 2]; // Isolate owner
+	let repo = urlParts[urlParts.length - 1]; // Isolate repository name
 
-  if (repo.endsWith(".git")) {
-    logger.debug(
-      `getGitHubAPILink - Removing .git Repository name contained .git, removing it. Repository after removing .git: ${repo}`,
-    );
-    repo = repo.slice(0, -4); // Remove the last 4 characters (".git")
-  }
-  return `https://api.github.com/repos/${owner}/${repo}${
-    endpoint ? "/" + endpoint : ""
-  }`; // Return API link with endpoint
+	if (repo.endsWith(".git")) {
+		logger.debug(
+			`getGitHubAPILink - Removing .git Repository name contained .git, removing it. Repository after removing .git: ${repo}`,
+		);
+		repo = repo.slice(0, -4); // Remove the last 4 characters (".git")
+	}
+	return `https://api.github.com/repos/${owner}/${repo}${
+		endpoint ? "/" + endpoint : ""
+	}`; // Return API link with endpoint
 }
 
 /**
@@ -32,29 +32,29 @@ export function getGitHubAPILink(url: string, endpoint: string = ""): string {
  * @returns {number[]} An array of contribution counts, one for each contributor.
  */
 export function getContributionCounts(data: Contributor[]): number[] {
-  const contributionCounts: number[] = [];
+	const contributionCounts: number[] = [];
 
-  // Iterate over each item in the response data.
-  for (const item of data) {
-    // Check if the 'contributions' field exists and is a number.
-    if (typeof item.contributions === "number") {
-      contributionCounts.push(item.contributions);
-    } else {
-      logger.error(
-        `getContributionCounts - Invalid Contribution Contributions field is not a number or does not exist. Item: ${
-          JSON.stringify(item)
-        }`,
-      );
-    }
-  }
+	// Iterate over each item in the response data.
+	for (const item of data) {
+		// Check if the 'contributions' field exists and is a number.
+		if (typeof item.contributions === "number") {
+			contributionCounts.push(item.contributions);
+		} else {
+			logger.error(
+				`getContributionCounts - Invalid Contribution Contributions field is not a number or does not exist. Item: ${
+					JSON.stringify(item)
+				}`,
+			);
+		}
+	}
 
-  logger.debug(
-    `getContributionCounts - Final Counts Extraction of contribution counts completed. Final contribution counts: ${
-      JSON.stringify(contributionCounts)
-    }`,
-  );
+	logger.debug(
+		`getContributionCounts - Final Counts Extraction of contribution counts completed. Final contribution counts: ${
+			JSON.stringify(contributionCounts)
+		}`,
+	);
 
-  return contributionCounts; // Return the array of contribution counts.
+	return contributionCounts; // Return the array of contribution counts.
 }
 
 /**
@@ -65,39 +65,39 @@ export function getContributionCounts(data: Contributor[]): number[] {
  * @returns {Promise<number>} - The number of open issues.
  */
 export async function fetchOpenIssuesCount(
-  owner: string,
-  repo: string,
+	owner: string,
+	repo: string,
 ): Promise<number> {
-  let page = 1;
-  let totalOpenIssues = 0;
-  let issuesOnPage = 0;
+	let page = 1;
+	let totalOpenIssues = 0;
+	let issuesOnPage = 0;
 
-  do {
-    const issuesApiUrl =
-      `https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100&page=${page}`;
-    try {
-      const response = await axios.get(issuesApiUrl, {
-        headers: {
-          "Accept": "application/vnd.github.v3+json",
-        },
-      });
-      issuesOnPage = response.data.length; // Number of open issues on this page
-      totalOpenIssues += issuesOnPage;
-      page++; // Move to the next page
-    } catch (error) {
-      logger.error("fetchOpenIssuesCount - API Error", [
-        "Error occurred while fetching open issues.",
-        `Error details: ${error}`,
-      ]);
-      return totalOpenIssues; // Return the count gathered so far
-    }
-  } while (issuesOnPage === 100); // Keep going until fewer than 100 issues are returned (end of pages)
+	do {
+		const issuesApiUrl =
+			`https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100&page=${page}`;
+		try {
+			const response = await axios.get(issuesApiUrl, {
+				headers: {
+					"Accept": "application/vnd.github.v3+json",
+				},
+			});
+			issuesOnPage = response.data.length; // Number of open issues on this page
+			totalOpenIssues += issuesOnPage;
+			page++; // Move to the next page
+		} catch (error) {
+			logger.error("fetchOpenIssuesCount - API Error", [
+				"Error occurred while fetching open issues.",
+				`Error details: ${error}`,
+			]);
+			return totalOpenIssues; // Return the count gathered so far
+		}
+	} while (issuesOnPage === 100); // Keep going until fewer than 100 issues are returned (end of pages)
 
-  logger.debug(
-    `fetchOpenIssuesCount - Final Count Completed fetching open issues. Total open issues count: ${totalOpenIssues}`,
-  );
+	logger.debug(
+		`fetchOpenIssuesCount - Final Count Completed fetching open issues. Total open issues count: ${totalOpenIssues}`,
+	);
 
-  return totalOpenIssues;
+	return totalOpenIssues;
 }
 
 /**
@@ -108,36 +108,36 @@ export async function fetchOpenIssuesCount(
  * @returns {Promise<number>} - The number of closed issues.
  */
 export async function fetchClosedIssuesCount(
-  owner: string,
-  repo: string,
+	owner: string,
+	repo: string,
 ): Promise<number> {
-  let page = 1;
-  let totalClosedIssues = 0;
-  let issuesOnPage = 0;
-  do {
-    const issuesApiUrl =
-      `https://api.github.com/repos/${owner}/${repo}/issues?state=closed&per_page=100&page=${page}`;
-    try {
-      const response = await axios.get(issuesApiUrl, {
-        headers: {
-          "Accept": "application/vnd.github.v3+json",
-        },
-      });
-      issuesOnPage = response.data.length; // Number of closed issues on this page
-      totalClosedIssues += issuesOnPage;
-      page++; // Move to the next page
-    } catch (error) {
-      logger.error("fetchClosedIssuesCount - API Error", [
-        "Error occurred while fetching closed issues.",
-        `Error details: ${error}`,
-      ]);
-      return totalClosedIssues; // Return the count gathered so far
-    }
-  } while (issuesOnPage === 100); // Keep going until fewer than 100 issues are returned (end of pages)
+	let page = 1;
+	let totalClosedIssues = 0;
+	let issuesOnPage = 0;
+	do {
+		const issuesApiUrl =
+			`https://api.github.com/repos/${owner}/${repo}/issues?state=closed&per_page=100&page=${page}`;
+		try {
+			const response = await axios.get(issuesApiUrl, {
+				headers: {
+					"Accept": "application/vnd.github.v3+json",
+				},
+			});
+			issuesOnPage = response.data.length; // Number of closed issues on this page
+			totalClosedIssues += issuesOnPage;
+			page++; // Move to the next page
+		} catch (error) {
+			logger.error("fetchClosedIssuesCount - API Error", [
+				"Error occurred while fetching closed issues.",
+				`Error details: ${error}`,
+			]);
+			return totalClosedIssues; // Return the count gathered so far
+		}
+	} while (issuesOnPage === 100); // Keep going until fewer than 100 issues are returned (end of pages)
 
-  logger.debug(
-    `fetchClosedIssuesCount - Final Count Completed fetching closed issues. Total closed issues count: ${totalClosedIssues}`,
-  );
+	logger.debug(
+		`fetchClosedIssuesCount - Final Count Completed fetching closed issues. Total closed issues count: ${totalClosedIssues}`,
+	);
 
-  return totalClosedIssues;
+	return totalClosedIssues;
 }

@@ -12,48 +12,50 @@ import { Issue, MetricsResult, RepoData } from "../../types/Phase1Types.ts";
  * @returns {Promise<MetricsResult>} - The Responsive Maintainer score (0-1) and fetch latency.
  */
 export async function calculateResponsiveMaintainer(
-  URL: string,
+	URL: string,
 ): Promise<MetricsResult> {
-  const latency_start = getTimestampWithThreeDecimalPlaces();
-  const API_link = getGitHubAPILink(URL);
-  const [repoData, issuesData] = await Promise.all([
-    fetchJsonFromApi(API_link),
-    fetchJsonFromApi(`${API_link}/issues?state=all`),
-  ]);
+	const latency_start = getTimestampWithThreeDecimalPlaces();
+	const API_link = getGitHubAPILink(URL);
+	const [repoData, issuesData] = await Promise.all([
+		fetchJsonFromApi(API_link),
+		fetchJsonFromApi(`${API_link}/issues?state=all`),
+	]);
 
-  let openIssuesCount = 0;
-  let closedIssuesCount = 0;
+	let openIssuesCount = 0;
+	let closedIssuesCount = 0;
 
-  // Count open and closed issues
-  for (const issue of issuesData as Issue[]) {
-    if (issue.closed_at) {
-      closedIssuesCount++;
-    } else {
-      openIssuesCount++;
-    }
-  }
-  logger.debug(
-    `calculateResponsiveMaintainer Counted issues - Open: ${openIssuesCount}, Closed: ${closedIssuesCount}`,
-  );
+	// Count open and closed issues
+	for (const issue of issuesData as Issue[]) {
+		if (issue.closed_at) {
+			closedIssuesCount++;
+		} else {
+			openIssuesCount++;
+		}
+	}
+	logger.debug(
+		`calculateResponsiveMaintainer Counted issues - Open: ${openIssuesCount}, Closed: ${closedIssuesCount}`,
+	);
 
-  // Use open_issues_count from repoData if available
-  openIssuesCount = (repoData as RepoData).open_issues_count ||
-    openIssuesCount;
+	// Use open_issues_count from repoData if available
+	openIssuesCount = (repoData as RepoData).open_issues_count ||
+		openIssuesCount;
 
-  // Calculate the ratio of open to closed issues
-  const ratio = closedIssuesCount > 0 ? openIssuesCount / closedIssuesCount : 0; // Avoid division by zero
-  const score = parseFloat((1 / (1 + ratio)).toFixed(2)); // Calculate score
-  logger.debug(
-    `calculateResponsiveMaintainer Calculated Responsive Maintainer score. Score: ${score}`,
-  );
+	// Calculate the ratio of open to closed issues
+	const ratio = closedIssuesCount > 0
+		? openIssuesCount / closedIssuesCount
+		: 0; // Avoid division by zero
+	const score = parseFloat((1 / (1 + ratio)).toFixed(2)); // Calculate score
+	logger.debug(
+		`calculateResponsiveMaintainer Calculated Responsive Maintainer score. Score: ${score}`,
+	);
 
-  // Calculate latency in milliseconds
-  const latencyMs = parseFloat(
-    (getTimestampWithThreeDecimalPlaces() - latency_start).toFixed(3),
-  );
-  logger.debug(
-    `calculateResponsiveMaintainer Calculated fetch latency. Latency: ${latencyMs} ms`,
-  );
+	// Calculate latency in milliseconds
+	const latencyMs = parseFloat(
+		(getTimestampWithThreeDecimalPlaces() - latency_start).toFixed(3),
+	);
+	logger.debug(
+		`calculateResponsiveMaintainer Calculated fetch latency. Latency: ${latencyMs} ms`,
+	);
 
-  return { score, latency: latencyMs }; // Return score and latency
+	return { score, latency: latencyMs }; // Return score and latency
 }

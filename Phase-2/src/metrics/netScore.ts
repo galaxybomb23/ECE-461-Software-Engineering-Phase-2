@@ -14,33 +14,33 @@ import { logger } from "../logFile.ts";
  * @returns {Promise<number>} - The calculated net score.
  */
 export function getNetScore(
-  ramp_up_time: number,
-  correctness: number,
-  bus_factor: number,
-  responsive_maintainer: number,
-  license: number,
-  dependencyPinning: number,
-  review_percentage: number,
+	ramp_up_time: number,
+	correctness: number,
+	bus_factor: number,
+	responsive_maintainer: number,
+	license: number,
+	dependencyPinning: number,
+	review_percentage: number,
 ): number {
-  // Initialize net score to zero
-  let net_score = 0;
+	// Initialize net score to zero
+	let net_score = 0;
 
-  // Add weighted contributions to the net score
-  net_score += (0.2) * bus_factor; // Weighted Bus Factor Score (20%)
-  net_score += (0.2) * responsive_maintainer; // Weighted Responsive Maintainer Score (20%)
-  net_score += (0.2) * correctness; // Weighted Correctness score (20%)
-  net_score += (0.2) * ramp_up_time; // Weighted Ramp-Up Time score (10%)
-  net_score += (0.1) * dependencyPinning;
-  net_score += (0.1) * review_percentage;
-  net_score = license ? net_score : 0; // Weighted License score (10%)
+	// Add weighted contributions to the net score
+	net_score += (0.2) * bus_factor; // Weighted Bus Factor Score (20%)
+	net_score += (0.2) * responsive_maintainer; // Weighted Responsive Maintainer Score (20%)
+	net_score += (0.2) * correctness; // Weighted Correctness score (20%)
+	net_score += (0.2) * ramp_up_time; // Weighted Ramp-Up Time score (10%)
+	net_score += (0.1) * dependencyPinning;
+	net_score += (0.1) * review_percentage;
+	net_score = license ? net_score : 0; // Weighted License score (10%)
 
-  // Round the net score to one decimal place
-  net_score = parseFloat(net_score.toFixed(1));
-  logger.debug(
-    `getNetScore 'Net score rounded. Rounded net score: ${net_score}`,
-  );
+	// Round the net score to one decimal place
+	net_score = parseFloat(net_score.toFixed(1));
+	logger.debug(
+		`getNetScore 'Net score rounded. Rounded net score: ${net_score}`,
+	);
 
-  return net_score; // Return the final net score
+	return net_score; // Return the final net score
 }
 
 /**
@@ -55,32 +55,32 @@ export function getNetScore(
  * @returns {Promise<number>} - The calculated net score latency.
  */
 export function getNetScoreLatency(
-  ramp_up_latency: number,
-  correctness_latency: number,
-  bus_factor_latency: number,
-  responsive_maintainer_latency: number,
-  license_latency: number,
-  dependencyPinning_latency: number,
-  review_percentage_latency: number,
+	ramp_up_latency: number,
+	correctness_latency: number,
+	bus_factor_latency: number,
+	responsive_maintainer_latency: number,
+	license_latency: number,
+	dependencyPinning_latency: number,
+	review_percentage_latency: number,
 ): number {
-  // Calculate total latency by summing individual latencies
-  let netScore_Latency = ramp_up_latency +
-    correctness_latency +
-    bus_factor_latency +
-    responsive_maintainer_latency +
-    license_latency +
-    dependencyPinning_latency +
-    review_percentage_latency;
+	// Calculate total latency by summing individual latencies
+	let netScore_Latency = ramp_up_latency +
+		correctness_latency +
+		bus_factor_latency +
+		responsive_maintainer_latency +
+		license_latency +
+		dependencyPinning_latency +
+		review_percentage_latency;
 
-  logger.debug(
-    `getNetScoreLatency Net score latency calculated before rounding. Net score latency: ${netScore_Latency}`,
-  );
+	logger.debug(
+		`getNetScoreLatency Net score latency calculated before rounding. Net score latency: ${netScore_Latency}`,
+	);
 
-  // Round the total latency to one decimal place
-  netScore_Latency = parseFloat(netScore_Latency.toFixed(3));
-  logger.debug(
-    `getNetScoreLatency Net score latency rounded. Rounded net score latency: ${netScore_Latency}`,
-  );
+	// Round the total latency to one decimal place
+	netScore_Latency = parseFloat(netScore_Latency.toFixed(3));
+	logger.debug(
+		`getNetScoreLatency Net score latency rounded. Rounded net score latency: ${netScore_Latency}`,
+	);
 
-  return netScore_Latency; // Return the final net score latency
+	return netScore_Latency; // Return the final net score latency
 }
