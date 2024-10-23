@@ -36,7 +36,7 @@ jobs:
       #   run: deno fmt --check
 
       - name: Run linter
-        run: deno lint --rules-exclude=no-unused-vars,require-await Phase-2  #change once all baseline code is implemented
+        run: deno lint Phase-2  #change once all baseline code is implemented
 
       - name: Run tests
         run: deno test -A Phase-2 
