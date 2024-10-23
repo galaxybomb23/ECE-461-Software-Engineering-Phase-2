@@ -25,31 +25,31 @@ import * as $UploadForm from "./islands/UploadForm.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
-  routes: {
-    "./routes/_404.tsx": $_404,
-    "./routes/_app.tsx": $_app,
-    "./routes/admin.tsx": $admin,
-    "./routes/api-index.tsx": $api_index,
-    "./routes/api/authenticate.ts": $api_authenticate,
-    "./routes/api/joke.ts": $api_joke,
-    "./routes/api/package/[id].ts": $api_package_id_,
-    "./routes/api/package/[id]/cost.ts": $api_package_id_cost,
-    "./routes/api/package/[id]/rate.ts": $api_package_id_rate,
-    "./routes/api/package/byName/[name].ts": $api_package_byName_name_,
-    "./routes/api/packages.ts": $api_packages,
-    "./routes/api/reset.ts": $api_reset,
-    "./routes/api/tracks.ts": $api_tracks,
-    "./routes/greet/[name].tsx": $greet_name_,
-    "./routes/index.tsx": $index,
-    "./routes/login.tsx": $login,
-    "./routes/search-results.tsx": $search_results,
-    "./routes/upload.tsx": $upload,
-  },
-  islands: {
-    "./islands/SearchBar.tsx": $SearchBar,
-    "./islands/UploadForm.tsx": $UploadForm,
-  },
-  baseUrl: import.meta.url,
+	routes: {
+		"./routes/_404.tsx": $_404,
+		"./routes/_app.tsx": $_app,
+		"./routes/admin.tsx": $admin,
+		"./routes/api-index.tsx": $api_index,
+		"./routes/api/authenticate.ts": $api_authenticate,
+		"./routes/api/joke.ts": $api_joke,
+		"./routes/api/package/[id].ts": $api_package_id_,
+		"./routes/api/package/[id]/cost.ts": $api_package_id_cost,
+		"./routes/api/package/[id]/rate.ts": $api_package_id_rate,
+		"./routes/api/package/byName/[name].ts": $api_package_byName_name_,
+		"./routes/api/packages.ts": $api_packages,
+		"./routes/api/reset.ts": $api_reset,
+		"./routes/api/tracks.ts": $api_tracks,
+		"./routes/greet/[name].tsx": $greet_name_,
+		"./routes/index.tsx": $index,
+		"./routes/login.tsx": $login,
+		"./routes/search-results.tsx": $search_results,
+		"./routes/upload.tsx": $upload,
+	},
+	islands: {
+		"./islands/SearchBar.tsx": $SearchBar,
+		"./islands/UploadForm.tsx": $UploadForm,
+	},
+	baseUrl: import.meta.url,
 } satisfies Manifest;
 
 export default manifest;

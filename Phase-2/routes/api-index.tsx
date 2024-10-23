@@ -3,8 +3,8 @@
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  // Handles GET request to the root of the API
-  GET(req) {
-    return new Response("Welcome to the Package Registry API");
-  },
+	// Handles GET request to the root of the API
+	GET(req) {
+		return new Response("Welcome to the Package Registry API");
+	},
 };
