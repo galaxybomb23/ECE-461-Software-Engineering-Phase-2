@@ -10,13 +10,11 @@
 		"update": "deno run -A -r https://fresh.deno.dev/update ."
 	},
 	"lint": {
-		"exclude": ["node_modules"],
 		"rules": {
 			"tags": [
 				"fresh",
 				"recommended"
-			],
-			"exclude": ["no-unused-vars", "require-await"]
+			]
 		}
 	},
 	"exclude": [
