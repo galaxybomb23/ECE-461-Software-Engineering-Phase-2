@@ -12,6 +12,7 @@ Deno.test(TESTNAME, async () => {
 
 	// test code
 	await populateDatabase(db);
+	// check if packages and users tables are populated
 	const packages: Row[] = await db.query(`SELECT * FROM packages`);
 	assertEquals(packages.length, 2, "Packages table should have 2 entries");
 	const users: Row[] = await db.query(`SELECT * FROM users`);

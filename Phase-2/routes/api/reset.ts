@@ -21,6 +21,9 @@ export async function resetDatabase(db: DB) {
 	await db.execute("DELETE FROM packages");
 	logger.debug(`Packages deleted (${db.changes}): ${packages.toString()}`);
 
+	//reset package sequence
+	await db.execute("DELETE FROM sqlite_sequence WHERE name = 'packages'");
+
 	// await db.exec("DELETE FROM users");
 	// logger.debug("Users deleted: changed rows: " + db.changes);
 }
