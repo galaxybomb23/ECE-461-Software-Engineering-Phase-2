@@ -26,8 +26,7 @@ export async function calculateDependencyPinning(
 
 		try {
 			// Fetch the manifest file from the GitHub API
-			const manifestData =
-				(await fetchJsonFromApi(manifestApiUrl)) as ManifestData;
+			const manifestData = (await fetchJsonFromApi(manifestApiUrl)) as ManifestData;
 			const manifestContent = Buffer.from(manifestData.content, "base64")
 				.toString("utf-8");
 
@@ -56,9 +55,7 @@ export async function calculateDependencyPinning(
 	}
 
 	// Score is 1 if there are no dependencies, otherwise it is the ratio of pinned dependencies to total dependencies
-	const score = totalDependencies === 0
-		? 1
-		: pinnedDependencies / totalDependencies;
+	const score = totalDependencies === 0 ? 1 : pinnedDependencies / totalDependencies;
 	logger.log(
 		"info",
 		`calculateDependencyPinning - Score: ${score}, Latency: ${
@@ -95,9 +92,7 @@ function parseDependencies(
 		}));
 	} else if (fileType === "requirements.txt") {
 		// Parse requirements.txt (Python)
-		const lines = fileContent.split("\n").filter((line) =>
-			line.trim() && !line.startsWith("#")
-		); // Ignore comments
+		const lines = fileContent.split("\n").filter((line) => line.trim() && !line.startsWith("#")); // Ignore comments
 		dependencies = lines.map((line) => {
 			const [name, version] = line.split("==");
 			return {
@@ -107,9 +102,7 @@ function parseDependencies(
 		});
 	} else if (fileType === "Pipfile") {
 		// Parse Pipfile (Python, TOML format)
-		const lines = fileContent.split("\n").filter((line) =>
-			line.trim() && !line.startsWith("#")
-		); // Ignore comments
+		const lines = fileContent.split("\n").filter((line) => line.trim() && !line.startsWith("#")); // Ignore comments
 		let inPackagesSection = false;
 		let inDevPackagesSection = false;
 
@@ -130,9 +123,7 @@ function parseDependencies(
 				(inPackagesSection || inDevPackagesSection) &&
 				line.includes("=")
 			) {
-				const [name, version] = line.split("=").map((item) =>
-					item.trim().replace(/["']/g, "")
-				); // Remove quotes around version
+				const [name, version] = line.split("=").map((item) => item.trim().replace(/["']/g, "")); // Remove quotes around version
 				dependencies.push({
 					name,
 					version: version === "*" ? "latest" : version,
@@ -141,9 +132,7 @@ function parseDependencies(
 		}
 	} else if (fileType === "Cargo.toml") {
 		// Parse Cargo.toml (Rust)
-		const lines = fileContent.split("\n").filter((line) =>
-			line.trim() && !line.startsWith("#")
-		); // Ignore comments
+		const lines = fileContent.split("\n").filter((line) => line.trim() && !line.startsWith("#")); // Ignore comments
 		let inDependenciesSection = false;
 		for (const line of lines) {
 			if (line.startsWith("[dependencies]")) {
@@ -155,9 +144,7 @@ function parseDependencies(
 				inDependenciesSection && line.includes("=") &&
 				!line.startsWith("[")
 			) {
-				const [name, version] = line.split("=").map((item) =>
-					item.trim().replace(/["']/g, "")
-				); // Remove quotes around version
+				const [name, version] = line.split("=").map((item) => item.trim().replace(/["']/g, "")); // Remove quotes around version
 				dependencies.push({ name, version });
 			}
 		}

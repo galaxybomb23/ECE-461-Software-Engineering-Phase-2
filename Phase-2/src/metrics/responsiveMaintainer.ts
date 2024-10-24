@@ -41,9 +41,7 @@ export async function calculateResponsiveMaintainer(
 		openIssuesCount;
 
 	// Calculate the ratio of open to closed issues
-	const ratio = closedIssuesCount > 0
-		? openIssuesCount / closedIssuesCount
-		: 0; // Avoid division by zero
+	const ratio = closedIssuesCount > 0 ? openIssuesCount / closedIssuesCount : 0; // Avoid division by zero
 	const score = parseFloat((1 / (1 + ratio)).toFixed(2)); // Calculate score
 	logger.debug(
 		`calculateResponsiveMaintainer Calculated Responsive Maintainer score. Score: ${score}`,

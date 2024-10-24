@@ -3,7 +3,7 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { logger } from "../../src/logFile.ts";
+import { logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	// Handles DELETE request to reset the database

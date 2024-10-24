@@ -14,11 +14,7 @@ Deno.test(TESTNAME, async () => {
         db = await setup(TESTNAME);
         await populateDatabase(db);
         const packages: Row[] = await db.query(`SELECT * FROM packages`);
-        assertEquals(
-            packages.length,
-            2,
-            "Packages table should have 2 entries",
-        );
+        assertEquals(packages.length, 2, "Packages table should have 2 entries");
         const users: Row[] = await db.query(`SELECT * FROM users`);
         assertEquals(users.length, 2, "Users table should have 2 entries");
 

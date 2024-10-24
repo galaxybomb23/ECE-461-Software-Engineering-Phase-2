@@ -2,12 +2,7 @@ import { getGitHubAPILink } from "../githubData.ts";
 import { fetchJsonFromApi } from "../API.ts";
 import { getTimestampWithThreeDecimalPlaces } from "./getLatency.ts";
 import { logger } from "../logFile.ts";
-import {
-	Issue,
-	MetricsResult,
-	PullRequest,
-	RepoData,
-} from "../../types/Phase1Types.ts";
+import { Issue, MetricsResult, PullRequest, RepoData } from "../../types/Phase1Types.ts";
 /**
  * Calculates the Correctness score based on various repository factors such as open issues,
  * closed pull requests, and merge rates. Fetches data in parallel to speed up the process.
@@ -46,12 +41,8 @@ export async function calculateCorrectness(
 	const totalPullRequests: number = closedPullData.length +
 		openPullData.length;
 
-	const issueResolutionRate = totalIssues
-		? closedIssuesData.length / totalIssues
-		: 1; // Calculate issue resolution rate
-	const pullRequestMergeRate = totalPullRequests
-		? closedPullData.length / totalPullRequests
-		: 1; // Calculate pull request merge rate
+	const issueResolutionRate = totalIssues ? closedIssuesData.length / totalIssues : 1; // Calculate issue resolution rate
+	const pullRequestMergeRate = totalPullRequests ? closedPullData.length / totalPullRequests : 1; // Calculate pull request merge rate
 
 	const openIssuesCount = repoData.open_issues_count || openIssuesData.length; // Get the count of open issues
 

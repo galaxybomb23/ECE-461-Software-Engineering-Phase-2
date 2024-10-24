@@ -20,9 +20,7 @@ export function getGitHubAPILink(url: string, endpoint: string = ""): string {
 		);
 		repo = repo.slice(0, -4); // Remove the last 4 characters (".git")
 	}
-	return `https://api.github.com/repos/${owner}/${repo}${
-		endpoint ? "/" + endpoint : ""
-	}`; // Return API link with endpoint
+	return `https://api.github.com/repos/${owner}/${repo}${endpoint ? "/" + endpoint : ""}`; // Return API link with endpoint
 }
 
 /**

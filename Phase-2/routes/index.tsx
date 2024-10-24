@@ -36,9 +36,7 @@ export default function Home() {
 						<ul>
 							{searchResults.value.map((result, index) => (
 								<li key={index}>
-									Standalone Cost: ${result.standaloneCost}
-									{" "}
-									- Total Cost: ${result.totalCost}
+									Standalone Cost: ${result.standaloneCost} - Total Cost: ${result.totalCost}
 								</li>
 							))}
 						</ul>

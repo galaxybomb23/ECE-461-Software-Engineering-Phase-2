@@ -86,9 +86,7 @@ function extractLicenseInfo(cloneDir: string): string | null {
 	}
 
 	// Case-insensitive file search for README (e.g., README.md, README.MD)
-	const readmeFiles = fs.readdirSync(cloneDir)?.filter((file: string) =>
-		file.match(/^readme\.(md|txt)?$/i)
-	);
+	const readmeFiles = fs.readdirSync(cloneDir)?.filter((file: string) => file.match(/^readme\.(md|txt)?$/i));
 
 	if (readmeFiles.length > 0) {
 		const readmePath = path.join(cloneDir, readmeFiles[0]);
@@ -102,9 +100,7 @@ function extractLicenseInfo(cloneDir: string): string | null {
 	}
 
 	// Case-insensitive file search for LICENSE (e.g., LICENSE.txt, license.md)
-	const licenseFiles = fs.readdirSync(cloneDir)?.filter((file: string) =>
-		file.match(/^licen[sc]e(\..*)?$/i)
-	);
+	const licenseFiles = fs.readdirSync(cloneDir)?.filter((file: string) => file.match(/^licen[sc]e(\..*)?$/i));
 
 	if (licenseFiles.length > 0) {
 		const licenseFilePath = path.join(cloneDir, licenseFiles[0]);
