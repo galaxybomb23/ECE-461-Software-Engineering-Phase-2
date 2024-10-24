@@ -39,3 +39,9 @@ Makefile
 
 # Ignore fresh.gen.ts
 Phase-2/fresh.gen.ts
+
+# Ignore data.db
+Phase-2/data/data.db
+
+# Ignore .42
+.42/

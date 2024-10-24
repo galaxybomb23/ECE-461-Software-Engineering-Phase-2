@@ -12,9 +12,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
 		const searchQuery = search.value.trim(); // Get trimmed search value
 
 		if (searchQuery) {
-			const redirectUrl = `/api/package/${
-				encodeURIComponent(searchQuery)
-			}/cost`;
+			const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}/cost`;
 			console.log("Fetching results from:", redirectUrl);
 
 			try {

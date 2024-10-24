@@ -31,9 +31,7 @@ export const logger: Logger = createLogger({
 	level: log_level,
 	format: format.combine(
 		format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-		format.printf(({ timestamp, level, message }) =>
-			`${timestamp} [${level.toUpperCase()}]: ${message}`
-		),
+		format.printf(({ timestamp, level, message }) => `${timestamp} [${level.toUpperCase()}]: ${message}`),
 	),
 	transports: [
 		new transports.File({ filename: logFilePath, options: { flags: "a" } }),

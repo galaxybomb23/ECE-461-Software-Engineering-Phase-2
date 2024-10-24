@@ -2,12 +2,7 @@ import { logger } from "../logFile.ts";
 import { getTimestampWithThreeDecimalPlaces } from "./getLatency.ts";
 import { fetchJsonFromApi } from "../API.ts";
 import { getGitHubAPILink } from "../githubData.ts";
-import {
-	MetricsResult,
-	PRDetails,
-	PullRequest,
-	Review,
-} from "../../types/Phase1Types.ts";
+import { MetricsResult, PRDetails, PullRequest, Review } from "../../types/Phase1Types.ts";
 
 export async function getReviewPercentage(
 	URL: string,
@@ -26,9 +21,7 @@ export async function getReviewPercentage(
 		);
 
 		// Filter the pull requests that have been merged
-		const mergedPRs = pullRequests.filter((pr: PullRequest) =>
-			pr.merged_at !== null
-		);
+		const mergedPRs = pullRequests.filter((pr: PullRequest) => pr.merged_at !== null);
 
 		for (const pr of mergedPRs) {
 			// Fetch the diff stats for each merged pull request
@@ -40,9 +33,7 @@ export async function getReviewPercentage(
 			totalLines += linesChanged;
 
 			// Fetch code reviews for each merged pull request
-			const reviewsAPI = `${
-				getGitHubAPILink(URL)
-			}/pulls/${pr.number}/reviews`;
+			const reviewsAPI = `${getGitHubAPILink(URL)}/pulls/${pr.number}/reviews`;
 			const reviews: Review[] = await fetchJsonFromApi(reviewsAPI);
 
 			// If there is at least one review, count the lines from this PR as reviewed

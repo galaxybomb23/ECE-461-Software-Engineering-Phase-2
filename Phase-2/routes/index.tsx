@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { SearchBar } from "../islands/SearchBar.tsx";
-import { SearchResult } from "../types/SearchResult.ts";
+import { SearchResult } from "../types/Phase1Types.ts";
 
 export default function Home() {
 	const searchQuery = signal("");
@@ -36,9 +36,7 @@ export default function Home() {
 						<ul>
 							{searchResults.value.map((result, index) => (
 								<li key={index}>
-									Standalone Cost: ${result.standaloneCost}
-									{" "}
-									- Total Cost: ${result.totalCost}
+									Standalone Cost: ${result.standaloneCost} - Total Cost: ${result.totalCost}
 								</li>
 							))}
 						</ul>
