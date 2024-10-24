@@ -13,7 +13,7 @@ export default function Upload() {
 					<div className="title">Upload a package</div>
 					<UploadForm />
 				</div>
-				
+
 				<div className="vertical-container">
 					{/*Update Form */}
 					<div className="title">Update a package</div>

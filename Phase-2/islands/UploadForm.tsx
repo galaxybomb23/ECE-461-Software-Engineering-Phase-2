@@ -29,8 +29,7 @@ export default function UploadForm() {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
 			reader.readAsDataURL(file);
-			reader.onload = () =>
-				resolve((reader.result as string).split(",")[1]);
+			reader.onload = () => resolve((reader.result as string).split(",")[1]);
 			reader.onerror = (error) => reject(error);
 		});
 	};
@@ -113,17 +112,13 @@ export default function UploadForm() {
 				{/* Custom Option Selector */}
 				<div className="custom-selector">
 					<div
-						className={`selector-option ${
-							selectedOption === "file" ? "active" : ""
-						}`}
+						className={`selector-option ${selectedOption === "file" ? "active" : ""}`}
 						onClick={() => setSelectedOption("file")}
 					>
 						Upload File
 					</div>
 					<div
-						className={`selector-option ${
-							selectedOption === "url" ? "active" : ""
-						}`}
+						className={`selector-option ${selectedOption === "url" ? "active" : ""}`}
 						onClick={() => setSelectedOption("url")}
 					>
 						Enter URL
@@ -168,8 +163,7 @@ export default function UploadForm() {
 							<strong>File Name:</strong> {selectedFile.name}
 						</p>
 						<p>
-							<strong>File Size:</strong>{" "}
-							{(selectedFile.size / 1000000).toFixed(2)} MB
+							<strong>File Size:</strong> {(selectedFile.size / 1000000).toFixed(2)} MB
 						</p>
 					</div>
 				)}
@@ -179,9 +173,7 @@ export default function UploadForm() {
 						Debloat:
 					</label>
 					<div
-						className={`custom-checkbox ${
-							debloat ? "checked" : ""
-						}`}
+						className={`custom-checkbox ${debloat ? "checked" : ""}`}
 						onClick={() => setDebloat(!debloat)}
 					>
 						<input
@@ -203,8 +195,7 @@ export default function UploadForm() {
 						type="text"
 						id="auth-token"
 						value={authToken}
-						onChange={(e) =>
-							setAuthToken((e.target as HTMLInputElement).value)}
+						onChange={(e) => setAuthToken((e.target as HTMLInputElement).value)}
 						className="url-input"
 					/>
 				</div>

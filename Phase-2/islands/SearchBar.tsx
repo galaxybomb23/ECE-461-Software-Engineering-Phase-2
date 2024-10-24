@@ -13,9 +13,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
 		const searchQuery = search.value.trim(); // Get trimmed search value
 
 		if (searchQuery) {
-			const redirectUrl = `/api/package/${
-				encodeURIComponent(searchQuery)
-			}`;
+			const redirectUrl = `/api/package/${encodeURIComponent(searchQuery)}`;
 			console.log("Fetching results from:", redirectUrl);
 
 			try {
@@ -38,9 +36,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
 				searchResults.value = result; // Update the results
 
 				// Use window.location.href for redirection
-				globalThis.location.href = `/search-results?query=${
-					encodeURIComponent(searchQuery)
-				}`;
+				globalThis.location.href = `/search-results?query=${encodeURIComponent(searchQuery)}`;
 			} catch (error) {
 				console.error("Error fetching search results:", error);
 			}

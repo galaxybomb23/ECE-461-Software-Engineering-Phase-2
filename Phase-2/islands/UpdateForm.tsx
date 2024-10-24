@@ -24,8 +24,7 @@ export default function UpdateForm() {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
 			reader.readAsDataURL(file);
-			reader.onload = () =>
-				resolve((reader.result as string).split(",")[1]);
+			reader.onload = () => resolve((reader.result as string).split(",")[1]);
 			reader.onerror = (error) => reject(error);
 		});
 	};
@@ -111,8 +110,7 @@ export default function UpdateForm() {
 						type="text"
 						id="package-name"
 						value={packageName}
-						onChange={(e) =>
-							setPackageName((e.target as HTMLInputElement).value)}
+						onChange={(e) => setPackageName((e.target as HTMLInputElement).value)}
 						className="url-input"
 					/>
 				</div>
@@ -124,8 +122,7 @@ export default function UpdateForm() {
 						type="text"
 						id="package-version"
 						value={packageVersion}
-						onChange={(e) =>
-							setPackageVersion((e.target as HTMLInputElement).value)}
+						onChange={(e) => setPackageVersion((e.target as HTMLInputElement).value)}
 						className="url-input"
 					/>
 				</div>
@@ -137,8 +134,7 @@ export default function UpdateForm() {
 						type="text"
 						id="package-id"
 						value={packageID}
-						onChange={(e) =>
-							setPackageID((e.target as HTMLInputElement).value)}
+						onChange={(e) => setPackageID((e.target as HTMLInputElement).value)}
 						className="url-input"
 					/>
 				</div>
@@ -165,8 +161,7 @@ export default function UpdateForm() {
 							<strong>File Name:</strong> {selectedFile.name}
 						</p>
 						<p>
-							<strong>File Size:</strong>{" "}
-							{(selectedFile.size / 1000000).toFixed(2)} MB
+							<strong>File Size:</strong> {(selectedFile.size / 1000000).toFixed(2)} MB
 						</p>
 					</div>
 				)}
@@ -176,9 +171,7 @@ export default function UpdateForm() {
 						Debloat:
 					</label>
 					<div
-						className={`custom-checkbox ${
-							debloat ? "checked" : ""
-						}`}
+						className={`custom-checkbox ${debloat ? "checked" : ""}`}
 						onClick={() => setDebloat(!debloat)}
 					>
 						<input
@@ -200,8 +193,7 @@ export default function UpdateForm() {
 						type="text"
 						id="auth-token"
 						value={authToken}
-						onChange={(e) =>
-							setAuthToken((e.target as HTMLInputElement).value)}
+						onChange={(e) => setAuthToken((e.target as HTMLInputElement).value)}
 						className="url-input"
 					/>
 				</div>

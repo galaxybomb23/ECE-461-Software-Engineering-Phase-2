@@ -40,8 +40,7 @@ export default function SearchResults() {
 			<ul>
 				{searchResults.value.map((result) => (
 					<li key={result.Name}>
-						<strong>{result.Name}</strong> - Version:{" "}
-						{result.Version}
+						<strong>{result.Name}</strong> - Version: {result.Version}
 					</li>
 				))}
 			</ul>
