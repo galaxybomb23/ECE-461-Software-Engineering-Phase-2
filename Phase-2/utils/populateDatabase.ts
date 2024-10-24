@@ -68,7 +68,7 @@ export async function populateDatabase(db: DB) {
 		],
 	};
 
-	// insert the packages into the database
+	// create the packages table
 	await db.execute(
 		`CREATE TABLE IF NOT EXISTS packages (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -86,6 +86,7 @@ export async function populateDatabase(db: DB) {
         )`,
 	);
 
+	// insert the packages into the database
 	const pkgQuery = db.prepareQuery(
 		`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -106,7 +107,7 @@ export async function populateDatabase(db: DB) {
 		]);
 	}
 
-	// insert the users into the database
+	// create the users table
 	await db.execute(
 		`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -123,6 +124,7 @@ export async function populateDatabase(db: DB) {
         )`,
 	);
 
+	// insert the users into the database
 	const userQuery = db.prepareQuery(
 		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
