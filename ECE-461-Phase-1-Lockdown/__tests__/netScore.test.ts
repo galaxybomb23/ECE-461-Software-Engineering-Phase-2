@@ -12,15 +12,11 @@ describe('getNetScore', () => {
     const bus_factor = 0.7;
     const responsive_maintainer = 0.85;
     const license = 1.0;
+    const dependencyPinning = 1.0;
+    const review_percentage = 1.0;
+    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
-    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license);
-
-    // Net score formula:
-    // 0.2 * license + 0.25 * bus_factor + 0.25 * responsive_maintainer + 0.2 * correctness + 0.1 * ramp_up_time
-    // = (0.2 * 1.0) + (0.25 * 0.7) + (0.25 * 0.85) + (0.2 * 0.9) + (0.1 * 0.8)
-    // = 0.2 + 0.175 + 0.2125 + 0.18 + 0.08 = 0.8475, rounded to 0.8
-
-    expect(result).toEqual(0.8); // Final rounded net score
+    expect(result).toEqual(0.9); // Final rounded net score
   });
 
   it('should handle a case with all zeros and return 0', async () => {
@@ -29,8 +25,10 @@ describe('getNetScore', () => {
     const bus_factor = 0;
     const responsive_maintainer = 0;
     const license = 0;
+    const dependencyPinning = 0;
+    const review_percentage = 0;
 
-    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license);
+    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
     expect(result).toEqual(0); // Zero scores should yield a zero net score
   });
@@ -41,8 +39,9 @@ describe('getNetScore', () => {
     const bus_factor = 0.9;
     const responsive_maintainer = 0.3;
     const license = 0.0;
-
-    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license);
+    const dependencyPinning = 0;
+    const review_percentage = 0;
+    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
     // Formula:
     // 0.2 * 0.8 + 0.25 * 0.9 + 0.25 * 0.3 + 0.2 * 0.2 + 0.1 * 0.5
@@ -57,8 +56,9 @@ describe('getNetScore', () => {
     const bus_factor = 0.9;
     const responsive_maintainer = 0.3;
     const license = 0.0;
-
-    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license);
+    const dependencyPinning = 0;
+    const review_percentage = 0;
+    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
     expect(result).toEqual(0); // Zero license should yield a zero net score
   });
@@ -69,8 +69,9 @@ describe('getNetScore', () => {
     const bus_factor = 1.0;
     const responsive_maintainer = 1.0;
     const license = 1.0;
-
-    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license);
+    const dependencyPinning = 1.0;
+    const review_percentage = 1.0;
+    const result = await getNetScore(ramp_up_time, correctness, bus_factor, responsive_maintainer, license, dependencyPinning, review_percentage);
 
     expect(result).toEqual(1); // All ones should yield a one net score
   });
@@ -87,17 +88,21 @@ describe('getNetScoreLatency', () => {
     const bus_factor_latency = 6.7;
     const responsive_maintainer_latency = 9.2;
     const license_latency = 4.1;
+    const dependencyPinning_latency = 5.0;
+    const review_percentage = 6.0;
 
     const result = await getNetScoreLatency(
       ramp_up_latency,
       correctness_latency,
       bus_factor_latency,
       responsive_maintainer_latency,
-      license_latency
+      license_latency,
+      dependencyPinning_latency, 
+      review_percentage
     );
 
-    // Total latency = 10.5 + 8.3 + 6.7 + 9.2 + 4.1 = 38.8
-    expect(result).toEqual(38.8); // Final rounded net score latency
+    // Total latency = 10.5 + 8.3 + 6.7 + 9.2 + 4.1 + 5 + 6 = 38.8
+    expect(result).toEqual(49.8); // Final rounded net score latency
   });
 
   it('should handle zero latencies and return 0', async () => {
@@ -106,13 +111,16 @@ describe('getNetScoreLatency', () => {
     const bus_factor_latency = 0;
     const responsive_maintainer_latency = 0;
     const license_latency = 0;
-
+    const dependencyPinning_latency = 0;
+    const review_percentage = 0;
   const result = await getNetScoreLatency(
     ramp_up_latency,
     correctness_latency,
     bus_factor_latency,
     responsive_maintainer_latency,
-    license_latency
+    license_latency,
+    dependencyPinning_latency,
+    review_percentage
   );
 
 
@@ -125,17 +133,20 @@ describe('getNetScoreLatency', () => {
     const bus_factor_latency = 5.6;
     const responsive_maintainer_latency = 7.8;
     const license_latency = 9.1;
-
+    const dependencyPinning_latency = 1.0;
+    const review_percentage = 1.0;
   const result = await getNetScoreLatency(
     ramp_up_latency,
     correctness_latency,
     bus_factor_latency,
     responsive_maintainer_latency,
-    license_latency
+    license_latency,
+    dependencyPinning_latency,
+    review_percentage
   );
 
 
     // Total latency = 1.2 + 3.4 + 5.6 + 7.8 + 9.1 = 27.1
-    expect(result).toEqual(27.1); // Final rounded latency score
+    expect(result).toEqual(29.1); // Final rounded latency score
   });
 });
