@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { SearchBar } from "../islands/SearchBar.tsx";
-import { SearchResult } from "../types/SearchResult.ts";
+import { SearchResult } from "../types/Phase1Types.ts";
 
 export default function Home() {
 	const searchQuery = signal("");
