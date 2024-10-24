@@ -1,37 +1,32 @@
 import { resetDatabase } from "../routes/api/reset.ts";
-import { Database } from "jsr:@db/sqlite@0.12.0";
+import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 
-Deno.test("resetDatabase", async () => {
-	// pre test setup
-	testLogger.info("TEST: resetDatabase");
-	const db: Database = await setup();
+const TESTNAME = "resetDatabase";
 
-	// test
-	await resetDatabase(db);
+Deno.test(TESTNAME, async () => {
+    // pre test setup
+    testLogger.info(`TEST: ${TESTNAME}`);
+    let db: DB | null = null;
 
-	// check if the database is empty
-	const packages = await db.sql`SELECT * FROM packages`;
-	const users = await db.sql`SELECT * FROM users`;
+    try {
+        db = await setup(TESTNAME);
+        await resetDatabase(db);
 
-	// close the database
-	await db.close();
+        const packages: Row[] = await db.query(`SELECT * FROM packages`);
+        const users: Row[] = await db.query(`SELECT * FROM users`);
 
-	// asserts
-	try {
-		assertEquals(packages.length, 0);
-	} catch (error) {
-		console.log("Packages:", packages);
-		throw error;
-	}
-	try {
-		assertEquals(users.length, 2);
-	} catch (error) {
-		console.log("Users:", users);
-		throw error;
-	}
+        assertEquals(packages.length, 0, "Packages table should be empty");
+        assertEquals(users.length, 2, "Users table should have 2 entries");
 
-	// cleanup
-	await cleanup();
+        testLogger.debug("resetDatabase test passed");
+    } catch (error) {
+        testLogger.error(`Test failed: ${error}`);
+        throw error;
+    } finally {
+        if (db) {
+            await cleanup(db, TESTNAME);
+        }
+    }
 });

@@ -1,35 +1,34 @@
 import { populateDatabase } from "../utils/populateDatabase.ts";
-import { Database } from "jsr:@db/sqlite@0.12.0";
+import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, testLogger } from "./testSuite.ts";
+import { cleanup, setup, testLogger } from "./testSuite.ts";
 
-Deno.test("populateDatabase", async () => {
-	// setup
-	testLogger.info("TEST: populateDatabase");
+const TESTNAME = "populateDatabase";
 
-	// test
-	const db = new Database("tests/data.db");
-	await populateDatabase(db);
+Deno.test(TESTNAME, async () => {
+    // setup
+    testLogger.info(`TEST: ${TESTNAME}`);
+    let db: DB | null = null;
 
-	// check if the database is populated
-	const packages = await db.sql`SELECT * FROM packages`;
-	const users = await db.sql`SELECT * FROM users`;
-	await db.close();
+    try {
+        db = await setup(TESTNAME);
+        await populateDatabase(db);
+        const packages: Row[] = await db.query(`SELECT * FROM packages`);
+        assertEquals(
+            packages.length,
+            2,
+            "Packages table should have 2 entries",
+        );
+        const users: Row[] = await db.query(`SELECT * FROM users`);
+        assertEquals(users.length, 2, "Users table should have 2 entries");
 
-	// asserts
-	try {
-		assertEquals(packages.length, 2);
-	} catch (error) {
-		console.log("Packages:", packages);
-		throw error;
-	}
-	try {
-		assertEquals(users.length, 2);
-	} catch (error) {
-		console.log("Users:", users);
-		throw error;
-	}
-
-	// cleanup
-	await cleanup();
+        testLogger.debug("populateDatabase test passed");
+    } catch (error) {
+        testLogger.error(`Test failed: ${error}`);
+    } finally {
+        if (db) {
+            // cleanup
+            await cleanup(db, TESTNAME);
+        }
+    }
 });
