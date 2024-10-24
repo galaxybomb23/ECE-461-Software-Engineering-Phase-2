@@ -2,7 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 
-const DB_PATH = "./database_path/data.db";
+const DB_PATH = "data/data.db";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -35,10 +35,10 @@ async function handleContent(content: string, url?: string) {
 	await Deno.run({ cmd: ["unzip", "-q", tempFilePath, "-d", unzipPath] }).status();
 
 	// Upload package (unzipped) to SQLite database
-	await uploadZipToSQLite(unzipPath);
+    const packageJSON = await parsePackageJSON(unzipPath);
+	await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON);
 
 	// call Phase 1 on the packageJSON.url
-	const packageJSON = await parsePackageJSON(unzipPath);
     if (url != "No repository URL") { packageJSON.url = url; } // Use the URL from the POST request if available
 	if (packageJSON.url) {
 		console.log("  [Y] Fake calling phase 1 on: " + packageJSON.url);
@@ -111,36 +111,22 @@ async function parsePackageJSON(filePath: string) {
     };
 }
 
-async function uploadZipToSQLite(filePath: string) {
-	// UNCOMMENT ONCE DB IS IMPLEMENTED
-	// const db = new DB(DB_PATH);  // Open the SQLite database
-	console.log("  [*] Fake uploading files from: " + filePath);
+async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any) {
+    // Open SQLite database
+    const db = new DB(DB_PATH);
 
-	// Helper function to process files recursively
-	async function processDirectory(dirPath: string) {
-		for await (const item of Deno.readDir(dirPath)) {
-			const itemPath = `${dirPath}/${item.name}`;
-			if (item.isFile) {
-				const fileContent = await Deno.readTextFile(itemPath);
+    // base64 encode the zip at tempFilePath and add to SQLite database at packages/<package_name>/<package_version>
+    const zipData = await Deno.readFile(tempFilePath);
+    const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
-				console.log("  Fake uploading file: " + itemPath.replace(filePath, ''));
+    console.log("  [*] Fake adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " + tempFilePath + " to SQLite database");
 
-				// UNCOMMENT ONCE DB IS IMPLEMENTED
-				// Insert file content into the SQLite database
-				// await db.execute(
-				//     "INSERT INTO packages (filename, content) VALUES (?, ?)",
-				//     [itemPath.replace(filePath, ''), fileContent],  // Store relative path
-				// );
-			} else if (item.isDirectory) {
-				// Recurse into subdirectory
-				await processDirectory(itemPath);
-			}
-		}
-	}
+    // Add base64 encoded zip to SQLite database
+    db.query(
+        "INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
+        [packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
+    );
 
-	// Start processing the folder
-	await processDirectory(filePath);
-
-	// UNCOMMENT ONCE DB IS IMPLEMENTED
-	//db.close();  // Close the database connection
+    // Close SQLite database
+    db.close();
 }
