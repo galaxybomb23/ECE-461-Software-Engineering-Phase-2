@@ -43,7 +43,7 @@
 	"nodeModulesDir": "auto",
 	"fmt": {
 		"useTabs": true,
-		"lineWidth": 80,
+		"lineWidth": 120,
 		"indentWidth": 4,
 		"semiColons": true,
 		"singleQuote": false,
