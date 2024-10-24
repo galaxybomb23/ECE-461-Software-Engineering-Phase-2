@@ -1,4 +1,4 @@
-import { resetDatabase } from "../routes/api/reset.ts";
+import { resetDatabase } from "~/routes/api/reset.ts";
 import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
@@ -8,9 +8,9 @@ const TESTNAME = "resetDatabase";
 Deno.test(TESTNAME, async () => {
 	// pre test setup
 	testLogger.info(`TEST: ${TESTNAME}`);
-	let db: DB | null = null;
+	const db: DB = await setup(TESTNAME);
 
-	db = await setup(TESTNAME);
+	// test code
 	await resetDatabase(db);
 
 	const packages: Row[] = await db.query(`SELECT * FROM packages`);
@@ -19,9 +19,6 @@ Deno.test(TESTNAME, async () => {
 	assertEquals(packages.length, 0, "Packages table should be empty");
 	assertEquals(users.length, 2, "Users table should have 2 entries");
 
-	testLogger.debug("resetDatabase test passed");
-
-	if (db) {
-		await cleanup(db, TESTNAME);
-	}
+	// post test cleanup
+	await cleanup(db, TESTNAME);
 });

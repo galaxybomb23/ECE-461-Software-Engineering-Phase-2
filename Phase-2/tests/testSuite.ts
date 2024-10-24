@@ -29,5 +29,6 @@ export async function cleanup(db: DB, filename: string) {
 	if (!db.isClosed) {
 		await db.close(true);
 	}
-	testLogger.debug("End Test");
+
+	testLogger.debug(`End Test: ${filename}`);
 }

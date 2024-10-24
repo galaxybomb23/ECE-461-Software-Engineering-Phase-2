@@ -8,19 +8,15 @@ const TESTNAME = "populateDatabase";
 Deno.test(TESTNAME, async () => {
 	// setup
 	testLogger.info(`TEST: ${TESTNAME}`);
-	let db: DB | null = null;
+	const db: DB = new DB(":memory:"); //cant use setup bc populateDatabase used in setup
 
-	db = new DB(":memory:");
+	// test code
 	await populateDatabase(db);
 	const packages: Row[] = await db.query(`SELECT * FROM packages`);
 	assertEquals(packages.length, 2, "Packages table should have 2 entries");
 	const users: Row[] = await db.query(`SELECT * FROM users`);
 	assertEquals(users.length, 2, "Users table should have 2 entries");
 
-	testLogger.debug("populateDatabase test passed");
-
 	// cleanup
-	if (db) {
-		await cleanup(db, TESTNAME);
-	}
+	await cleanup(db, TESTNAME);
 });
