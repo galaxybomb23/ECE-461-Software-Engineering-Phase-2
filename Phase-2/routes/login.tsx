@@ -1,13 +1,13 @@
-import Navbar from "../components/NavBar.tsx";
+import Navbar from "~/components/Navbar.tsx";
 
 export default function Login() {
 	return (
 		<div>
-			<div>
-				<Navbar />
-			</div>
-			<div className="title">
-				Login
+			<Navbar />
+			<div className="horizontal-container">
+				<div className="vertical-container">
+					<div className="title">Login</div>
+				</div>
 			</div>
 		</div>
 	);

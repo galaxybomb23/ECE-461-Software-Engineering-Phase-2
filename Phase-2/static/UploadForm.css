@@ -3,6 +3,7 @@
 	justify-content: center;
 	align-items: center;
 	height: 60vh;
+	margin-top: 1rem;
 }
 
 .upload-form {
@@ -37,7 +38,7 @@ input[type="file"] {
 
 .upload-input {
 	padding: 10px;
-	background-color: #023c84;
+	background-color: #076861;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
 	width: 100%;
@@ -48,13 +49,13 @@ input[type="file"] {
 }
 
 .upload-input:hover {
-	background-color: #1768ac;
+	background-color: #06544f;
 	cursor: pointer;
 }
 
 .upload-button {
 	padding: 12px 24px;
-	background-color: #023c84;
+	background-color: #076861;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
 	color: #fafafa;
@@ -64,7 +65,7 @@ input[type="file"] {
 }
 
 .upload-button:hover {
-	background-color: #1768ac;
+	background-color: #06544f;
 }
 
 .upload-form p {
@@ -88,7 +89,7 @@ input[type="file"] {
 	padding: 10px 20px;
 	font-size: 16px;
 	cursor: pointer;
-	background-color: #023c84;
+	background-color: #076861;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
 	color: #fafafa;
@@ -102,12 +103,12 @@ input[type="file"] {
 }
 
 .selector-option.active {
-	background-color: #1768ac;
+	background-color: #06544f;
 	transform: scale(1.05);
 }
 
 .selector-option:hover {
-	background-color: #175ea0;
+	background-color: #06544f;
 }
 
 .url-input-row, .file-input-row {
@@ -150,7 +151,7 @@ input[type="file"] {
 }
 
 .custom-checkbox.checked {
-	background-color: #1768ac;
+	background-color: #06544f;
 }
 
 .hidden-checkbox {

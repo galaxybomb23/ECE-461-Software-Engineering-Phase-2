@@ -21,6 +21,7 @@ import * as $login from "./routes/login.tsx";
 import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
+import * as $UpdateForm from "./islands/UpdateForm.tsx";
 import * as $UploadForm from "./islands/UploadForm.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -47,6 +48,7 @@ const manifest = {
 	},
 	islands: {
 		"./islands/SearchBar.tsx": $SearchBar,
+		"./islands/UpdateForm.tsx": $UpdateForm,
 		"./islands/UploadForm.tsx": $UploadForm,
 	},
 	baseUrl: import.meta.url,

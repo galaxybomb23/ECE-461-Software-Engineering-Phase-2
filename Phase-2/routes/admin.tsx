@@ -1,13 +1,13 @@
-import Navbar from "../components/Navbar.tsx";
+import Navbar from "~/components/Navbar.tsx";
 
 export default function Admin() {
 	return (
 		<div>
-			<div>
-				<Navbar />
-			</div>
-			<div className="title">
-				Admin
+			<Navbar />
+			<div className="horizontal-container">
+				<div className="vertical-container">
+					<div className="title">Admin</div>
+				</div>
 			</div>
 		</div>
 	);

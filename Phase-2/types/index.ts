@@ -12,6 +12,7 @@ export interface PackageMetadata {
 export interface PackageData {
 	Content?: string;
 	URL?: string;
+	debloat?: boolean;
 	JSProgram?: string;
 }
 

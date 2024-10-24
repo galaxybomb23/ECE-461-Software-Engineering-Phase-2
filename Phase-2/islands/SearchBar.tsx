@@ -38,7 +38,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
 				searchResults.value = result; // Update the results
 
 				// Use window.location.href for redirection
-				window.location.href = `/search-results?query=${
+				globalThis.location.href = `/search-results?query=${
 					encodeURIComponent(searchQuery)
 				}`;
 			} catch (error) {

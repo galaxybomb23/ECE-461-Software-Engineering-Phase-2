@@ -1,13 +1,14 @@
 import { signal } from "@preact/signals";
-import { SearchBar } from "../islands/SearchBar.tsx";
+import { SearchBar } from "~/islands/SearchBar.tsx";
 import type { Package } from "~/types/index.ts";
 
-export default function NavBar() {
+export default function Navbar() {
 	const searchQuery = signal("");
 	const searchResults = signal<Package[]>([]);
 
 	return (
 		<nav className="navbar">
+			<img src="logo.png" />
 			<SearchBar search={searchQuery} searchResults={searchResults} />
 			<ul>
 				<li>
