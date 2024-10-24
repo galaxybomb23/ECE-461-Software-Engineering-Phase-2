@@ -2,6 +2,11 @@ import { createLogger, format, Logger, transports } from "npm:winston";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { populateDatabase } from "../utils/populateDatabase.ts";
 
+/**
+ * @brief Sets up a test database in memory
+ * @param dbname The name of the database (not used in this implementation)
+ * @return Promise<DB> A promise that resolves to the initialized database
+ */
 export async function setup(dbname: string) {
 	//setup test database in memory
 	const db = new DB(":memory:");
@@ -23,10 +28,16 @@ export const testLogger: Logger = createLogger({
 	],
 });
 
-export async function cleanup(db: DB, filename: string) {
+/**
+ * @brief Cleans up the test environment
+ * @param db The database to clean up
+ * @param filename The name of the test file being cleaned up
+ * @return Promise<void>
+ */
+export async function cleanup(db: DB | undefined, filename: string) {
 	// delete the data.db file
 	// if the database is open, close it
-	if (!db.isClosed) {
+	if (db && !db.isClosed) {
 		await db.close(true);
 	}
 
