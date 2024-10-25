@@ -1,15 +1,15 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { login, admin_create_account, delete_account } from "../src/userManagement.ts";
+import { admin_create_account, delete_account, login } from "../src/userManagement.ts";
 import { testLogger } from "./testSuite.ts";
-import { assertEquals, assert } from "https://deno.land/std@0.105.0/testing/asserts.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 
 const TESTNAME = "userManagement";
 
 Deno.test(TESTNAME, async () => {
-    testLogger.info(`TEST: ${TESTNAME}`);
+	testLogger.info(`TEST: ${TESTNAME}`);
 	const db: DB = new DB(":memory:");
-    
-    // Create the users table
+
+	// Create the users table
 	db.execute(
 		`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -26,37 +26,43 @@ Deno.test(TESTNAME, async () => {
         );`,
 	);
 
-    let username = "rushil";
-    let password = "password";
+	let username = "rushil";
+	let password = "password";
 
-    // Test for deleting a non-existing user - should return false
-    assert(!delete_account(db, username), "Delete non-existing user should return false");
+	// Test for deleting a non-existing user - should return false
+	assert(!delete_account(db, username), "Delete non-existing user should return false");
 
-    // Test for logging in with a non-existing user - should return false
-    assert(!login(db, username, password), "Login non-existing user should return false");
-    
-    // Test for creating a new user - should return true
-    assert(admin_create_account(db, username, password, true, false, true, "rushilsJob"), "Create new user should return true");
+	// Test for logging in with a non-existing user - should return false
+	assert(!login(db, username, password), "Login non-existing user should return false");
 
-    // Test for correct login - should return true
-    assert(login(db, username, password), "Correct login should return true");
+	// Test for creating a new user - should return true
+	assert(
+		admin_create_account(db, username, password, true, false, true, "rushilsJob"),
+		"Create new user should return true",
+	);
 
-    // Test for duplicate user creation - should return false
-    assert(!admin_create_account(db, username, password, true, false, true, "rushilsJob"), "Duplicate user creation should return false");
+	// Test for correct login - should return true
+	assert(login(db, username, password), "Correct login should return true");
 
-    // Test for incorrect password - should return false
-    assert(!login(db, username, "notTheRightPassword"), "Login with wrong password should return false");
+	// Test for duplicate user creation - should return false
+	assert(
+		!admin_create_account(db, username, password, true, false, true, "rushilsJob"),
+		"Duplicate user creation should return false",
+	);
 
-    // Test for deleting the account - should return true
-    assert(delete_account(db, username), "Delete existing user should return true");
+	// Test for incorrect password - should return false
+	assert(!login(db, username, "notTheRightPassword"), "Login with wrong password should return false");
 
-    // Test for logging in after deletion - should return false
-    assert(!login(db, username, password), "Login after deletion should return false");
+	// Test for deleting the account - should return true
+	assert(delete_account(db, username), "Delete existing user should return true");
 
-    // Check that the users table is empty after deletion
-    assertEquals(Array.from(db.query("SELECT * FROM users")), [], "Users table should be empty after deletion");
+	// Test for logging in after deletion - should return false
+	assert(!login(db, username, password), "Login after deletion should return false");
 
-    // TODO - Write a test that checks for SQL Injection
+	// Check that the users table is empty after deletion
+	assertEquals(Array.from(db.query("SELECT * FROM users")), [], "Users table should be empty after deletion");
 
-    // db.close();
+	// TODO - Write a test that checks for SQL Injection
+
+	// db.close();
 });
