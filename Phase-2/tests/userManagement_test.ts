@@ -26,8 +26,8 @@ Deno.test(TESTNAME, async () => {
         );`,
 	);
 
-	let username = "rushil";
-	let password = "password";
+	const username = "rushil";
+	const password = "password";
 
 	// Test for deleting a non-existing user - should return false
 	assert(!delete_account(db, username), "Delete non-existing user should return false");

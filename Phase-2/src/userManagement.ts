@@ -8,14 +8,14 @@ function sha256(data: string) {
 }
 
 export function login(db: DB, username: string, password: string) {
-	let result = db.query(`SELECT hashed_password, password_salt, password_rounds FROM users WHERE username = ?`, [
+	const result = db.query(`SELECT hashed_password, password_salt, password_rounds FROM users WHERE username = ?`, [
 		username,
 	]);
 	if (result === undefined || result.length == 0) { // make sure the username exist
 		return false;
 	}
 
-	let user = result[0];
+	const user = result[0];
 	// get the values needed to calculate the password hash
 	const known_password_hash = user[0];
 	const password_salt = user[1];
@@ -40,7 +40,7 @@ export function admin_create_account(
 	user_group: string,
 ): boolean {
 	// make sure username doesn't exist - if it does return false
-	let result = db.query(`SELECT id FROM users WHERE username = ?`, [username]);
+	const result = db.query(`SELECT id FROM users WHERE username = ?`, [username]);
 	if (result.length > 0) {
 		return false;
 	}
@@ -53,7 +53,7 @@ export function admin_create_account(
 	// another variable is password_salt, password_rounds, password_hash, password_algorithm, = sha256 (will not send this one)
 	const password_salt = crypto.randomBytes(8).toString("hex");
 	const password_rounds = crypto.randomInt(1000) + 4500;
-	var hashed_password = password;
+	let hashed_password = password;
 	for (let i = 0; i < password_rounds; i++) {
 		hashed_password = sha256(hashed_password + password_salt);
 	}
