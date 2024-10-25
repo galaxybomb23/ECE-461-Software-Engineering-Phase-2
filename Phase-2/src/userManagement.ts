@@ -81,5 +81,5 @@ export function admin_create_account(
 
 export function delete_account(db: DB, username: string) {
 	db.query(`DELETE FROM users WHERE username = ?`, [username]);
-	return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero. 
+	return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
 }
