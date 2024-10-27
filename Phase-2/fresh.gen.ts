@@ -21,6 +21,7 @@ import * as $login from "./routes/login.tsx";
 import * as $package_id_ from "./routes/package/[id].tsx";
 import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
+import * as $LoginForm from "./islands/LoginForm.tsx";
 import * as $Pagination from "./islands/Pagination.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
 import * as $UpdateForm from "./islands/UpdateForm.tsx";
@@ -50,6 +51,7 @@ const manifest = {
 		"./routes/upload.tsx": $upload,
 	},
 	islands: {
+		"./islands/LoginForm.tsx": $LoginForm,
 		"./islands/Pagination.tsx": $Pagination,
 		"./islands/SearchBar.tsx": $SearchBar,
 		"./islands/UpdateForm.tsx": $UpdateForm,
