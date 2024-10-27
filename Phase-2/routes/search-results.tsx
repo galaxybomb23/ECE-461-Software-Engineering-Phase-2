@@ -8,7 +8,7 @@ interface PackageMetadata {
 
 export default function SearchResults() {
 	const searchResults = useSignal<PackageMetadata[]>([]);
-	const searchQuery = new URLSearchParams(window.location.search).get(
+	const searchQuery = new URLSearchParams(globalThis.location.search).get(
 		"query",
 	); // Use window.location.search
 
