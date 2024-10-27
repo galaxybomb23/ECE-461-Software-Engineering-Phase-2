@@ -1,25 +1,13 @@
-import { signal } from "@preact/signals";
+import Navbar from "~/components/Navbar.tsx";
 
 export default function Admin() {
 	return (
 		<div>
-			<div>
-				<nav className="navbar">
-					<ul>
-						<li>
-							<a href="/">Home</a>
-						</li>
-						<li>
-							<a href="/login">Login</a>
-						</li>
-						<li>
-							<a href="/admin">Admin</a>
-						</li>
-					</ul>
-				</nav>
-			</div>
-			<div className="title">
-				Admin
+			<Navbar />
+			<div className="horizontal-container">
+				<div className="vertical-container">
+					<div className="title">Admin</div>
+				</div>
 			</div>
 		</div>
 	);

@@ -1,4 +1,3 @@
-// Define all the types from the OpenAPI spec here
 export interface Package {
 	metadata: PackageMetadata;
 	data: PackageData;
@@ -13,6 +12,7 @@ export interface PackageMetadata {
 export interface PackageData {
 	Content?: string;
 	URL?: string;
+	debloat?: boolean;
 	JSProgram?: string;
 }
 

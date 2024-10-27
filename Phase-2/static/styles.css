@@ -6,12 +6,36 @@
 body {
 	color: #f5f5f5;
 	background-color: #0c0c0c;
+	font-family: "Roboto", sans-serif;
 }
 
 .title {
-	padding-top: 6rem;
-	padding-left: 1rem;
-	font-size: 1.5rem;
-	font-weight: 500;
-	font-family: ;
+	padding-top: 2rem;
+	text-align: center;
+	font-size: 3rem;
+	font-weight: bold;
+}
+
+.horizontal-container {
+	display: flex;
+	justify-content: space-around;
+	align-items: flex-start;
+	height: 100%;
+	gap: 2rem;
+	padding: 2rem;
+}
+
+.horizontal-container > * {
+	flex: 1; /* Make each child take up equal space */
+}
+
+.vertical-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	flex: 1;
+	align-items: center;
+	height: 100%;
+	gap: 2rem;
+	padding: 2rem;
 }

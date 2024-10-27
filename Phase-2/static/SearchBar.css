@@ -34,20 +34,20 @@
 	color: #afbbcc;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.2rem;
-	background-color: #2e2b298d;
+	background-color: #2e2b29c7;
 	transition: border-color 0.2s, box-shadow 0.2s;
 	font-family: "Courier New", monospace;
 }
 
 .search-input:focus {
-	box-shadow: 0 0 0 1px #8a94a1;
+	box-shadow: 0 0 0 1px #8aa198;
 }
 
 .search-button {
 	position: absolute;
 	right: 0.625rem;
 	bottom: 0.625rem;
-	background-color: #023c84;
+	background-color: #076861;
 	color: #fafafa;
 	font-size: 0.875rem;
 	font-weight: 500;
@@ -57,10 +57,10 @@
 }
 
 .search-button:hover {
-	background-color: #1768ac;
+	background-color: #06544f;
 }
 
 .search-button:focus {
 	outline: none;
-	box-shadow: 0 0 0 4px #1768ac;
+	box-shadow: 0 0 0 4px #06544f;
 }
