@@ -33,3 +33,4 @@ jobs:
           USER: ${{ secrets.EC2_USER }}
         run: |
           ssh -i ~/.ssh/ec2_key.pem $USER@$HOST './startup.sh'
+        shell: /usr/bin/bash -e {0}
