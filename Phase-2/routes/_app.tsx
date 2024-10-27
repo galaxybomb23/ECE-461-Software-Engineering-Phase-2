@@ -13,6 +13,7 @@ export default function App({ Component }: PageProps) {
 				<link rel="stylesheet" href="/SearchBar.css" />
 				<link rel="stylesheet" href="/Navbar.css" />
 				<link rel="stylesheet" href="/UploadForm.css" />
+				<link rel="stylesheet" href="/PackageList.css" />
 			</head>
 			<body>
 				<Component />

@@ -17,7 +17,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 	// Fetch package rating
 	const rateResponse = await fetch(`${req.url}/api/package/${id}/rate`);
 	const rateData: PackageRating = await rateResponse.json();
-
+	
 	return {
 		props: {
 			packageData,

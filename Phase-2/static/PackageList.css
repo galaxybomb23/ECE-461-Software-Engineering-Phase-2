@@ -1,0 +1,82 @@
+/* Package list styling */
+.package-list {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+	max-width: 600px;
+}
+
+/* Card styling */
+.package-list .card {
+	background-color: #2e2b298d;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	transition: transform 0.2s, box-shadow 0.2s;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+}
+
+/* Card hover effect */
+.package-list .card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Package name styling */
+.package-name {
+	font-size: 1.5rem;
+	color: #076861;
+	text-decoration: none;
+	margin-bottom: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.package-name:hover {
+	text-decoration: underline;
+}
+
+/* Version styling */
+.package-version {
+	font-size: 1rem;
+	color: #afbbcc;
+}
+
+.pagination-controls {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 20px;
+    color: #afbbcc;
+}
+
+.pagination-controls button {
+	padding: 10px 15px;
+	margin: 0 10px;
+	background-color: #076861;
+	color: #afbbcc;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.pagination-controls button:disabled {
+    display: none;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+	background-color: #06544f;
+}
+
+.page-info {
+	font-size: 1.2rem;
+	margin: 0 10px;
+}
