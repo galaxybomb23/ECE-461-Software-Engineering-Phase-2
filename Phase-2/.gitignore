@@ -1,11 +1,47 @@
-# dotenv environment variable files
+# Ignore environment variables
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
 
-# Fresh build directory
-_fresh/
-# npm dependencies
+# Ignore node_modules directory
 node_modules/
+
+# Ignore package lock
+package-lock.json
+
+# Ignore log files
+*.log
+
+# Ignore compiled output (if applicable)
+dist/
+build/
+coverage/
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Environment File
+.env
+
+# Ignore vscode Directory
+.vscode/
+
+# Ignore Logfile
+logfile.log
+*.log
+
+# Ignore Makefile
+Makefile
+
+# Ignore fresh.gen.ts
+Phase-2/fresh.gen.ts
+
+# Ignore data.db
+Phase-2/data/data.db
+
+# Ignore .42
+.42/
