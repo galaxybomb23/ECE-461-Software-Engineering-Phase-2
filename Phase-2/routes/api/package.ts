@@ -9,51 +9,47 @@ export const handler: Handlers = {
 	async POST(req) {
 		logger.info("package.ts: Received package upload request");
 		const db = new DB(DB_PATH);
+
 		try {
-			let jsonResponse = await packageUpload(db, req);
+			const packageData = await req.json() as PackageData; // Define PackageData type as needed
+			let packageJSON: any;
+
+			if (packageData.URL) {
+				logger.debug("package.ts: Received package data with URL: " + packageData.URL);
+				packageJSON = await handleURL(packageData.URL);
+			} else if (packageData.Content) {
+				logger.debug("package.ts: Received package data with content");
+				packageJSON = await handleContent(packageData.Content);
+			} else {
+				logger.warning("package.ts: Invalid package data received - status 400");
+				return new Response("Invalid package data", { status: 400 });
+			}
+
+			let jsonReturn = {
+				metadata: {
+					Name: packageJSON.name,
+					Version: packageJSON.version,
+					ID: packageJSON.name.toLowerCase() || "no-id",
+				},
+				data: {
+					Content: packageData.Content || "Base64 encoded content here...",
+					JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
+				},
+			};
+
 			db.close();
 			logger.info("package.ts: ✓ Package added!");
-			return new Response(JSON.stringify(jsonResponse), { status: 201 });
+			return new Response(JSON.stringify(jsonReturn), { status: 201 });
+
 		} catch (error) {
-			logger.warning("package.ts: Failed to add package - Error: " + error.message);
+			logger.warning("package.ts: Failed to add package - Error: " + (error as Error).message);
 			db.close();
 			return new Response("Failed to add package", { status: 500 });
 		}
 	},
 };
 
-export async function packageUpload(db: DB, req: Request) {
-	const packageData = await req.json() as PackageData;
-	let packageJSON: any;
-
-	if (packageData.URL) {
-		logger.debug("package.ts: Received package data with URL: " + packageData.URL);
-		packageJSON = await handleURL(packageData.URL);
-	} else if (packageData.Content) {
-		logger.debug("package.ts: Received package data with content");
-		packageJSON = await handleContent(packageData.Content);
-	} else {
-		logger.warning("package.ts: Invalid package data received - status 400");
-		return new Response("Invalid package data", { status: 400 });
-	}
-
-	let jsonReturn = {
-		metadata: {
-			Name: packageJSON.name,
-			Version: packageJSON.version,
-			ID: packageJSON.name.toLowerCase() || "no-id",
-		},
-		data: {
-			Content: packageData.Content || "Base64 encoded content here...",
-			JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
-		},
-	};
-
-	logger.debug("package.ts: Returning package metadata: " + jsonReturn.metadata.Name + " @ " + jsonReturn.metadata.Version + " with ID " + jsonReturn.metadata.ID);
-	return jsonReturn;
-}
-
-async function handleContent(content: string, url?: string) {
+export async function handleContent(content: string, url?: string) {
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
 	const decodedContent = atob(content);
 
@@ -63,8 +59,11 @@ async function handleContent(content: string, url?: string) {
 	await Deno.mkdir(unzipPath, { recursive: true });
 
 	await Deno.writeFile(tempFilePath, new Uint8Array([...decodedContent].map((c) => c.charCodeAt(0))));
-	await Deno.run({ cmd: ["unzip", "-q", tempFilePath, "-d", unzipPath] }).status();
+	const cmd = new Deno.Command("unzip", {args: ["-q", tempFilePath, "-d", unzipPath]});
+	await cmd.output();
 
+	logger.debug("package.ts: Successfully unzipped package content");
+	
 	const packageJSON = await parsePackageJSON(unzipPath);
 	await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON);
 
@@ -82,7 +81,7 @@ async function handleContent(content: string, url?: string) {
 	return packageJSON;
 }
 
-async function handleURL(url: string) {
+export async function handleURL(url: string) {
 	let response = await fetch(url + "/zipball/master");
 	if (!response.ok) {
 		response = await fetch(url + "/zipball/main");
@@ -94,16 +93,21 @@ async function handleURL(url: string) {
 		throw new Error(errMsg);
 	}
 
+	logger.debug("package.ts: Successfully fetched package from URL: " + url + " with response: " + response);
+
 	const content = await response.arrayBuffer();
+	logger.debug("package.ts: Successfully read package content");
 	const base64Content = btoa(
 		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 	);
+
+	logger.debug("package.ts: Successfully converted package content to base64");
 
 	const packageJSON = await handleContent(base64Content, url);
 	return packageJSON;
 }
 
-async function parsePackageJSON(filePath: string) {
+export async function parsePackageJSON(filePath: string) {
 	const dirEntries = Deno.readDir(filePath);
 	let packageFolder: Deno.DirEntry | null = null;
 
@@ -141,7 +145,7 @@ async function parsePackageJSON(filePath: string) {
 	};
 }
 
-async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any) {
+export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any) {
 	const db = new DB(DB_PATH);
 
 	const zipData = await Deno.readFile(tempFilePath);

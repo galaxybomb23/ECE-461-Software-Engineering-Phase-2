@@ -44,4 +44,7 @@ Phase-2/fresh.gen.ts
 Phase-2/data/data.db
 
 # Ignore .42
-.42/
+.42c/
+
+# Ignore _fresh
+_fresh/
