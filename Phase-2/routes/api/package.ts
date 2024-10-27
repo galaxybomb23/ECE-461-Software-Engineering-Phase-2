@@ -24,19 +24,33 @@ export const handler: Handlers = {
 
 export async function packageUpload(db: DB, req: Request) {
 	const packageData = await req.json() as PackageData;
+	let packageJSON: any;
 
 	if (packageData.URL) {
 		logger.debug("package.ts: Received package data with URL: " + packageData.URL);
-		handleURL(packageData.URL);
+		packageJSON = await handleURL(packageData.URL);
 	} else if (packageData.Content) {
 		logger.debug("package.ts: Received package data with content");
-		await handleContent(packageData.Content);
+		packageJSON = await handleContent(packageData.Content);
 	} else {
 		logger.warning("package.ts: Invalid package data received - status 400");
 		return new Response("Invalid package data", { status: 400 });
 	}
 
-	return new Response("Package added", { status: 201 });
+	let jsonReturn = {
+		metadata: {
+			Name: packageJSON.name,
+			Version: packageJSON.version,
+			ID: packageJSON.name.toLowerCase() || "no-id",
+		},
+		data: {
+			Content: packageData.Content || "Base64 encoded content here...",
+			JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
+		},
+	};
+
+	logger.debug("package.ts: Returning package metadata: " + jsonReturn.metadata.Name + " @ " + jsonReturn.metadata.Version + " with ID " + jsonReturn.metadata.ID);
+	return jsonReturn;
 }
 
 async function handleContent(content: string, url?: string) {
@@ -64,6 +78,8 @@ async function handleContent(content: string, url?: string) {
 	await Deno.remove(tempFilePath);
 	await Deno.remove(unzipPath, { recursive: true });
 	await Deno.remove("./temp", { recursive: true });
+
+	return packageJSON;
 }
 
 async function handleURL(url: string) {
@@ -82,7 +98,9 @@ async function handleURL(url: string) {
 	const base64Content = btoa(
 		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 	);
-	await handleContent(base64Content, url);
+
+	const packageJSON = await handleContent(base64Content, url);
+	return packageJSON;
 }
 
 async function parsePackageJSON(filePath: string) {
