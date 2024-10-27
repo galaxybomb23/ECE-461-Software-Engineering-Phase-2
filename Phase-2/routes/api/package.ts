@@ -10,10 +10,10 @@ export const handler: Handlers = {
 		logger.info("package.ts: Received package upload request");
 		const db = new DB(DB_PATH);
 		try {
-			await packageUpload(db, req);
+			let jsonResponse = await packageUpload(db, req);
 			db.close();
 			logger.info("package.ts: ✓ Package added!");
-			return new Response("Package added", { status: 201 });
+			return new Response(JSON.stringify(jsonResponse), { status: 201 });
 		} catch (error) {
 			logger.warning("package.ts: Failed to add package - Error: " + error.message);
 			db.close();
