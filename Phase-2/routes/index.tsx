@@ -35,8 +35,7 @@ const samplePackages: PackageMetadata[] = [
 	{ Version: "8.1.3", Name: "JQuery", ID: "jquery" },
 	{ Version: "2.2.1", Name: "Chart.js", ID: "chartjs" },
 	{ Version: "1.0.0", Name: "Formidable", ID: "formidable" },
-  ];
-  
+];
 
 export default function Home() {
 	return (

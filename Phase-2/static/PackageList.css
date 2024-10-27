@@ -17,9 +17,9 @@
 	flex-direction: column;
 	align-items: flex-start;
 	transition: transform 0.2s, box-shadow 0.2s;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    border: 1px solid #a5a5af8a;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
 }
 
@@ -35,8 +35,8 @@
 	color: #076861;
 	text-decoration: none;
 	margin-bottom: 10px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
 }
 
 .package-name:hover {
@@ -54,7 +54,7 @@
 	justify-content: center;
 	align-items: center;
 	margin-top: 20px;
-    color: #afbbcc;
+	color: #afbbcc;
 }
 
 .pagination-controls button {
@@ -69,7 +69,7 @@
 }
 
 .pagination-controls button:disabled {
-    display: none;
+	display: none;
 }
 
 .pagination-controls button:hover:not(:disabled) {
