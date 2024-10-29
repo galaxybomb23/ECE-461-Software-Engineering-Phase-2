@@ -31,41 +31,31 @@ export default function PermissionManagement() {
 					className="url-input"
 				/>
 			</div>
-			<div className="file-input-row">
-				<label>
-					<input
-						type="checkbox"
-						checked={permissions.upload}
-						onChange={() => togglePermission("upload")}
-					/>
-					Upload
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={permissions.search}
-						onChange={() => togglePermission("search")}
-					/>
-					Search
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={permissions.download}
-						onChange={() => togglePermission("download")}
-					/>
-					Download
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={permissions.admin}
-						onChange={() => togglePermission("admin")}
-					/>
-					Admin
-				</label>
+
+			{/* Custom Checkboxes for Permissions */}
+			<div className="debloat-container">
+				<label className="upload-label">Permissions:</label>
+				{(["upload", "search", "download", "admin"] as PermissionType[]).map((perm) => (
+					<div
+						key={perm}
+						className={`custom-checkbox ${permissions[perm] ? "checked" : ""}`}
+						onClick={() => togglePermission(perm)}
+					>
+						<input
+							type="checkbox"
+							checked={permissions[perm]}
+							onChange={() => togglePermission(perm)}
+							className="hidden-checkbox"
+						/>
+						<span className="checkmark"></span>
+						<span className="permission-label">{perm.charAt(0).toUpperCase() + perm.slice(1)}</span>
+					</div>
+				))}
 			</div>
-			<button onClick={handleSetPermissions} className="upload-button">Set Permissions</button>
+
+			<button onClick={handleSetPermissions} className="upload-button">
+				Set Permissions
+			</button>
 		</div>
 	);
 }
