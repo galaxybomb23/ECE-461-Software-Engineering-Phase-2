@@ -16,14 +16,21 @@ export const handler: Handlers = {
 		const { id } = ctx.params;
 		const db = new DB(DB_PATH);
 
-		const pkg = await queryPackageById(db, id);
-		db.close();
+		try {
+			const pkg = await queryPackageById(db, id);
+			db.close();
 
-		if (pkg) {
-			return new Response(JSON.stringify(pkg), { status: 200 });
+			if (pkg) {
+				return new Response(JSON.stringify(pkg), { status: 200 });
+			}
+			else {
+				return new Response("Package not found", { status: 404 });
+			}
 		}
-		else {
-			return new Response("Package not found", { status: 404 });
+		catch (error) {
+			logger.error(`GET /package/{id}: Error - ${error}`);
+			db.close();
+			return new Response("There is missing field(s) in the PackageID or it is formed improperly, or is invalid", { status: 400 });
 		}
 	},
 

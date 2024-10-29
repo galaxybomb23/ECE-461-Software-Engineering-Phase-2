@@ -16,6 +16,12 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 			let packageJSON: any;
 
+			if (packageData.URL && packageData.Content) {
+				logger.debug("package.ts: Invalid package data received - status 400");
+				return new Response("There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)", { status: 400 });
+			}
+
+			// Handle package data based on URL or Content
 			if (packageData.URL) {
 				logger.debug("package.ts: Received package data with URL: " + packageData.URL);
 				packageJSON = await handleURL(db, packageData.URL);
@@ -43,10 +49,23 @@ export const handler: Handlers = {
 			logger.info("package.ts: ✓ Package added!");
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
 
+		// Handle HTTP errors
 		} catch (error) {
 			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
 			db.close();
-			return new Response("Failed to add package", { status: 500 });
+			
+			if ((error as Error).message.includes("Package already exists in database")) {
+				return new Response("Package already exists in database", { status: 409 });
+			}
+			else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {
+				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
+			}
+			else if ((error as Error).message.includes("package.json not found")) {
+				return new Response("package.json not found", { status: 400 });
+			}
+			else {
+				return new Response("There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)", { status: 400 });
+			}
 		}
 	},
 };
@@ -81,8 +100,12 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	if (metrics) {
 		metrics = JSON.parse(metrics);
 		// check if each non-latency metric is > 0.5
-		if (1 || metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
+		if (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
 			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
+		}
+		else {
+			logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] failed metric check - status 400");
+			throw new Error("Package is not uploaded due to the disqualified rating");
 		}
 	}
 
@@ -171,7 +194,7 @@ export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string,
 
 	if (packageExists.length > 0) {
 		logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] already exists in database - status 409");
-		return;
+		throw new Error("Package already exists in database");
 	}
 
 	db.query(
