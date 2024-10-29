@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { fetchJsonFromApi } from '../src/API';
+import { fetchJsonFromApi } from '../src/API.ts';
 import * as dotenv from 'dotenv';
 
 // Mock external dependencies

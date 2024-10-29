@@ -1,7 +1,9 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
+import type { PackageMetadata } from "~/types/index.ts";
 import { PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
+import { getMetrics } from "~/src/metrics/getMetrics.ts";
 
 const DB_PATH = "data/data.db";
 
@@ -16,21 +18,21 @@ export const handler: Handlers = {
 
 			if (packageData.URL) {
 				logger.debug("package.ts: Received package data with URL: " + packageData.URL);
-				packageJSON = await handleURL(packageData.URL);
+				packageJSON = await handleURL(db, packageData.URL);
 			} else if (packageData.Content) {
 				logger.debug("package.ts: Received package data with content");
-				packageJSON = await handleContent(packageData.Content);
+				packageJSON = await handleContent(db, packageData.Content);
 			} else {
-				logger.warning("package.ts: Invalid package data received - status 400");
+				logger.debug("package.ts: Invalid package data received - status 400");
 				return new Response("Invalid package data", { status: 400 });
 			}
 
-			let jsonReturn = {
+			const jsonReturn = {
 				metadata: {
 					Name: packageJSON.name,
 					Version: packageJSON.version,
 					ID: packageJSON.name.toLowerCase() || "no-id",
-				},
+				} as PackageMetadata,
 				data: {
 					Content: packageData.Content || "Base64 encoded content here...",
 					JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
@@ -42,14 +44,14 @@ export const handler: Handlers = {
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
 
 		} catch (error) {
-			logger.warning("package.ts: Failed to add package - Error: " + (error as Error).message);
+			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
 			db.close();
 			return new Response("Failed to add package", { status: 500 });
 		}
 	},
 };
 
-export async function handleContent(content: string, url?: string) {
+export async function handleContent(db: DB, content: string, url?: string) {
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
 	const decodedContent = atob(content);
 
@@ -65,14 +67,25 @@ export async function handleContent(content: string, url?: string) {
 	logger.debug("package.ts: Successfully unzipped package content");
 	
 	const packageJSON = await parsePackageJSON(unzipPath);
-	await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON);
 
+	let metrics = null;
 	if (url != "No repository URL" && url) { packageJSON.url = url; }
 	if (packageJSON.url != "No repository URL") {
-		logger.debug("package.ts: Fake calling phase 1 on: " + packageJSON.url);
+		logger.debug("package.ts: Calling phase 1 on: " + packageJSON.url);
+		metrics = await getMetrics(packageJSON.url);
 	} else {
 		logger.debug("package.ts: No repository URL found in package.json for " + packageJSON.name + ", not running Phase 1");
 	}
+
+	let uploadRet: number;
+	if (metrics) {
+		metrics = JSON.parse(metrics);
+		// check if each non-latency metric is > 0.5
+		if (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
+			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
+		}
+	}
+
 
 	await Deno.remove(tempFilePath);
 	await Deno.remove(unzipPath, { recursive: true });
@@ -81,7 +94,7 @@ export async function handleContent(content: string, url?: string) {
 	return packageJSON;
 }
 
-export async function handleURL(url: string) {
+export async function handleURL(db: DB, url: string) {
 	let response = await fetch(url + "/zipball/master");
 	if (!response.ok) {
 		response = await fetch(url + "/zipball/main");
@@ -89,7 +102,7 @@ export async function handleURL(url: string) {
 
 	if (!response.ok) {
 		const errMsg = `Failed to fetch: ${response.status} ${response.statusText}`;
-		logger.warning("package.ts: " + errMsg);
+		logger.debug("package.ts: " + errMsg);
 		throw new Error(errMsg);
 	}
 
@@ -103,7 +116,7 @@ export async function handleURL(url: string) {
 
 	logger.debug("package.ts: Successfully converted package content to base64");
 
-	const packageJSON = await handleContent(base64Content, url);
+	const packageJSON = await handleContent(db, base64Content, url);
 	return packageJSON;
 }
 
@@ -131,32 +144,38 @@ export async function parsePackageJSON(filePath: string) {
 			packageJSON = JSON.parse(await Deno.readTextFile(subDirPath));
 			logger.debug("package.ts: Found package.json in subdirectory");
 		} catch {
-			logger.warning("package.ts: package.json not found - status 400");
-			throw new Response("package.json not found", { status: 400 });
+			logger.debug("package.ts: package.json not found - status 400");
+			throw new Error("package.json not found");
 		}
 	}
 
+
 	return {
-		author: packageJSON.author || "No author",
 		name: packageJSON.name.split("/").pop() || "No name",
 		version: packageJSON.version || "No version",
 		url: packageJSON.repository?.url || packageJSON.url || "No repository URL",
 		json: packageJSON || {},
-	};
+	} 
 }
 
-export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any) {
-	const db = new DB(DB_PATH);
-
+export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any, db: DB) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
 	logger.debug("package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " + tempFilePath + " to SQLite database");
 
-	db.query(
-		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
-		[packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
+	const packageExists = await db.query(
+		"SELECT * FROM packages"
 	);
+	for (const pkg of packageExists) {
+		if (pkg[1] === packageJSON.name && pkg[3] === packageJSON.version) {
+			logger.debug("package.ts: Package already exists in database: " + JSON.stringify(pkg));
+			return;
+		}
+	}
 
-	db.close();
+	db.query(
+		"INSERT OR IGNORE INTO packages (id, name, url, version, base64_content) VALUES (?, ?, ?, ?, ?)",
+		[packageJSON.name.toLowerCase(), packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
+	);
 }

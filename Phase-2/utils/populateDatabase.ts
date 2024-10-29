@@ -73,11 +73,11 @@ export async function populateDatabase(db: DB) {
 	// create the packages table
 	await db.execute(
 		`CREATE TABLE IF NOT EXISTS packages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            id TEXT PRIMARY KEY, 
             name TEXT NOT NULL UNIQUE,
             url TEXT NOT NULL,
             version TEXT UNIQUE,
-			base64_content TEXT,
+            base64_content TEXT,
             license_score INTEGER, 
             netscore INTEGER, 
             dependency_pinning_score INTEGER, 
@@ -91,11 +91,13 @@ export async function populateDatabase(db: DB) {
 
 	// insert the packages into the database
 	const pkgQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT OR IGNORE INTO packages (id, name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	for (const entry of dbentries.packages) {
+		const id = entry.name.toLowerCase();  // Generate the ID from the package name
 		pkgQuery.execute([
+			id,
 			entry.name,
 			entry.url,
 			entry.version,

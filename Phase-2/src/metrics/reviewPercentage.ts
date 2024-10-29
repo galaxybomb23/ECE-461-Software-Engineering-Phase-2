@@ -18,7 +18,7 @@ export async function getReviewPercentage(
 		const pullRequestAPI = `${getGitHubAPILink(URL)}/pulls?state=closed`;
 		const pullRequests: PullRequest[] = await fetchJsonFromApi(
 			pullRequestAPI,
-		);
+		) as PullRequest[];
 
 		// Filter the pull requests that have been merged
 		const mergedPRs = pullRequests.filter((pr: PullRequest) => pr.merged_at !== null);
@@ -26,7 +26,7 @@ export async function getReviewPercentage(
 		for (const pr of mergedPRs) {
 			// Fetch the diff stats for each merged pull request
 			const prDetailsAPI = `${getGitHubAPILink(URL)}/pulls/${pr.number}`;
-			const prDetails: PRDetails = await fetchJsonFromApi(prDetailsAPI);
+			const prDetails: PRDetails = await fetchJsonFromApi(prDetailsAPI) as PRDetails;
 
 			// Sum up the total lines of code introduced in this PR (additions + deletions)
 			const linesChanged = prDetails.additions + prDetails.deletions;
@@ -34,7 +34,7 @@ export async function getReviewPercentage(
 
 			// Fetch code reviews for each merged pull request
 			const reviewsAPI = `${getGitHubAPILink(URL)}/pulls/${pr.number}/reviews`;
-			const reviews: Review[] = await fetchJsonFromApi(reviewsAPI);
+			const reviews: Review[] = await fetchJsonFromApi(reviewsAPI) as Review[];
 
 			// If there is at least one review, count the lines from this PR as reviewed
 			if (reviews.length > 0) {
