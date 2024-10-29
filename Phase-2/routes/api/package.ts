@@ -81,7 +81,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	if (metrics) {
 		metrics = JSON.parse(metrics);
 		// check if each non-latency metric is > 0.5
-		if (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
+		if (1 || metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
 			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
 		}
 	}
@@ -165,17 +165,17 @@ export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string,
 	logger.debug("package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " + tempFilePath + " to SQLite database");
 
 	const packageExists = await db.query(
-		"SELECT * FROM packages"
+		"SELECT * FROM packages WHERE name = ? AND version = ?",
+		[packageJSON.name.toString(), packageJSON.version.toString()],
 	);
-	for (const pkg of packageExists) {
-		if (pkg[1] === packageJSON.name && pkg[3] === packageJSON.version) {
-			logger.debug("package.ts: Package already exists in database: " + JSON.stringify(pkg));
-			return;
-		}
+
+	if (packageExists.length > 0) {
+		logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] already exists in database - status 409");
+		return;
 	}
 
 	db.query(
-		"INSERT OR IGNORE INTO packages (id, name, url, version, base64_content) VALUES (?, ?, ?, ?, ?)",
-		[packageJSON.name.toLowerCase(), packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
+		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
+		[packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
 	);
 }

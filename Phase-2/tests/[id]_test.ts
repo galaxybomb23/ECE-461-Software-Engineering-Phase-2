@@ -15,7 +15,7 @@ Deno.test(TESTNAME, async () => {
     const db: DB = await setup(TESTNAME); 
 
     // test code
-    const id = "sample-package-1";
+    const id = "1";
     const pkg = await queryPackageById(db, id);
 
     assertNotEquals(pkg, null, "Package should not be null");
@@ -23,7 +23,7 @@ Deno.test(TESTNAME, async () => {
     if (pkg) {
         assertEquals(pkg.metadata.Name, "sample-package-1", "Package name should be sample-package-1");
         assertEquals(pkg.metadata.Version, "1.0.0", "Package version should be 1.0.0");
-        assertEquals(pkg.metadata.ID, "sample-package-1", "Package ID should be sample-package-1");
+        assertEquals(pkg.metadata.ID.toString(), "1", "Package ID should be 1");
         assertEquals(pkg.data.Content, "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...", "Package content should be the correct base64 string");
     }
 
