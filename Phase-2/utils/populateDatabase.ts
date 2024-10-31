@@ -43,7 +43,7 @@ export async function populateDatabase(db: DB) {
 		users: [
 			{
 				username: "ece30861defaultadminuser",
-				hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa",  // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
+				hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa", // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
 				can_search: true,
 				can_download: true,
 				can_upload: true,
@@ -52,11 +52,11 @@ export async function populateDatabase(db: DB) {
 				token_api_interactions: 0,
 				password_salt: "f5429e4041729b8a",
 				password_rounds: 5227,
-				is_admin: true
+				is_admin: true,
 			},
 			{
 				username: "pi",
-				hashed_password: "f636675642fc2a2b777d34a137210866d3dd1cc5bcdb5ec03406d381adfe3143",  // password is "password"
+				hashed_password: "f636675642fc2a2b777d34a137210866d3dd1cc5bcdb5ec03406d381adfe3143", // password is "password"
 				can_search: true,
 				can_download: true,
 				can_upload: false,
@@ -65,7 +65,7 @@ export async function populateDatabase(db: DB) {
 				token_api_interactions: 0,
 				password_salt: "7913fd0effdbdc62",
 				password_rounds: 5125,
-				is_admin: false
+				is_admin: false,
 			},
 		],
 	};
@@ -144,11 +144,11 @@ export async function populateDatabase(db: DB) {
 			entry.token_api_interactions,
 			entry.password_salt,
 			entry.password_rounds,
-			entry.is_admin
+			entry.is_admin,
 		]);
 	}
 
 	logger.info("Database populated");
 }
 
-populateDatabase(new DB("data/data.db"))
+populateDatabase(new DB("data/data.db"));

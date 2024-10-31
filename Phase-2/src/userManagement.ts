@@ -11,7 +11,7 @@ export function login(db: DB, username: string, password: string) {
 		username,
 	]);
 	if (result === undefined || result.length == 0) { // make sure the username exist
-		logger.debug(`there was no result from the db. result: {result}`)
+		logger.debug(`there was no result from the db. result: {result}`);
 		return false;
 	}
 
@@ -27,14 +27,11 @@ export function login(db: DB, username: string, password: string) {
 		to_check_password_hash = sha256(to_check_password_hash + password_salt);
 	}
 
-	if (known_password_hash == to_check_password_hash)
-	{
-		logger.info(`{username} login was successful`)
+	if (known_password_hash == to_check_password_hash) {
+		logger.info(`{username} login was successful`);
 		return true;
-	}
-	else
-	{
-		logger.info(`{usernmae} login was unsuccessful`)
+	} else {
+		logger.info(`{usernmae} login was unsuccessful`);
 		return false;
 	}
 }
