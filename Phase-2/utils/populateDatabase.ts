@@ -42,28 +42,30 @@ export async function populateDatabase(db: DB) {
 		],
 		users: [
 			{
-				username: "admin",
-				hashed_password: "hashed_admin_password",
+				username: "ece30861defaultadminuser",
+				hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa",  // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
 				can_search: true,
 				can_download: true,
 				can_upload: true,
 				user_group: "admin",
 				token_start_time: Date.now(),
 				token_api_interactions: 0,
-				password_salt: "admin_salt",
-				password_rounds: 10000,
+				password_salt: "f5429e4041729b8a",
+				password_rounds: 5227,
+				is_admin: true
 			},
 			{
-				username: "user1",
-				hashed_password: "hashed_user1_password",
+				username: "pi",
+				hashed_password: "f636675642fc2a2b777d34a137210866d3dd1cc5bcdb5ec03406d381adfe3143",  // password is "password"
 				can_search: true,
 				can_download: true,
 				can_upload: false,
 				user_group: "user",
 				token_start_time: Date.now(),
 				token_api_interactions: 0,
-				password_salt: "user1_salt",
-				password_rounds: 4324,
+				password_salt: "7913fd0effdbdc62",
+				password_rounds: 5125,
+				is_admin: false
 			},
 		],
 	};
@@ -120,14 +122,15 @@ export async function populateDatabase(db: DB) {
             token_start_time INTEGER, 
             token_api_interactions INTEGER, 
             password_salt TEXT, 
-            password_rounds INTEGER
+            password_rounds INTEGER,
+			is_admin BOOLEAN
         )`,
 	);
 
 	// insert the users into the database
 	const userQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	for (const entry of dbentries.users) {
 		userQuery.execute([
@@ -141,8 +144,11 @@ export async function populateDatabase(db: DB) {
 			entry.token_api_interactions,
 			entry.password_salt,
 			entry.password_rounds,
+			entry.is_admin
 		]);
 	}
 
 	logger.info("Database populated");
 }
+
+populateDatabase(new DB("data/data.db"))

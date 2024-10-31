@@ -1,7 +1,6 @@
 import * as crypto from "node:crypto";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-
-const db: DB = new DB("./data/data.db");
+import { logger } from "./logFile.ts";
 
 function sha256(data: string) {
 	return crypto.createHash("sha256").update(data).digest("hex");
@@ -12,6 +11,7 @@ export function login(db: DB, username: string, password: string) {
 		username,
 	]);
 	if (result === undefined || result.length == 0) { // make sure the username exist
+		logger.debug(`there was no result from the db. result: {result}`)
 		return false;
 	}
 
@@ -27,7 +27,16 @@ export function login(db: DB, username: string, password: string) {
 		to_check_password_hash = sha256(to_check_password_hash + password_salt);
 	}
 
-	return known_password_hash == to_check_password_hash;
+	if (known_password_hash == to_check_password_hash)
+	{
+		logger.info(`{username} login was successful`)
+		return true;
+	}
+	else
+	{
+		logger.info(`{usernmae} login was unsuccessful`)
+		return false;
+	}
 }
 
 export function admin_create_account(
@@ -38,6 +47,7 @@ export function admin_create_account(
 	can_download: boolean,
 	can_upload: boolean,
 	user_group: string,
+	is_admin: boolean,
 ): boolean {
 	// make sure username doesn't exist - if it does return false
 	const result = db.query(`SELECT id FROM users WHERE username = ?`, [username]);
@@ -60,8 +70,8 @@ export function admin_create_account(
 
 	// send all variables to .db
 	const userQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	userQuery.execute([
 		username,
@@ -74,6 +84,7 @@ export function admin_create_account(
 		token_api_interactions,
 		password_salt,
 		password_rounds,
+		is_admin,
 	]);
 
 	return true;

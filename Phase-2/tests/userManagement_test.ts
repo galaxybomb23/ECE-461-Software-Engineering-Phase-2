@@ -22,7 +22,8 @@ Deno.test(TESTNAME, async () => {
             token_start_time INTEGER, 
             token_api_interactions INTEGER, 
             password_salt TEXT, 
-            password_rounds INTEGER
+            password_rounds INTEGER,
+			is_admin, TEXT
         );`,
 	);
 
@@ -37,7 +38,7 @@ Deno.test(TESTNAME, async () => {
 
 	// Test for creating a new user - should return true
 	assert(
-		admin_create_account(db, username, password, true, false, true, "rushilsJob"),
+		admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
 		"Create new user should return true",
 	);
 
@@ -46,7 +47,7 @@ Deno.test(TESTNAME, async () => {
 
 	// Test for duplicate user creation - should return false
 	assert(
-		!admin_create_account(db, username, password, true, false, true, "rushilsJob"),
+		!admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
 		"Duplicate user creation should return false",
 	);
 
