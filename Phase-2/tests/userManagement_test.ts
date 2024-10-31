@@ -23,7 +23,7 @@ Deno.test(TESTNAME, async () => {
             token_api_interactions INTEGER, 
             password_salt TEXT, 
             password_rounds INTEGER,
-			is_admin, TEXT
+			is_admin BOOLEAN
         );`,
 	);
 

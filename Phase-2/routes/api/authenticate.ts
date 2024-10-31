@@ -8,13 +8,6 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
 const db = new DB("./data/data.db");
 
-// export interface AuthenticationRequest {
-// 	User: User;
-// 	Secret: {
-// 		password: string;
-// 	};
-// }
-
 export const handler: Handlers = {
 	async PUT(req) {
 		try {
