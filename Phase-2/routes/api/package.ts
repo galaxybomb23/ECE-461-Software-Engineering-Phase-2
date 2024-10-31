@@ -4,7 +4,7 @@ import type { PackageMetadata } from "~/types/index.ts";
 import { PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
-import { ZipReader, BlobReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
+import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 
 const DB_PATH = "data/data.db";
 
@@ -19,7 +19,10 @@ export const handler: Handlers = {
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
-				return new Response("There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)", { status: 400 });
+				return new Response(
+					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)",
+					{ status: 400 },
+				);
 			}
 
 			// Handle package data based on URL or Content
@@ -35,40 +38,44 @@ export const handler: Handlers = {
 				return new Response("Invalid package data", { status: 400 });
 			}
 
+			// get package ID from db
+			const packageID = await db.query(
+				"SELECT id FROM packages WHERE name = ? AND version = ?",
+				[packageJSON.name, packageJSON.version],
+			);
+
 			// Populate JSON response to server
 			const jsonReturn = {
 				metadata: {
 					Name: packageJSON.name,
 					Version: packageJSON.version,
-					ID: packageJSON.name.toLowerCase() || "no-id",
+					ID: packageID[0][0] || "no-id",
 				} as PackageMetadata,
 				data: {
 					Content: packageData.Content || "Base64 encoded content here...",
-					JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
+					JSProgram:
+						"if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
 				},
 			};
 
-			db.close();
 			logger.info("package.ts: ✓ Package added!");
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
 
-
-		// Handle HTTP errors
+			// Handle HTTP errors
 		} catch (error) {
 			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
-			db.close();
-			
+
 			if ((error as Error).message.includes("Package already exists in database")) {
 				return new Response("Package already exists in database", { status: 409 });
-			}
-			else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {
+			} else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {
 				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
-			}
-			else if ((error as Error).message.includes("package.json not found")) {
+			} else if ((error as Error).message.includes("package.json not found")) {
 				return new Response("package.json not found", { status: 400 });
-			}
-			else {
-				return new Response("There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)", { status: 400 });
+			} else {
+				return new Response(
+					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)",
+					{ status: 400 },
+				);
 			}
 		}
 	},
@@ -87,33 +94,42 @@ export async function handleContent(db: DB, content: string, url?: string) {
 
 	// Check if the package is a zip bomb (> 700MB)
 	if (!(await pleaseDontZipBombMe(tempFilePath, 700 * 1024 * 1024))) {
-		const cmd = new Deno.Command("unzip", {args: ["-q", tempFilePath, "-d", unzipPath]});
+		const cmd = new Deno.Command("unzip", { args: ["-q", tempFilePath, "-d", unzipPath] });
 		await cmd.output();
-	}
-	else {
-		logger.debug("package.ts: Bomb detected - 😞");
+	} else {
+		logger.warn("package.ts: Bomb detected - 😞");
+		await Deno.remove(tempFilePath);
+		await Deno.remove(unzipPath, { recursive: true });
+		await Deno.remove("./temp", { recursive: true });
 		throw new Error("Package is too large, why are you trying to upload a zip bomb?");
 	}
-	
+
 	// parse and verify package.json
 	const packageJSON = await parsePackageJSON(unzipPath);
 	let metrics = null;
-	if (url != "No repository URL" && url) { packageJSON.url = url; }
+	if (url != "No repository URL" && url) packageJSON.url = url;
 	if (packageJSON.url != "No repository URL") {
 		logger.debug("package.ts: Calling phase 1 on: " + packageJSON.url);
 		metrics = await getMetrics(packageJSON.url);
 	} else {
-		logger.debug("package.ts: No repository URL found in package.json for " + packageJSON.name + ", not running Phase 1");
+		logger.debug(
+			"package.ts: No repository URL found in package.json for " + packageJSON.name + ", not running Phase 1",
+		);
 	}
 
 	// Metrics check, all metrics must be above 0.5 to ingest
 	if (metrics) {
 		metrics = JSON.parse(metrics);
-		if (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
+		if (
+			metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 &&
+			metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5
+		) {
 			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
-		}
-		else {
-			logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] failed metric check - status 400");
+		} else {
+			logger.debug(
+				"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+					"] failed metric check - status 400",
+			);
 
 			await Deno.remove(tempFilePath);
 			await Deno.remove(unzipPath, { recursive: true });
@@ -121,10 +137,12 @@ export async function handleContent(db: DB, content: string, url?: string) {
 
 			throw new Error("Package is not uploaded due to the disqualified rating");
 		}
-	}
-	// Something goes wrong with the metrics
+	} // Something goes wrong with the metrics
 	else {
-		logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] failed metric check - status 400");
+		logger.debug(
+			"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+				"] failed metric check - status 400",
+		);
 
 		await Deno.remove(tempFilePath);
 		await Deno.remove(unzipPath, { recursive: true });
@@ -192,20 +210,22 @@ export async function parsePackageJSON(filePath: string) {
 		}
 	}
 
-
 	return {
 		name: packageJSON.name?.split("/").pop() || "No name",
 		version: packageJSON.version || "No version",
 		url: packageJSON.repository?.url || packageJSON.url || "No repository URL",
 		json: packageJSON || {},
-	} 
+	};
 }
 
 export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any, db: DB) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
-	logger.debug("package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " + tempFilePath + " to SQLite database");
+	logger.debug(
+		"package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " +
+			tempFilePath + " to SQLite database",
+	);
 
 	const packageExists = await db.query(
 		"SELECT * FROM packages WHERE name = ? AND version = ?",
@@ -213,7 +233,10 @@ export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string,
 	);
 
 	if (packageExists.length > 0) {
-		logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] already exists in database - status 409");
+		logger.debug(
+			"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+				"] already exists in database - status 409",
+		);
 		throw new Error("Package already exists in database");
 	}
 

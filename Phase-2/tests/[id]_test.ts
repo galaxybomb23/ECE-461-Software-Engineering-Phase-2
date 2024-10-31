@@ -10,23 +10,27 @@ import { queryPackageById } from "~/routes/api/package/[id].ts";
 // test suite
 let TESTNAME = "queryExistingPackage";
 Deno.test(TESTNAME, async () => {
-    // pre test setup
-    testLogger.info(`TEST: ${TESTNAME}`);
-    const db: DB = await setup(TESTNAME); 
+	// pre test setup
+	testLogger.info(`TEST: ${TESTNAME}`);
+	const db: DB = await setup(TESTNAME);
 
-    // test code
-    const id = "1";
-    const pkg = await queryPackageById(db, id);
+	// test code
+	const id = "1";
+	const pkg = await queryPackageById(db, id);
 
-    assertNotEquals(pkg, null, "Package should not be null");
+	assertNotEquals(pkg, null, "Package should not be null");
 
-    if (pkg) {
-        assertEquals(pkg.metadata.Name, "sample-package-1", "Package name should be sample-package-1");
-        assertEquals(pkg.metadata.Version, "1.0.0", "Package version should be 1.0.0");
-        assertEquals(pkg.metadata.ID.toString(), "1", "Package ID should be 1");
-        assertEquals(pkg.data.Content, "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...", "Package content should be the correct base64 string");
-    }
+	if (pkg) {
+		assertEquals(pkg.metadata.Name, "sample-package-1", "Package name should be sample-package-1");
+		assertEquals(pkg.metadata.Version, "1.0.0", "Package version should be 1.0.0");
+		assertEquals(pkg.metadata.ID.toString(), "1", "Package ID should be 1");
+		assertEquals(
+			pkg.data.Content,
+			"UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
+			"Package content should be the correct base64 string",
+		);
+	}
 
-    // post test cleanup
-    await cleanup(db, TESTNAME); // cleanup the database if used
+	// post test cleanup
+	await cleanup(db, TESTNAME); // cleanup the database if used
 });

@@ -90,12 +90,12 @@ export async function populateDatabase(db: DB) {
 	);
 
 	// insert the packages into the database
-	const pkgQuery = db.prepareQuery(
+	const pkgQuery = await db.prepareQuery(
 		`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	for (const entry of dbentries.packages) {
-		pkgQuery.execute([
+		await pkgQuery.execute([
 			entry.name,
 			entry.url,
 			entry.version,
@@ -129,12 +129,12 @@ export async function populateDatabase(db: DB) {
 	);
 
 	// insert the users into the database
-	const userQuery = db.prepareQuery(
+	const userQuery = await db.prepareQuery(
 		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	for (const entry of dbentries.users) {
-		userQuery.execute([
+		await userQuery.execute([
 			entry.username,
 			entry.hashed_password,
 			entry.can_search,

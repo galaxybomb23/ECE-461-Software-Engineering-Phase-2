@@ -22,15 +22,16 @@ export const handler: Handlers = {
 
 			if (pkg) {
 				return new Response(JSON.stringify(pkg), { status: 200 });
-			}
-			else {
+			} else {
 				return new Response("Package not found", { status: 404 });
 			}
-		}
-		catch (error) {
+		} catch (error) {
 			logger.error(`GET /package/{id}: Error - ${error}`);
 			db.close();
-			return new Response("There is missing field(s) in the PackageID or it is formed improperly, or is invalid", { status: 400 });
+			return new Response(
+				"There is missing field(s) in the PackageID or it is formed improperly, or is invalid",
+				{ status: 400 },
+			);
 		}
 	},
 
@@ -66,8 +67,7 @@ export async function queryPackageById(db: DB, id: string) {
 			} as PackageData,
 		} as Package;
 		return pkg;
-	}
-	else {
+	} else {
 		return null;
 	}
 }
