@@ -1,0 +1,53 @@
+.tab-container {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.tab-button {
+	padding: 10px;
+	font-size: 1rem;
+	border: none;
+	border-radius: 5px;
+	background-color: #2e2b298d;
+	color: white;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+}
+
+.tab-button.active {
+	background-color: #076861;
+}
+
+.tab-content {
+	padding: 20px;
+	background-color: #2e2b298d;
+	border-radius: 5px;
+}
+
+.debloat-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	width: 100%; /* Take up full horizontal space */
+	margin-bottom: 1rem;
+}
+
+.custom-checkbox {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1; /* Allows each checkbox to take equal space */
+	justify-content: center; /* Centers each checkbox and label */
+	padding: 5px;
+}
+
+.permission-label {
+	color: #fafafa;
+	font-size: 16px;
+	display: inline-block;
+	margin-top: 40px;
+}

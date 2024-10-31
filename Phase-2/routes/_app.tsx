@@ -14,6 +14,7 @@ export default function App({ Component }: PageProps) {
 				<link rel="stylesheet" href="/Navbar.css" />
 				<link rel="stylesheet" href="/UploadForm.css" />
 				<link rel="stylesheet" href="/PackageList.css" />
+				<link rel="stylesheet" href="/Admin.css" />
 			</head>
 			<body>
 				<Component />

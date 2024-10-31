@@ -72,7 +72,7 @@ export function SearchBar({ search, searchResults }: SearchBarProps) {
 					type="search"
 					id="default-search"
 					className="search-input"
-					placeholder="Search Packages"
+					placeholder="Search Packages By Regex"
 					required
 					value={search.value || ""}
 					onInput={(e) => {
