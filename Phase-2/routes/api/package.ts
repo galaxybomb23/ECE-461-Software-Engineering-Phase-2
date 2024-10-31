@@ -4,6 +4,7 @@ import type { PackageMetadata } from "~/types/index.ts";
 import { PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
+import { ZipReader, BlobReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 
 const DB_PATH = "data/data.db";
 
@@ -28,11 +29,13 @@ export const handler: Handlers = {
 			} else if (packageData.Content) {
 				logger.debug("package.ts: Received package data with content");
 				packageJSON = await handleContent(db, packageData.Content);
+				logger.info("package.ts: Successfully handled content.");
 			} else {
 				logger.debug("package.ts: Invalid package data received - status 400");
 				return new Response("Invalid package data", { status: 400 });
 			}
 
+			// Populate JSON response to server
 			const jsonReturn = {
 				metadata: {
 					Name: packageJSON.name,
@@ -48,6 +51,7 @@ export const handler: Handlers = {
 			db.close();
 			logger.info("package.ts: ✓ Package added!");
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
+
 
 		// Handle HTTP errors
 		} catch (error) {
@@ -80,13 +84,19 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	await Deno.mkdir(unzipPath, { recursive: true });
 
 	await Deno.writeFile(tempFilePath, new Uint8Array([...decodedContent].map((c) => c.charCodeAt(0))));
-	const cmd = new Deno.Command("unzip", {args: ["-q", tempFilePath, "-d", unzipPath]});
-	await cmd.output();
 
-	logger.debug("package.ts: Successfully unzipped package content");
+	// Check if the package is a zip bomb (> 700MB)
+	if (!(await pleaseDontZipBombMe(tempFilePath, 700 * 1024 * 1024))) {
+		const cmd = new Deno.Command("unzip", {args: ["-q", tempFilePath, "-d", unzipPath]});
+		await cmd.output();
+	}
+	else {
+		logger.debug("package.ts: Bomb detected - 😞");
+		throw new Error("Package is too large, why are you trying to upload a zip bomb?");
+	}
 	
+	// parse and verify package.json
 	const packageJSON = await parsePackageJSON(unzipPath);
-
 	let metrics = null;
 	if (url != "No repository URL" && url) { packageJSON.url = url; }
 	if (packageJSON.url != "No repository URL") {
@@ -96,19 +106,32 @@ export async function handleContent(db: DB, content: string, url?: string) {
 		logger.debug("package.ts: No repository URL found in package.json for " + packageJSON.name + ", not running Phase 1");
 	}
 
-	let uploadRet: number;
+	// Metrics check, all metrics must be above 0.5 to ingest
 	if (metrics) {
 		metrics = JSON.parse(metrics);
-		// check if each non-latency metric is > 0.5
 		if (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 && metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5) {
 			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
 		}
 		else {
 			logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] failed metric check - status 400");
+
+			await Deno.remove(tempFilePath);
+			await Deno.remove(unzipPath, { recursive: true });
+			await Deno.remove("./temp", { recursive: true });
+
 			throw new Error("Package is not uploaded due to the disqualified rating");
 		}
 	}
+	// Something goes wrong with the metrics
+	else {
+		logger.debug("package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version + "] failed metric check - status 400");
 
+		await Deno.remove(tempFilePath);
+		await Deno.remove(unzipPath, { recursive: true });
+		await Deno.remove("./temp", { recursive: true });
+
+		throw new Error("Package is not uploaded due to the disqualified rating");
+	}
 
 	await Deno.remove(tempFilePath);
 	await Deno.remove(unzipPath, { recursive: true });
@@ -129,15 +152,11 @@ export async function handleURL(db: DB, url: string) {
 		throw new Error(errMsg);
 	}
 
-	logger.debug("package.ts: Successfully fetched package from URL: " + url + " with response: " + response);
-
 	const content = await response.arrayBuffer();
 	logger.debug("package.ts: Successfully read package content");
 	const base64Content = btoa(
 		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 	);
-
-	logger.debug("package.ts: Successfully converted package content to base64");
 
 	const packageJSON = await handleContent(db, base64Content, url);
 	return packageJSON;
@@ -160,7 +179,8 @@ export async function parsePackageJSON(filePath: string) {
 	const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
 
 	try {
-		packageJSON = JSON.parse(await Deno.readTextFile(rootPath));
+		packageJSON = JSON.parse(await Deno.readTextFile(rootPath))?.name;
+		logger.debug("parsed package.json LOL: " + packageJSON);
 		logger.debug("package.ts: Found package.json in root");
 	} catch {
 		try {
@@ -174,7 +194,7 @@ export async function parsePackageJSON(filePath: string) {
 
 
 	return {
-		name: packageJSON.name.split("/").pop() || "No name",
+		name: packageJSON.name?.split("/").pop() || "No name",
 		version: packageJSON.version || "No version",
 		url: packageJSON.repository?.url || packageJSON.url || "No repository URL",
 		json: packageJSON || {},
@@ -201,4 +221,27 @@ export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string,
 		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
 		[packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
 	);
+}
+
+async function pleaseDontZipBombMe(tempFilePath: string, maxDecompressedSize: number) {
+	const file = await Deno.readFile(tempFilePath);
+	const blob = new Blob([file]);
+	const zipReader = new ZipReader(new BlobReader(blob));
+
+	const entries = await zipReader.getEntries();
+	let decompressedSize = 0;
+	let fileCount = 0;
+
+	for (const entry of entries) {
+		if (entry.directory) continue; // Skip directories
+		decompressedSize += entry.uncompressedSize || 0;
+		fileCount++;
+
+		// Check limits
+		if (decompressedSize > maxDecompressedSize) {
+			await zipReader.close();
+			return true;
+		}
+	}
+	await zipReader.close();
 }
