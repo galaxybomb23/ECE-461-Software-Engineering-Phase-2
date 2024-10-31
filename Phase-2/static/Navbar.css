@@ -24,14 +24,15 @@
 }
 
 .navbar img {
-	height: 100%; /* Scale the image to the height of the navbar */
-	object-fit: contain; /* Maintain aspect ratio */
+	height: 100%;
+	object-fit: contain;
+	padding: 1rem;
 }
 
 .navbar ul {
 	display: flex;
 	gap: 1rem;
-	padding: 1rem;
+	padding-top: 5px;
 }
 
 .navbar a {
