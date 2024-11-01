@@ -23,7 +23,8 @@ Deno.test(TESTNAME, async () => {
             token_api_interactions INTEGER, 
             password_salt TEXT, 
             password_rounds INTEGER,
-			is_admin BOOLEAN
+			is_admin BOOLEAN,
+			token TEXT
         );`,
 	);
 
@@ -34,7 +35,7 @@ Deno.test(TESTNAME, async () => {
 	assert(!delete_account(db, username), "Delete non-existing user should return false");
 
 	// Test for logging in with a non-existing user - should return false
-	assert(!login(db, username, password), "Login non-existing user should return false");
+	assert(!login(db, username, password).isAuthenticated, "Login non-existing user should return false");
 
 	// Test for creating a new user - should return true
 	assert(
@@ -52,13 +53,16 @@ Deno.test(TESTNAME, async () => {
 	);
 
 	// Test for incorrect password - should return false
-	assert(!login(db, username, "notTheRightPassword"), "Login with wrong password should return false");
+	assert(
+		!login(db, username, "notTheRightPassword").isAuthenticated,
+		"Login with wrong password should return false",
+	);
 
 	// Test for deleting the account - should return true
 	assert(delete_account(db, username), "Delete existing user should return true");
 
 	// Test for logging in after deletion - should return false
-	assert(!login(db, username, password), "Login after deletion should return false");
+	assert(!login(db, username, password).isAuthenticated, "Login after deletion should return false");
 
 	// Check that the users table is empty after deletion
 	assertEquals(Array.from(db.query("SELECT * FROM users")), [], "Users table should be empty after deletion");

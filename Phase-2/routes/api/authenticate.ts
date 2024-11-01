@@ -3,8 +3,9 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest, AuthenticationToken } from "../../types/index.ts";
-import { admin_create_account, delete_account, login } from "../../src/userManagement.ts";
+import { login, LoginResponse } from "../../src/userManagement.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { logger } from "../../src/logFile.ts";
 
 const db = new DB("./data/data.db");
 
@@ -12,21 +13,37 @@ export const handler: Handlers = {
 	async PUT(req) {
 		try {
 			const { User, Secret }: AuthenticationRequest = await req.json();
+			if (!User || !Secret) {
+				logger.debug("Missing parameters");
+				return new Response(
+					"There is missing field(s) in the AuthenticationRequest or it is formed improperly.",
+					{
+						status: 400,
+					},
+				);
+			}
 			const { name, isAdmin } = User;
 			const { password } = Secret;
+			if (name === undefined || isAdmin === undefined || password === undefined) {
+				logger.debug("Missing info");
+				return new Response(
+					"There is missing field(s) in the AuthenticationRequest or it is formed improperly.",
+					{
+						status: 400,
+					},
+				);
+			}
 
-			const isAuthenticated = login(db, name, password);
+			const { isAuthenticated, token } = login(db, name, password);
 
 			if (isAuthenticated) {
-				const token: AuthenticationToken = `bearer ${btoa(name + ":" + password)}`; // is this correct?
 				return new Response(JSON.stringify({ token }), { headers: { "Content-Type": "application/json" } });
 			} else {
 				return new Response("The user or password is invalid.", { status: 401 });
 			}
 		} catch (error) {
-			return new Response("There is missing field(s) in the AuthenticationRequest or it is formed improperly.", {
-				status: 400,
-			});
+			logger.debug(error);
+			return new Response(`Internal Exception: ${error}`, { status: 500 });
 		}
 	},
 	// async POST(req) {
