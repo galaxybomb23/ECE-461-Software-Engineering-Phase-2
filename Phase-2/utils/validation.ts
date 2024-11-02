@@ -1,4 +1,5 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { getUnixTimeInSeconds } from "../src/userManagement";
 
 export interface userInfo {
 	can_search: boolean;
@@ -32,8 +33,8 @@ export function getUserPermissions(db: DB, token: string): userInfo {
 function is_token_valid(token_start_time: number, token_api_interactions: number): boolean {
 	const token_overused = token_api_interactions >= 1000;
 
-	const current_time = new Date().getTime();
-	const ten_hours = 60 * 10;
+	const current_time = getUnixTimeInSeconds();
+	const ten_hours = 60 * 60 * 10;
 	const token_expired = (current_time - token_start_time) > ten_hours;
 
 	const is_token_valid = !(token_overused || token_expired);

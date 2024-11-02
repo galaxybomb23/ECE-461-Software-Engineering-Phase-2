@@ -6,6 +6,10 @@ function sha256(data: string) {
 	return crypto.createHash("sha256").update(data).digest("hex");
 }
 
+export function getUnixTimeInSeconds(): number {
+	return Math.floor(Date.now() / 1000);
+}
+
 export interface LoginResponse {
 	isAuthenticated: boolean;
 	token?: string;
@@ -39,7 +43,7 @@ export function login(db: DB, username: string, password: string, is_admin: bool
 	if (known_password_hash == to_check_password_hash && is_admin == user_admin_status) { // can admins login as not admins?
 		const token = `bearer ${crypto.randomUUID()}`;
 		db.query(`UPDATE users SET token_start_time = ?, token_api_interactions = 0, token = ? WHERE username = ?;`, [
-			Math.floor(new Date().getTime() / 1000),
+			getUnixTimeInSeconds(),
 			token,
 			username,
 		]);
@@ -66,8 +70,7 @@ export function admin_create_account(
 	}
 
 	// another variable is token_start_time, token_api_interaction
-	const now = new Date();
-	const token_start_time = Math.floor(now.getTime() / 1000); // Get the total seconds since the epoch
+	const token_start_time = getUnixTimeInSeconds();
 	const token_api_interactions = 0;
 
 	// another variable is password_salt, password_rounds, password_hash, password_algorithm, = sha256 (will not send this one)
