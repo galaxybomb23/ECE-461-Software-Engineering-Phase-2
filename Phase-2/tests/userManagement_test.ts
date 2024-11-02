@@ -35,7 +35,7 @@ Deno.test(TESTNAME, async () => {
 	assert(!delete_account(db, username), "Delete non-existing user should return false");
 
 	// Test for logging in with a non-existing user - should return false
-	assert(!login(db, username, password).isAuthenticated, "Login non-existing user should return false");
+	assert(!login(db, username, password, true).isAuthenticated, "Login non-existing user should return false");
 
 	// Test for creating a new user - should return true
 	assert(
@@ -44,7 +44,7 @@ Deno.test(TESTNAME, async () => {
 	);
 
 	// Test for correct login - should return true
-	assert(login(db, username, password), "Correct login should return true");
+	assert(login(db, username, password, true), "Correct login should return true");
 
 	// Test for duplicate user creation - should return false
 	assert(
@@ -54,7 +54,7 @@ Deno.test(TESTNAME, async () => {
 
 	// Test for incorrect password - should return false
 	assert(
-		!login(db, username, "notTheRightPassword").isAuthenticated,
+		!login(db, username, "notTheRightPassword", true).isAuthenticated,
 		"Login with wrong password should return false",
 	);
 
@@ -62,7 +62,7 @@ Deno.test(TESTNAME, async () => {
 	assert(delete_account(db, username), "Delete existing user should return true");
 
 	// Test for logging in after deletion - should return false
-	assert(!login(db, username, password).isAuthenticated, "Login after deletion should return false");
+	assert(!login(db, username, password, true).isAuthenticated, "Login after deletion should return false");
 
 	// Check that the users table is empty after deletion
 	assertEquals(Array.from(db.query("SELECT * FROM users")), [], "Users table should be empty after deletion");
