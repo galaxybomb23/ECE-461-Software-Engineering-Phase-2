@@ -35,12 +35,10 @@ admin_create_account(
 );
 admin_create_account(db, "pi", "password", true, true, false, "users", false);
 
-const { isAuthenticated, token} = login(db, "pi", "password")
+const { isAuthenticated, token } = login(db, "pi", "password", false);
 if (isAuthenticated) {
-    let new_token = token as string;
-    console.log(getUserPermissions(db, new_token))
+	const new_token = token;
+	console.log(getUserPermissions(db, new_token));
+} else {
+	console.log("Uh-oh login failed");
 }
-else {
-    console.log("Uh-oh login failed")
-}
-

@@ -11,10 +11,13 @@ export interface LoginResponse {
 	token?: string;
 }
 
-export function login(db: DB, username: string, password: string): LoginResponse {
-	const result = db.query(`SELECT hashed_password, password_salt, password_rounds FROM users WHERE username = ?`, [
-		username,
-	]);
+export function login(db: DB, username: string, password: string, is_admin: boolean): LoginResponse {
+	const result = db.query(
+		`SELECT hashed_password, password_salt, password_rounds, is_admin FROM users WHERE username = ?`,
+		[
+			username,
+		],
+	);
 	if (result === undefined || result.length == 0) { // make sure the username exist
 		logger.debug(`there was no result from the db. result: {result}`);
 		return { isAuthenticated: false };
@@ -25,6 +28,7 @@ export function login(db: DB, username: string, password: string): LoginResponse
 	const known_password_hash = user[0];
 	const password_salt = user[1];
 	const password_rounds = user[2] as number;
+	const user_admin_status = user[3] as boolean;
 
 	// calculate the password hash
 	let to_check_password_hash = password;
@@ -32,17 +36,15 @@ export function login(db: DB, username: string, password: string): LoginResponse
 		to_check_password_hash = sha256(to_check_password_hash + password_salt);
 	}
 
-	if (known_password_hash == to_check_password_hash) {
-		logger.info(`${username} login was successful`);
+	if (known_password_hash == to_check_password_hash && is_admin == user_admin_status) { // can admins login as not admins?
 		const token = `bearer ${crypto.randomUUID()}`;
 		db.query(`UPDATE users SET token_start_time = ?, token_api_interactions = 0, token = ? WHERE username = ?;`, [
-			new Date(),
+			Math.floor(new Date().getTime() / 1000),
 			token,
 			username,
 		]);
 		return { isAuthenticated: true, token: token };
 	} else {
-		logger.info(`${username} login was unsuccessful`);
 		return { isAuthenticated: false };
 	}
 }
