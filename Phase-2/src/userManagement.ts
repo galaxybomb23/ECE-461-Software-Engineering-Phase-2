@@ -53,7 +53,7 @@ export function login(db: DB, username: string, password: string, is_admin: bool
 	}
 }
 
-export function admin_create_account(
+export function adminCreateAccount(
 	db: DB,
 	username: string, // this parameter and the next are for the new users
 	password: string,
@@ -106,7 +106,7 @@ export function admin_create_account(
 	return true;
 }
 
-export function delete_account(db: DB, username: string) {
+export function deleteAccount(db: DB, username: string) {
 	db.query(`DELETE FROM users WHERE username = ?`, [username]);
 	return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
 }

@@ -1,5 +1,5 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { admin_create_account, delete_account, login } from "../src/userManagement.ts";
+import { adminCreateAccount, deleteAccount, login } from "../src/userManagement.ts";
 import { testLogger } from "./testSuite.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 
@@ -32,14 +32,14 @@ Deno.test(TESTNAME, async () => {
 	const password = "password";
 
 	// Test for deleting a non-existing user - should return false
-	assert(!delete_account(db, username), "Delete non-existing user should return false");
+	assert(!deleteAccount(db, username), "Delete non-existing user should return false");
 
 	// Test for logging in with a non-existing user - should return false
 	assert(!login(db, username, password, true).isAuthenticated, "Login non-existing user should return false");
 
 	// Test for creating a new user - should return true
 	assert(
-		admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
+		adminCreateAccount(db, username, password, true, false, true, "rushilsJob", true),
 		"Create new user should return true",
 	);
 
@@ -48,7 +48,7 @@ Deno.test(TESTNAME, async () => {
 
 	// Test for duplicate user creation - should return false
 	assert(
-		!admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
+		!adminCreateAccount(db, username, password, true, false, true, "rushilsJob", true),
 		"Duplicate user creation should return false",
 	);
 
@@ -59,7 +59,7 @@ Deno.test(TESTNAME, async () => {
 	);
 
 	// Test for deleting the account - should return true
-	assert(delete_account(db, username), "Delete existing user should return true");
+	assert(deleteAccount(db, username), "Delete existing user should return true");
 
 	// Test for logging in after deletion - should return false
 	assert(!login(db, username, password, true).isAuthenticated, "Login after deletion should return false");

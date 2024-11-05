@@ -1,7 +1,7 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { getUnixTimeInSeconds } from "../src/userManagement";
 
-export interface userInfo {
+export interface userAuthInfo {
 	can_search: boolean;
 	can_download: boolean;
 	can_upload: boolean;
@@ -9,7 +9,7 @@ export interface userInfo {
 	user_group: string;
 }
 
-export function getUserPermissions(db: DB, token: string): userInfo {
+export function getUserAuthInfo(db: DB, token: string): userAuthInfo {
 	const query = db.query(
 		`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group FROM users WHERE token = ?`,
 		[token],
@@ -19,7 +19,7 @@ export function getUserPermissions(db: DB, token: string): userInfo {
 	const token_start_time = user[3];
 	const token_api_interactions = user[4];
 
-	const token_validity = is_token_valid(token_start_time, token_api_interactions);
+	const token_validity = isTokenValid(token_start_time, token_api_interactions);
 
 	return {
 		can_search: user[0],
@@ -30,11 +30,11 @@ export function getUserPermissions(db: DB, token: string): userInfo {
 	};
 }
 
-function is_token_valid(token_start_time: number, token_api_interactions: number): boolean {
+function isTokenValid(token_start_time: number, token_api_interactions: number): boolean {
 	const token_overused = token_api_interactions >= 1000;
 
-	const current_time = getUnixTimeInSeconds();
 	const ten_hours = 60 * 60 * 10;
+	const current_time = getUnixTimeInSeconds();
 	const token_expired = (current_time - token_start_time) > ten_hours;
 
 	const is_token_valid = !(token_overused || token_expired);
