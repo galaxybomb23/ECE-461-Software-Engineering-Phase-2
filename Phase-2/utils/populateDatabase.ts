@@ -53,6 +53,7 @@ export async function populateDatabase(db: DB) {
 				password_salt: "f5429e4041729b8a",
 				password_rounds: 5227,
 				is_admin: true,
+				token: "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
 			},
 			{
 				username: "pi",
@@ -66,6 +67,7 @@ export async function populateDatabase(db: DB) {
 				password_salt: "7913fd0effdbdc62",
 				password_rounds: 5125,
 				is_admin: false,
+				token: "bearer 1f62b376-a9f7-4088-9a8d-a245d1998566",
 			},
 		],
 	};
@@ -123,14 +125,15 @@ export async function populateDatabase(db: DB) {
             token_api_interactions INTEGER, 
             password_salt TEXT, 
             password_rounds INTEGER,
-			is_admin BOOLEAN
+			is_admin BOOLEAN,
+			token TEXT
         )`,
 	);
 
 	// insert the users into the database
 	const userQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	);
 	for (const entry of dbentries.users) {
 		userQuery.execute([
@@ -145,10 +148,9 @@ export async function populateDatabase(db: DB) {
 			entry.password_salt,
 			entry.password_rounds,
 			entry.is_admin,
+			entry.token,
 		]);
 	}
 
 	logger.info("Database populated");
 }
-
-populateDatabase(new DB("data/data.db"));

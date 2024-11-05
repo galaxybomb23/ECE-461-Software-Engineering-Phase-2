@@ -1,5 +1,5 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { admin_create_account, delete_account, login } from "../src/userManagement.ts";
+import { adminCreateAccount, deleteAccount, login } from "../src/userManagement.ts";
 import { testLogger } from "./testSuite.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 
@@ -23,7 +23,8 @@ Deno.test(TESTNAME, async () => {
             token_api_interactions INTEGER, 
             password_salt TEXT, 
             password_rounds INTEGER,
-			is_admin BOOLEAN
+			is_admin BOOLEAN,
+			token TEXT
         );`,
 	);
 
@@ -31,34 +32,37 @@ Deno.test(TESTNAME, async () => {
 	const password = "password";
 
 	// Test for deleting a non-existing user - should return false
-	assert(!delete_account(db, username), "Delete non-existing user should return false");
+	assert(!deleteAccount(db, username), "Delete non-existing user should return false");
 
 	// Test for logging in with a non-existing user - should return false
-	assert(!login(db, username, password), "Login non-existing user should return false");
+	assert(!login(db, username, password, true).isAuthenticated, "Login non-existing user should return false");
 
 	// Test for creating a new user - should return true
 	assert(
-		admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
+		adminCreateAccount(db, username, password, true, false, true, "rushilsJob", true),
 		"Create new user should return true",
 	);
 
 	// Test for correct login - should return true
-	assert(login(db, username, password), "Correct login should return true");
+	assert(login(db, username, password, true), "Correct login should return true");
 
 	// Test for duplicate user creation - should return false
 	assert(
-		!admin_create_account(db, username, password, true, false, true, "rushilsJob", true),
+		!adminCreateAccount(db, username, password, true, false, true, "rushilsJob", true),
 		"Duplicate user creation should return false",
 	);
 
 	// Test for incorrect password - should return false
-	assert(!login(db, username, "notTheRightPassword"), "Login with wrong password should return false");
+	assert(
+		!login(db, username, "notTheRightPassword", true).isAuthenticated,
+		"Login with wrong password should return false",
+	);
 
 	// Test for deleting the account - should return true
-	assert(delete_account(db, username), "Delete existing user should return true");
+	assert(deleteAccount(db, username), "Delete existing user should return true");
 
 	// Test for logging in after deletion - should return false
-	assert(!login(db, username, password), "Login after deletion should return false");
+	assert(!login(db, username, password, true).isAuthenticated, "Login after deletion should return false");
 
 	// Check that the users table is empty after deletion
 	assertEquals(Array.from(db.query("SELECT * FROM users")), [], "Users table should be empty after deletion");
