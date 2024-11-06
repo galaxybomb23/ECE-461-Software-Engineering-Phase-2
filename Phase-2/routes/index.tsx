@@ -1,11 +1,11 @@
 import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/components/Navbar.tsx";
 import Pagination from "~/islands/Pagination.tsx";
-import { PackageMetadata } from "~/types/index.ts";
+import { APIBaseURL, PackageMetadata } from "~/types/index.ts";
 
 export const handler = async (_req: Request, _ctx: FreshContext) => {
     const offset = 0; // Starting offset for the initial page
-    const response = await fetch(`http://localhost:8000/api/packages?offset=${offset}`, {
+    const response = await fetch(`${APIBaseURL}/api/packages?offset=${offset}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify([{ Name: "*" }]), // Adjust this body as per your needs

@@ -1,20 +1,20 @@
 import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/components/Navbar.tsx";
-import { Package, PackageCost, PackageRating } from "~/types/index.ts";
+import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
 
 export const handler = async (req: Request, ctx: FreshContext) => {
     const { id } = ctx.params;
 
     try {
-        const packageResponse = await fetch(`http://localhost:8000/api/package/${id}`);
+        const packageResponse = await fetch(`${APIBaseURL}/api/package/${id}`);
         if (!packageResponse.ok) throw new Error("Package data fetch failed");
         const packageData: Package = await packageResponse.json();
 
-        const costResponse = await fetch(`http://localhost:8000/api/package/${id}/cost`);
+        const costResponse = await fetch(`${APIBaseURL}/api/package/${id}/cost`);
         if (!costResponse.ok) throw new Error("Cost data fetch failed");
         const costData: PackageCost = await costResponse.json();
 
-        const rateResponse = await fetch(`http://localhost:8000/api/package/${id}/rate`);
+        const rateResponse = await fetch(`${APIBaseURL}/api/package/${id}/rate`);
         if (!rateResponse.ok) throw new Error("Rating data fetch failed");
         const rateData: PackageRating = await rateResponse.json();
 

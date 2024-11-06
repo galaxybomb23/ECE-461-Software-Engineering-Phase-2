@@ -1,3 +1,5 @@
+export const APIBaseURL = "http://localhost:8000";
+
 export interface Package {
 	metadata: PackageMetadata;
 	data: PackageData;
