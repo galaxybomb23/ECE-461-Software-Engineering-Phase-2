@@ -61,7 +61,8 @@ export const handler: Handlers = {
 			logger.info("package.ts: ✓ Package added!");
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
 
-			// Handle HTTP errors
+		// Handle HTTP errors. each function may throw an error, and the handler will catch it
+		// This is done instead of each function returning a Response object which couples them to the server and complicates return types
 		} catch (error) {
 			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
 
@@ -82,6 +83,7 @@ export const handler: Handlers = {
 };
 
 export async function handleContent(db: DB, content: string, url?: string) {
+	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
 	const decodedContent = atob(content);
 
@@ -90,6 +92,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	await Deno.mkdir("./temp", { recursive: true });
 	await Deno.mkdir(unzipPath, { recursive: true });
 
+	// Write the base64 content to a temp zip file
 	await Deno.writeFile(tempFilePath, new Uint8Array([...decodedContent].map((c) => c.charCodeAt(0))));
 
 	// Check if the package is a zip bomb (> 700MB)
@@ -158,8 +161,10 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	return packageJSON;
 }
 
+// Handles the URL of the package
+// Fetches the .zip from the URL and processes it
 export async function handleURL(db: DB, url: string) {
-	// these URLs fetch the .zip for a package
+	// Use these URLs fetch the .zip for a package
 	let response = await fetch(url + "/zipball/master");
 	if (!response.ok) {
 		response = await fetch(url + "/zipball/main");
@@ -171,6 +176,8 @@ export async function handleURL(db: DB, url: string) {
 		throw new Error(errMsg);
 	}
 
+	// After we have the .zip, we base64 encode it and handle it as Content
+	// This is done since the logic for handling the package is the same for both URL and Content after getting the .zip
 	const content = await response.arrayBuffer();
 	logger.debug("package.ts: Successfully read package content");
 	const base64Content = btoa(
@@ -199,7 +206,7 @@ export async function parsePackageJSON(filePath: string) {
 
 	try {
 		packageJSON = JSON.parse(await Deno.readTextFile(rootPath))?.name;
-		logger.debug("parsed package.json LOL: " + packageJSON);
+		logger.debug("parsed package.json: " + packageJSON);
 		logger.debug("package.ts: Found package.json in root");
 	} catch {
 		try {
@@ -231,8 +238,7 @@ export async function uploadZipToSQLite(tempFilePath: string, packageJSON: any, 
 			tempFilePath + " to SQLite database",
 	);
 
-	logger.debug(zipBase64);
-
+	// Check if the package already exists in the database
 	const packageExists = await db.query(
 		"SELECT * FROM packages WHERE name = ? AND version = ?",
 		[packageJSON.name.toString(), packageJSON.version.toString()],
@@ -246,12 +252,14 @@ export async function uploadZipToSQLite(tempFilePath: string, packageJSON: any, 
 		throw new Error("Package already exists in database");
 	}
 
+	// Insert the package into the database
 	db.query(
 		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
 		[packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
 	);
 }
 
+// Checks if the package is a zip bomb
 async function pleaseDontZipBombMe(tempFilePath: string, maxDecompressedSize: number) {
 	const file = await Deno.readFile(tempFilePath);
 	const blob = new Blob([file]);
