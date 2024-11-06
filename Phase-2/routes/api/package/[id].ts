@@ -18,7 +18,7 @@ export const handler: Handlers = {
 
 		try {
 			const pkg = await queryPackageById(db, id);
-			db.close();
+			await db.close(true)
 
 			if (pkg) {
 				return new Response(JSON.stringify(pkg), { status: 200 });
@@ -27,7 +27,7 @@ export const handler: Handlers = {
 			}
 		} catch (error) {
 			logger.error(`GET /package/{id}: Error - ${error}`);
-			db.close();
+			await db.close(true)
 			return new Response(
 				"There is missing field(s) in the PackageID or it is formed improperly, or is invalid",
 				{ status: 400 },

@@ -124,7 +124,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 			metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 &&
 			metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5
 		) {
-			await uploadZipToSQLite(unzipPath, tempFilePath, packageJSON, db);
+			await uploadZipToSQLite(tempFilePath, packageJSON, db);
 		} else {
 			logger.debug(
 				"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
@@ -159,6 +159,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 }
 
 export async function handleURL(db: DB, url: string) {
+	// these URLs fetch the .zip for a package
 	let response = await fetch(url + "/zipball/master");
 	if (!response.ok) {
 		response = await fetch(url + "/zipball/main");
@@ -218,7 +219,10 @@ export async function parsePackageJSON(filePath: string) {
 	};
 }
 
-export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string, packageJSON: any, db: DB) {
+// Uploads the package zip to the SQLite database
+// If originally was a URL, we downloaded the .zip from GitHub and will upload it to the database
+// If originally was a base64 Content, we unzipped and processed the package, so now we encode and upload to the database 
+export async function uploadZipToSQLite(tempFilePath: string, packageJSON: any, db: DB) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
@@ -226,6 +230,8 @@ export async function uploadZipToSQLite(unzipPath: string, tempFilePath: string,
 		"package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " +
 			tempFilePath + " to SQLite database",
 	);
+
+	logger.debug(zipBase64);
 
 	const packageExists = await db.query(
 		"SELECT * FROM packages WHERE name = ? AND version = ?",
