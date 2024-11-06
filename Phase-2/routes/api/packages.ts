@@ -48,7 +48,8 @@ export const handler: Handlers = {
  * @param {any} db - The database instance used to query for package data. Defaults to a singleton instance.
  * @returns {Promise<Response>} - A promise resolving to an HTTP response containing the paginated package list as JSON.
  */
-async function listPackages(req: packagesRequest, db = dbInstance): Promise<Response> {
+export async function listPackages(req: packagesRequest, db = dbInstance): Promise<Response> {
+	logger.debug(`Listing packages with query: ${JSON.stringify(req.requestBody)}`);
 	const entriesPerPage = 10;
 	const { Version, Name } = req.requestBody; // Assuming single package query for now
 	//validate the offset
@@ -105,12 +106,12 @@ async function listPackages(req: packagesRequest, db = dbInstance): Promise<Resp
 		}
 		case "Carat": {
 			// "^1.2.3" matches versions >=1.2.3 <2.0.0
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `^${versionValue}`));
+			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
 			break;
 		}
 		case "Tilde": {
 			// "~1.2.0" matches versions >=1.2.0 <1.3.0
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `~${versionValue}`));
+			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
 			break;
 		}
 		default:
@@ -168,7 +169,10 @@ async function listPackages(req: packagesRequest, db = dbInstance): Promise<Resp
 
 	// Implement pagination
 	const paginatedPackages = filteredPackages.slice((req.offset - 1, 0) * entriesPerPage, req.offset * entriesPerPage);
-
+	logger.debug(`Returning ${paginatedPackages.length} packages`);
+	for (const pkg of paginatedPackages) {
+		logger.debug(`	Package: ${pkg.Name} - ${pkg.Version}`);
+	}
 	// Return the paginated packages
 	return new Response(JSON.stringify(paginatedPackages), {
 		headers: { "Content-Type": "application/json" },
