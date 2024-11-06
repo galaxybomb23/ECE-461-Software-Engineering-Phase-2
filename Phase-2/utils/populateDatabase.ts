@@ -7,6 +7,7 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
  * @param {DB} db - The database instance to populate.
  * @description Populates the database with initial sample data for packages and users. Open and close is the responsibility of the caller.
  * @throws {Error} If there's an issue with database operations.
+ * NOTE: this function does not Close the Database connection.
  */
 export async function populateDatabase(db: DB) {
 	// open the database if it is not already open
@@ -153,4 +154,12 @@ export async function populateDatabase(db: DB) {
 	}
 
 	logger.info("Database populated");
+}
+
+// if main, run the function
+if (import.meta.main) {
+	console.log("Populating the database...");
+	const db = new DB("data/data.db");
+	await populateDatabase(db);
+	db.close(true);
 }
