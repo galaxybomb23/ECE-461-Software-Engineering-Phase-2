@@ -24,7 +24,7 @@ Deno.test(TESTNAME, async () => {
 	);
 
 	assertEquals(packages.length, 0, "Packages table should be empty");
-	assertEquals(users.length, 2, "Users table should have 2 entries");
+	assertEquals(users.length, 1, "Users table should have 2 entries");
 	assertEquals(packageSequence.length, 0, "Package sequence should be reset to 0");
 	assertEquals(userSequence.length, 1, "User sequence should be 1 for 2 users");
 

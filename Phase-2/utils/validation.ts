@@ -1,5 +1,5 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { getUnixTimeInSeconds } from "../src/userManagement";
+import { getUnixTimeInSeconds } from "../src/userManagement.ts";
 
 export interface userAuthInfo {
 	can_search: boolean;
@@ -7,14 +7,19 @@ export interface userAuthInfo {
 	can_upload: boolean;
 	is_token_valid: boolean;
 	user_group: string;
+	is_admin: boolean;
+	username: string;
 }
 
 export function getUserAuthInfo(db: DB, token: string): userAuthInfo {
+	type UserRow = [boolean, boolean, boolean, number, number, string, boolean, string];
+
 	const query = db.query(
-		`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group FROM users WHERE token = ?`,
+		`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group, is_admin, username FROM users WHERE token = ?`,
 		[token],
 	);
-	const user = query[0];
+
+	const user = query[0] as UserRow;
 
 	const token_start_time = user[3];
 	const token_api_interactions = user[4];
@@ -27,6 +32,8 @@ export function getUserAuthInfo(db: DB, token: string): userAuthInfo {
 		can_upload: user[2],
 		is_token_valid: token_validity,
 		user_group: user[5],
+		is_admin: user[6],
+		username: user[7],
 	};
 }
 

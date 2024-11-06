@@ -59,3 +59,7 @@ export interface PackageQuery {
 	Version?: string;
 	Name: string;
 }
+
+export interface ResetRequest {
+	"X-Authorization": string;
+}

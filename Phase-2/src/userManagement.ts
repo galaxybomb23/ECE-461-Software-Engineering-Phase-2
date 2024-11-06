@@ -16,6 +16,8 @@ export interface LoginResponse {
 }
 
 export function login(db: DB, username: string, password: string, is_admin: boolean): LoginResponse {
+	type resultRow = [string, string, number, boolean];
+
 	const result = db.query(
 		`SELECT hashed_password, password_salt, password_rounds, is_admin FROM users WHERE username = ?`,
 		[
@@ -27,12 +29,12 @@ export function login(db: DB, username: string, password: string, is_admin: bool
 		return { isAuthenticated: false };
 	}
 
-	const user = result[0];
+	const user = result[0] as resultRow;
 	// get the values needed to calculate the password hash
 	const known_password_hash = user[0];
 	const password_salt = user[1];
-	const password_rounds = user[2] as number;
-	const user_admin_status = user[3] as boolean;
+	const password_rounds = user[2];
+	const user_admin_status = user[3];
 
 	// calculate the password hash
 	let to_check_password_hash = password;
@@ -106,7 +108,7 @@ export function adminCreateAccount(
 	return true;
 }
 
-export function deleteAccount(db: DB, username: string) {
+export function deleteAccount(db: DB, username: string): boolean {
 	db.query(`DELETE FROM users WHERE username = ?`, [username]);
 	return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
 }
