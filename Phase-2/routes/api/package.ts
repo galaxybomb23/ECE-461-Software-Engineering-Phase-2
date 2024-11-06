@@ -205,7 +205,7 @@ export async function parsePackageJSON(filePath: string) {
 	const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
 
 	try {
-		packageJSON = JSON.parse(await Deno.readTextFile(rootPath))?.name;
+		packageJSON = JSON.parse(await Deno.readTextFile(rootPath));
 		logger.debug("parsed package.json: " + packageJSON);
 		logger.debug("package.ts: Found package.json in root");
 	} catch {
