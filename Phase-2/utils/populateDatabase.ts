@@ -10,7 +10,7 @@ import { DATABASEFILE } from "~/utils/dbSingleton.ts";
  * @throws {Error} If there's an issue with database operations.
  * NOTE: this function does not Close the Database connection.
  */
-export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = false): Promise<void> {
+export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = true): Promise<void> {
 	// open the database if it is not already open
 
 	const dbentries = {
@@ -162,5 +162,5 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 // if main, run the function
 if (import.meta.main) {
 	console.log("Populating the database...");
-	await populateDatabase(undefined, true);
+	await populateDatabase();
 }

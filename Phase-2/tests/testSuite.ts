@@ -7,10 +7,10 @@ import { populateDatabase } from "../utils/populateDatabase.ts";
  * @param dbname The name of the database (not used in this implementation)
  * @return Promise<DB> A promise that resolves to the initialized database
  */
-export async function setup(dbname: string) {
+export async function setup(): Promise<DB> {
 	//setup test database in memory
 	const db = new DB(":memory:");
-	await populateDatabase(db);
+	await populateDatabase(db, false);
 	return db;
 }
 
@@ -20,7 +20,7 @@ export async function setup(dbname: string) {
  * @param filename The name of the test file being cleaned up
  * @return Promise<void>
  */
-export async function cleanup(db: DB | undefined, filename: string) {
+export async function cleanup(db: DB | undefined) {
 	try {
 		// Close the database if it's open (in-memory or file-based)
 		if (db && !db.isClosed) {
@@ -35,7 +35,7 @@ export async function cleanup(db: DB | undefined, filename: string) {
 	} catch (error) {
 		testLogger.error(`Error during cleanup: ${error}`);
 	} finally {
-		testLogger.debug(`End Test: ${filename}`);
+		testLogger.debug(`End Test`);
 	}
 }
 

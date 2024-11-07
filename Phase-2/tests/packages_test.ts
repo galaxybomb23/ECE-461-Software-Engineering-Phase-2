@@ -2,7 +2,7 @@
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
-import { PackageQuery } from "~/types/index.ts";
+import { PackageQuery, packagesRequest } from "~/types/index.ts";
 
 //import function
 import { listPackages } from "~/routes/api/packages.ts";
@@ -11,11 +11,6 @@ import { listPackages } from "~/routes/api/packages.ts";
 import { handler } from "~/routes/api/packages.ts"; // Update with the actual path to your handler file
 import { populateDatabase } from "~/utils/populateDatabase.ts"; // Update with the actual path to your populateDatabase file
 import type { FreshContext } from "$fresh/src/server/types.ts";
-interface packagesRequest {
-    offset?: number;
-    authToken: string;
-    requestBody: PackageQuery;
-}
 
 // test suite
 Deno.test("PackagesTest...", async (t) => {
@@ -23,7 +18,7 @@ Deno.test("PackagesTest...", async (t) => {
         const TESTNAME = "PackagesTest - listPackages: Exact Version";
         // pre test setup
         testLogger.info(`TEST: ${TESTNAME}`);
-        const db: DB = await setup(TESTNAME); // setup the database if needed
+        const db: DB = await setup(); // setup the database if needed
         let response: Response;
 
         // request package 1
@@ -76,14 +71,14 @@ Deno.test("PackagesTest...", async (t) => {
         assertEquals(data.length, 0, `Expected 0 packages, got ${data}`);
 
         // post test cleanup
-        await cleanup(db, TESTNAME); // cleanup the database if used
+        await cleanup(db); // cleanup the database if used
     });
 
     await t.step("PackagesTest - listPackages: Bounded Range", async () => {
         const TESTNAME = "PackagesTest - listPackages: Bounded Range";
         // pre test setup
         testLogger.info(`TEST: ${TESTNAME}`);
-        const db: DB = await setup(TESTNAME); // setup the database if needed
+        const db: DB = await setup(); // setup the database if needed
         let response: Response;
 
         // request valid package 1
@@ -136,14 +131,14 @@ Deno.test("PackagesTest...", async (t) => {
         assertEquals(data.length, 0, `Expected 0 packages, got ${data}`);
 
         // post test cleanup
-        await cleanup(db, TESTNAME); // cleanup the database if used
+        await cleanup(db); // cleanup the database if used
     });
 
     await t.step("PackagesTest - listPackages: Tilde Version", async () => {
         const TESTNAME = "PackagesTest - listPackages: Tilde Version";
         // pre test setup
         testLogger.info(`TEST: ${TESTNAME}`);
-        const db: DB = await setup(TESTNAME); // setup the database if needed
+        const db: DB = await setup(); // setup the database if needed
         let response: Response;
 
         // request valid package 1
@@ -195,14 +190,14 @@ Deno.test("PackagesTest...", async (t) => {
         data = await response.json();
         assertEquals(data.length, 0, "Null package By Version");
         // post test cleanup
-        await cleanup(db, TESTNAME); // cleanup the database if used
+        await cleanup(db); // cleanup the database if used
     });
 
     await t.step("PackagesTest - listPackages: Carat Version", async () => {
         const TESTNAME = "PackagesTest - listPackages: Carat Version";
         // pre test setup
         testLogger.info(`TEST: ${TESTNAME}`);
-        const db: DB = await setup(TESTNAME); // setup the database if needed
+        const db: DB = await setup(); // setup the database if needed
         let response: Response;
 
         // request valid package 1
@@ -255,14 +250,14 @@ Deno.test("PackagesTest...", async (t) => {
         assertEquals(data.length, 0, `Expected 0 packages, got ${data}`);
 
         // post test cleanup
-        await cleanup(db, TESTNAME); // cleanup the database if used
+        await cleanup(db); // cleanup the database if used
     });
 
     await t.step("PackagesTest - listPackages: Wildcard", async () => {
         // pre test setup
         const TESTNAME = "PackagesTest - listPackages: Wildcard";
         testLogger.info(`TEST: ${TESTNAME}`);
-        const db: DB = await setup(TESTNAME); // setup the database if needed
+        const db: DB = await setup(); // setup the database if needed
         let response: Response;
 
         // insert a package
@@ -348,14 +343,14 @@ Deno.test("PackagesTest...", async (t) => {
         assertEquals(data.length, 2, `Wildcard test failed: Carat`);
 
         // post test cleanup
-        await cleanup(db, TESTNAME); // cleanup the database if used
+        await cleanup(db); // cleanup the database if used
     });
 
     // call populateDatabase
     await populateDatabase();
     let mockContext: FreshContext;
 
-    await t.step("Valid request should return 200", async () => {
+    await t.step("PackagesTest - Handler: Valid request should return 200", async () => {
         const validRequest = new Request("http://localhost/api/packages?offset=1", {
             method: "POST",
             headers: {
@@ -378,7 +373,7 @@ Deno.test("PackagesTest...", async (t) => {
         }
     });
 
-    await t.step("Valid Request, no offset", async () => {
+    await t.step("PackagesTest - Handler: Valid Request, no offset", async () => {
         const validRequest = new Request("http://localhost/api/packages", {
             method: "POST",
             headers: {
@@ -401,7 +396,7 @@ Deno.test("PackagesTest...", async (t) => {
         }
     });
 
-    await t.step("Missing package query body should return 400", async () => {
+    await t.step("PackagesTest - Handler: Missing package query body should return 400", async () => {
         const invalidRequest = new Request("http://localhost/api/packages?offset=1", {
             method: "POST",
             headers: {
@@ -421,7 +416,7 @@ Deno.test("PackagesTest...", async (t) => {
         }
     });
 
-    await t.step("Invalid authentication token should return 403", async () => {
+    await t.step("PackagesTest - Handler: Invalid authentication token should return 403", async () => {
         const invalidAuthRequest = new Request("http://localhost/api/packages?offset=1", {
             method: "POST",
             headers: {
@@ -446,7 +441,7 @@ Deno.test("PackagesTest...", async (t) => {
         }
     });
 
-    await t.step("Missing X-Authorization header should return 400", async () => {
+    await t.step("PackagesTest - Handler: Missing X-Authorization header should return 400", async () => {
         const missingAuthRequest = new Request("http://localhost/api/packages?offset=1", {
             method: "POST",
             headers: {

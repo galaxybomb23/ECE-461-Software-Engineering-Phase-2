@@ -10,13 +10,11 @@ import type { FreshContext } from "$fresh/src/server/types.ts";
 // import the function to test
 import { resetDatabase } from "~/routes/api/reset.ts";
 
-Deno.test("Reset DataBase", async (t) => {
-	await t.step("Base Function Test", async () => {
-		const TESTNAME = "resetDatabase";
-
+Deno.test("ResetTest", async (t) => {
+	await t.step("ResetTest - resetDatabase: base functionality", async () => {
 		// pre test setup
-		testLogger.info(`TEST: ${TESTNAME}`);
-		const db: DB = await setup(TESTNAME);
+		testLogger.info(`TEST: Reset Database`);
+		const db: DB = await setup();
 
 		// test code
 		await resetDatabase(db, false);
@@ -37,9 +35,8 @@ Deno.test("Reset DataBase", async (t) => {
 		testLogger.debug(`Packages: ${packages.toString()}`);
 
 		// post test cleanup
-		await cleanup(db, TESTNAME);
+		await cleanup(db);
 		db.close(true);
-		testLogger.info(`TEST: ${TESTNAME}, Passed`);
 
 		//wait for the cleanup to finish
 	});
@@ -48,7 +45,8 @@ Deno.test("Reset DataBase", async (t) => {
 	await populateDatabase();
 	let mockContext: FreshContext;
 
-	await t.step("Valid Reset Request", async () => {
+	// <--- Test the Handler --->
+	await t.step("ResetTest - Handler: Valid Reset Request", async () => {
 		const validRequest = new Request("http://localhost:8000/api/reset", {
 			method: "DELETE",
 			headers: {
@@ -63,12 +61,9 @@ Deno.test("Reset DataBase", async (t) => {
 		} else {
 			throw new Error("Handler.DELETE not defined");
 		}
-
-		//
-		testLogger.info("TEST: Valid Reset Request, Passed");
 	});
 
-	await t.step("Missing AuthToken", async () => {
+	await t.step("ResetTest - Handler: Missing AuthToken", async () => {
 		const invalidRequest = new Request("http://localhost:8000/api/reset", {
 			method: "DELETE",
 			headers: {
@@ -82,12 +77,9 @@ Deno.test("Reset DataBase", async (t) => {
 		} else {
 			throw new Error("Handler.DELETE not defined");
 		}
-
-		//
-		testLogger.info("TEST: Missing AuthToken, Passed");
 	});
 
-	await t.step("Invalid AuthToken", async () => {
+	await t.step("ResetTest - Handler: Invalid AuthToken", async () => {
 		const invalidRequest = new Request("http://localhost:8000/api/reset", {
 			method: "DELETE",
 			headers: {
@@ -102,12 +94,9 @@ Deno.test("Reset DataBase", async (t) => {
 		} else {
 			throw new Error("Handler.DELETE not defined");
 		}
-
-		//
-		testLogger.info("TEST: Invalid AuthToken, Passed");
 	});
 
-	await t.step("invalid Permission", async () => {
+	await t.step("ResetTest - Handler: invalid Permission", async () => {
 		const invalidRequest = new Request("http://localhost:8000/api/reset", {
 			method: "DELETE",
 			headers: {
@@ -122,8 +111,5 @@ Deno.test("Reset DataBase", async (t) => {
 		} else {
 			throw new Error("Handler.DELETE not defined");
 		}
-
-		//
-		testLogger.info("TEST: invalid Permission, Passed");
 	});
 });

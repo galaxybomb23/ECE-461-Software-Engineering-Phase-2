@@ -3,10 +3,8 @@ import { adminCreateAccount, deleteAccount, login } from "../utils/userManagemen
 import { testLogger } from "./testSuite.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 
-const TESTNAME = "userManagement";
-
-Deno.test(TESTNAME, async () => {
-	testLogger.info(`TEST: ${TESTNAME}`);
+Deno.test("userManagement", async () => {
+	testLogger.info(`TEST: userManagement`);
 	const db: DB = new DB(":memory:");
 
 	// Create the users table
