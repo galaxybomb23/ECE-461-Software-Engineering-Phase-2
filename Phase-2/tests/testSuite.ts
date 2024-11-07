@@ -30,7 +30,7 @@ export async function cleanup(db: DB | undefined) {
 		// If the DB object has in-memory references, ensure all memory is cleared
 		if (db) {
 			// Reset or nullify references to help with garbage collection
-			db = null as any;
+			db = undefined;
 		}
 	} catch (error) {
 		testLogger.error(`Error during cleanup: ${error}`);
