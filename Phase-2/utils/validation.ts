@@ -19,8 +19,21 @@ export function getUserAuthInfo(token: string, db = new DB(DATABASEFILE), autoCl
 		[token],
 	);
 	if (autoCloseDB) db.close(); // close the database if it was opened in this function
-	const user = query[0] as UserRow;
 
+	// cheeck if query is empty
+	if (query.length === 0) {
+		return {
+			can_search: false,
+			can_download: false,
+			can_upload: false,
+			is_token_valid: false,
+			user_group: "",
+			is_admin: false,
+			username: "",
+		};
+	}
+
+	const user = query[0] as UserRow;
 	const token_start_time = user[3];
 	const token_api_interactions = user[4];
 	const token_validity = isTokenValid(token_start_time, token_api_interactions);
