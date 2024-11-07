@@ -1,42 +1,61 @@
 // API Endpoint: POST /packages
 // Description: Get the packages from the registry. (BASELINE)
 import { Handlers } from "https://deno.land/x/fresh@1.7.2/server.ts";
-import { PackageMetadata, PackageQuery } from "../../types/index.ts";
-import { isToken } from "$std/media_types/_util.ts";
+import { PackageMetadata, PackageQuery, packagesRequest } from "../../types/index.ts";
 import { logger } from "~/src/logFile.ts";
-import { dbInstance } from "~/utils/dbSingleton.ts";
+import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import type { Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import * as semver from "https://deno.land/x/semver@v1.4.0/mod.ts";
-
-interface packagesRequest {
-	offset?: number;
-	authToken: string;
-	requestBody: PackageQuery;
-}
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 
 export const handler: Handlers = {
 	// Handles POST request to list packages
-	async POST(req) {
+	async POST(req: Request): Promise<Response> {
 		// Read in the request body
-		const requestBody: packagesRequest = await req.json();
-		logger.info("Received request to list packages");
-		logger.debug(requestBody);
+		// Extract the request body (PackageQuery object)
+		const body = await req.json();
+		const requestBody: PackageQuery = body[0] as PackageQuery;
 
-		// check validate the AuthToken
-		if (!requestBody.authToken || !isToken(requestBody.authToken)) {
-			logger.info("Unauthorized request: invalid token");
-			return new Response("Unauthorized", { status: 403 });
-		}
+		// Extract the 'X-Authentication' token from the headers
+		const authToken = req.headers.get("X-Authorization") ?? "";
 
+		// Extract query parameter (offset for pagination)
+		const url = new URL(req.url);
+		const offset = url.searchParams.get("offset");
+
+		// Convert the offset to a number if it's present, otherwise undefined
+		const offsetValue = offset ? parseInt(offset, 10) : undefined;
+
+		// Create the packagesRequest object
+		const packagesRequest: packagesRequest = {
+			authToken,
+			requestBody,
+			offset: offsetValue,
+		};
+
+		// logg input
+		logger.debug(`Request received: ${JSON.stringify(packagesRequest)}`);
 		// validate the PackageQuery
-		if (
-			!requestBody.requestBody || !requestBody.requestBody.Version || !requestBody.requestBody.Name
-		) {
-			logger.info("Invalid request: invalid package query");
-			return new Response("Invalid request body", { status: 400 });
+		if (!packagesRequest.requestBody) {
+			logger.info("Invalid request: missing package query body");
+			return new Response("Invalid request: missing package query body", { status: 400 });
+		} else if (!packagesRequest.requestBody.Version) {
+			logger.info("Invalid request: missing package version in query");
+			return new Response("Invalid request: missing package version in queryy", { status: 400 });
+		} else if (!packagesRequest.requestBody.Name) {
+			logger.info("Invalid request: missing package name in query");
+			return new Response("Invalid request: missing package name in query", { status: 400 });
+		} else if (!packagesRequest.authToken) {
+			logger.info("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 400 });
+		} // check validate the AuthToken
+		else if (getUserAuthInfo(packagesRequest.authToken).is_token_valid === false) {
+			logger.info("Unauthorized request: invalid token");
+			return new Response("Unauthorized access", { status: 403 });
 		} else {
 			// Implement package listing logic here
-			return await listPackages(requestBody);
+			return await listPackages(packagesRequest);
 		}
 	},
 };
@@ -45,13 +64,31 @@ export const handler: Handlers = {
  * Retrieves a paginated list of packages that match the specified name and version criteria.
  *
  * @param {packagesRequest} req - The request object containing query parameters, including package name, version type, and version value.
- * @param {any} db - The database instance used to query for package data. Defaults to a singleton instance.
+ * @param {any} db - The database instance used to query for package data. Defaults to a new DB instance.
+ * @param {boolean} autoCloseDB - A flag indicating whether to close the database connection after querying. Defaults to true. used for testing.
  * @returns {Promise<Response>} - A promise resolving to an HTTP response containing the paginated package list as JSON.
  */
-export async function listPackages(req: packagesRequest, db = dbInstance): Promise<Response> {
+export async function listPackages(
+	req: packagesRequest,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+): Promise<Response> {
 	logger.debug(`Listing packages with query: ${JSON.stringify(req.requestBody)}`);
 	const entriesPerPage = 10;
 	const { Version, Name } = req.requestBody; // Assuming single package query for now
+
+	// Query the database for packages with the specified name
+	const rows: Row[] = Name === "*"
+		? await db.query("SELECT id, name, version FROM packages")
+		: await db.query("SELECT id, name, version FROM packages WHERE name = ?", [Name]);
+	if (autoCloseDB) db.close(); // Close the database connection after querying
+
+	// check for "too many results" error // NOTE: 100 is an arbitrary limit set by me
+	if (rows.length > 100) {
+		logger.error("Too many results: ", rows.length);
+		return new Response("Too many Packages returned", { status: 413 });
+	}
+
 	//validate the offset
 	if (!req.offset || req.offset < 1) {
 		req.offset = 1;
@@ -61,114 +98,39 @@ export async function listPackages(req: packagesRequest, db = dbInstance): Promi
 	let versionType: string;
 	let versionValue: string;
 
+	// Parse filter based on version type
+	const packages: PackageMetadata[] = rows.map(mapRowToPackage);
+	let filteredPackages: PackageMetadata[] = [];
 	if (Version?.startsWith("Exact")) {
 		versionType = "Exact";
 		versionValue = Version.replace("Exact (", "").replace(")", "").trim();
+		filteredPackages = packages.filter((pkg) => semver.eq(pkg.Version, versionValue));
 	} else if (Version?.startsWith("Bounded range")) {
 		versionType = "Bounded range";
 		versionValue = Version.replace("Bounded range (", "").replace(")", "").trim();
+		const [minVersion, maxVersion] = versionValue.split("-");
+		filteredPackages = packages.filter((pkg) =>
+			semver.gte(pkg.Version, minVersion) && semver.lte(pkg.Version, maxVersion)
+		);
 	} else if (Version?.startsWith("Carat")) {
 		versionType = "Carat";
 		versionValue = Version.replace("Carat (", "").replace(")", "").trim();
+		filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
 	} else if (Version?.startsWith("Tilde")) {
 		versionType = "Tilde";
 		versionValue = Version.replace("Tilde (", "").replace(")", "").trim();
+		filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
 	} else {
-		throw new Error("Unknown version type");
+		logger.error("Unknown version type: ", Version);
+		throw new Error(`Unknown version type: ${Version}`);
 	}
 	logger.debug(`Parsed version type: ${versionType}, value: ${versionValue}`);
 
-	// Query the database for packages with the specified name
-	const rows: Row[] = db.query("SELECT id, name, version FROM packages WHERE name = ?", [Name]);
-
-	// check for "too many results" error // NOTE: 100 is an arbitrary limit set by me
-	if (rows.length > 100) {
-		logger.error("Too many results: ", rows.length);
-		return new Response("Too many Packages returned", { status: 413 });
-	}
-
-	// Map rows to PackageMetadata
-	const packages: PackageMetadata[] = rows.map(mapRowToPackage);
-
-	// Filter packages based on parsed versionType and versionValue
-	let filteredPackages: PackageMetadata[] = [];
-	switch (versionType) {
-		case "Exact":
-			filteredPackages = packages.filter((pkg) => semver.eq(pkg.Version, versionValue));
-			break;
-
-		case "Bounded range": {
-			const [minVersion, maxVersion] = versionValue.split("-");
-			filteredPackages = packages.filter((pkg) =>
-				semver.gte(pkg.Version, minVersion) && semver.lte(pkg.Version, maxVersion)
-			);
-			break;
-		}
-		case "Carat": {
-			// "^1.2.3" matches versions >=1.2.3 <2.0.0
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
-			break;
-		}
-		case "Tilde": {
-			// "~1.2.0" matches versions >=1.2.0 <1.3.0
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
-			break;
-		}
-		default:
-			// This should never happen
-			logger.error("Unknown version type");
-			throw new Error("Unknown version type");
-	}
-
-	// Old code
-	// switch (versionType) {
-	// 	case "Exact": {
-	// 		filteredPackages = packages.filter((pkg) => pkg.Version === versionValue);
-	// 		break;
-	// 	}
-
-	// 	case "Bounded range": {
-	// 		const [minVersion, maxVersion] = versionValue.split("-");
-	// 		filteredPackages = packages.filter((pkg) => {
-	// 			const [pkgMajor, pkgMinor, pkgPatch] = pkg.Version.split(".").map(Number);
-	// 			const [minMajor, minMinor, minPatch] = minVersion.split(".").map(Number);
-	// 			const [maxMajor, maxMinor, maxPatch] = maxVersion.split(".").map(Number);
-	// 			return (
-	// 				(pkgMajor > minMajor || (pkgMajor === minMajor && pkgMinor > minMinor) ||
-	// 					(pkgMajor === minMajor && pkgMinor === minMinor && pkgPatch >= minPatch)) &&
-	// 				(pkgMajor < maxMajor || (pkgMajor === maxMajor && pkgMinor < maxMinor) ||
-	// 					(pkgMajor === maxMajor && pkgMinor === maxMinor && pkgPatch <= maxPatch))
-	// 			);
-	// 		});
-	// 		break;
-	// 	}
-	// 	case "Carat": {
-	// 		// "^1.2.3" matches versions >= 1.2.3 < 2.0.0
-	// 		const [minMajor, minMinor, MinPatch] = versionValue.split(".").map(Number);
-	// 		filteredPackages = packages.filter((pkg) => {
-	// 			const [pkgMajor, pkgMinor, pkgPatch] = pkg.Version.split(".").map(Number);
-	// 			return (
-	// 				pkgMajor === minMajor && (pkgMinor > minMinor || (pkgMinor === minMinor && pkgPatch >= MinPatch))
-	// 			);
-	// 		});
-	// 		break;
-	// 	}
-	// 	case "Tilde": {
-	// 		// "~1.2.0" matches versions >= 1.2.0 < 1.3.0
-	// 		const [tildeMajor, tildeMinor] = versionValue.split(".").map(Number);
-	// 		filteredPackages = packages.filter((pkg) => {
-	// 			const [pkgMajor, pkgMinor] = pkg.Version.split(".").map(Number);
-	// 			return pkgMajor === tildeMajor && pkgMinor === tildeMinor;
-	// 		});
-	// 		break;
-	// 	}
-	// 	default:
-	// 		logger.error("Unknown version type");
-	// 		throw new Error("Unknown version type");
-	// }
-
 	// Implement pagination
-	const paginatedPackages = filteredPackages.slice((req.offset - 1, 0) * entriesPerPage, req.offset * entriesPerPage);
+	const paginatedPackages = filteredPackages.slice(
+		(req.offset - 1) * entriesPerPage,
+		req.offset * entriesPerPage,
+	);
 	logger.debug(`Returning ${paginatedPackages.length} packages`);
 	for (const pkg of paginatedPackages) {
 		logger.debug(`	Package: ${pkg.Name} - ${pkg.Version}`);
