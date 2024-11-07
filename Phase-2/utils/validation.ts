@@ -30,7 +30,7 @@ export function getUserAuthInfo(token: string, db = new DB(DATABASEFILE), autoCl
 			user_group: "",
 			is_admin: false,
 			username: "",
-		};
+		} as userAuthInfo;
 	}
 
 	const user = query[0] as UserRow;
@@ -45,7 +45,7 @@ export function getUserAuthInfo(token: string, db = new DB(DATABASEFILE), autoCl
 		user_group: user[5],
 		is_admin: user[6],
 		username: user[7],
-	};
+	} as userAuthInfo;
 }
 
 function isTokenValid(token_start_time: number, token_api_interactions: number): boolean {
