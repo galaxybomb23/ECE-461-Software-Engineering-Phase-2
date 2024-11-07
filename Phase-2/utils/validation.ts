@@ -1,5 +1,5 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { getUnixTimeInSeconds } from "../src/userManagement.ts";
+import { getUnixTimeInSeconds } from "~/utils/userManagement.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 export interface userAuthInfo {

@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { logger } from "./logFile.ts";
+import { logger } from "../src/logFile.ts";
 
 function sha256(data: string) {
 	return crypto.createHash("sha256").update(data).digest("hex");

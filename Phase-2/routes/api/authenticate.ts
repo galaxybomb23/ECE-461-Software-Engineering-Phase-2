@@ -3,7 +3,7 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest, AuthenticationToken } from "../../types/index.ts";
-import { login, LoginResponse } from "../../src/userManagement.ts";
+import { login, LoginResponse } from "~/utils/userManagement.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { logger } from "../../src/logFile.ts";
 
