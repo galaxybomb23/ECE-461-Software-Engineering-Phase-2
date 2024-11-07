@@ -12,51 +12,59 @@ import { getUserAuthInfo } from "~/utils/validation.ts";
 export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
-		// Read in the request body
-		// Extract the request body (PackageQuery object)
-		const body = await req.json();
-		const requestBody: PackageQuery = body[0] as PackageQuery;
+		let body;
+		try {
+			body = await req.json();
+		} catch (error) {
+			logger.info("Invalid JSON format in request body");
+			return new Response("Invalid JSON format in request body", { status: 400 });
+		}
 
-		// Extract the 'X-Authentication' token from the headers
+		// Ensure the body is an array with at least one item
+		if (!Array.isArray(body) || body.length === 0) {
+			logger.info("Request body must be a non-empty array");
+			return new Response("Request body must be a non-empty array", { status: 400 });
+		}
+
+		const requestBody = body[0] as PackageQuery;
+
+		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.info("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 400 });
+		}
 
 		// Extract query parameter (offset for pagination)
 		const url = new URL(req.url);
 		const offset = url.searchParams.get("offset");
-
-		// Convert the offset to a number if it's present, otherwise undefined
 		const offsetValue = offset ? parseInt(offset, 10) : undefined;
 
-		// Create the packagesRequest object
+		// Validate PackageQuery fields
+		if (typeof requestBody.Version !== "string") {
+			logger.info("Invalid request: 'Version' must be a string");
+			return new Response("Invalid request: 'Version' must be a string", { status: 400 });
+		}
+		if (typeof requestBody.Name !== "string") {
+			logger.info("Invalid request: 'Name' must be a string");
+			return new Response("Invalid request: 'Name' must be a string", { status: 400 });
+		}
+
+		// Check the validity of the authentication token
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.info("Unauthorized request: invalid token");
+			return new Response("Unauthorized access", { status: 403 });
+		}
+
+		// Construct packagesRequest
 		const packagesRequest: packagesRequest = {
 			authToken,
 			requestBody,
 			offset: offsetValue,
 		};
 
-		// logg input
-		logger.debug(`Request received: ${JSON.stringify(packagesRequest)}`);
-		// validate the PackageQuery
-		if (!packagesRequest.requestBody) {
-			logger.info("Invalid request: missing package query body");
-			return new Response("Invalid request: missing package query body", { status: 400 });
-		} else if (!packagesRequest.requestBody.Version) {
-			logger.info("Invalid request: missing package version in query");
-			return new Response("Invalid request: missing package version in queryy", { status: 400 });
-		} else if (!packagesRequest.requestBody.Name) {
-			logger.info("Invalid request: missing package name in query");
-			return new Response("Invalid request: missing package name in query", { status: 400 });
-		} else if (!packagesRequest.authToken) {
-			logger.info("Invalid request: missing authentication token");
-			return new Response("Invalid request: missing authentication token", { status: 400 });
-		} // check validate the AuthToken
-		else if (getUserAuthInfo(packagesRequest.authToken).is_token_valid === false) {
-			logger.info("Unauthorized request: invalid token");
-			return new Response("Unauthorized access", { status: 403 });
-		} else {
-			// Implement package listing logic here
-			return await listPackages(packagesRequest);
-		}
+		// Implement package listing logic
+		return await listPackages(packagesRequest);
 	},
 };
 
@@ -135,6 +143,7 @@ export async function listPackages(
 	for (const pkg of paginatedPackages) {
 		logger.debug(`	Package: ${pkg.Name} - ${pkg.Version}`);
 	}
+
 	// Return the paginated packages
 	return new Response(JSON.stringify(paginatedPackages), {
 		headers: { "Content-Type": "application/json" },

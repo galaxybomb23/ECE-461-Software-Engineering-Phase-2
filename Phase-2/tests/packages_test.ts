@@ -323,8 +323,133 @@ Deno.test("PackagesTest - listPackages: Wildcard", async () => {
     response = await listPackages(request, db, false);
     assertEquals(response.status, 200, `Expected status 200, got ${response.status}`);
     data = await response.json();
+    testLogger.info(`Response for ${TESTNAME}: ${data}`);
     assertEquals(data.length, 2, `Wildcard test failed: Carat`);
 
     // post test cleanup
     await cleanup(db, TESTNAME); // cleanup the database if used
+});
+
+// Test handler
+import { handler } from "~/routes/api/packages.ts"; // Update with the actual path to your handler file
+import { populateDatabase } from "~/utils/populateDatabase.ts"; // Update with the actual path to your populateDatabase file
+import type { FreshContext } from "$fresh/src/server/types.ts";
+
+// call populateDatabase
+await populateDatabase(undefined, true);
+let mockContext: FreshContext;
+
+Deno.test("Valid request should return 200", async () => {
+    const validRequest = new Request("http://localhost/api/packages?offset=1", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
+        },
+        body: JSON.stringify([
+            {
+                Version: "Exact (1.0.0)",
+                Name: "sample-package-1",
+            },
+        ]),
+    });
+
+    if (handler.POST) { // Check if handler.POST is defined
+        const response = await handler.POST(validRequest, mockContext);
+        assertEquals(response.status, 200);
+    } else {
+        throw new Error("handler.POST is undefined");
+    }
+});
+
+Deno.test("Valid Request, no offset", async () => {
+    const validRequest = new Request("http://localhost/api/packages", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
+        },
+        body: JSON.stringify([
+            {
+                Version: "Exact (1.0.0)",
+                Name: "sample-package-1",
+            },
+        ]),
+    });
+
+    if (handler.POST) { // Check if handler.POST is defined
+        const response = await handler.POST(validRequest, mockContext);
+        assertEquals(response.status, 200);
+    } else {
+        throw new Error("handler.POST is undefined");
+    }
+});
+
+Deno.test("Missing package query body should return 400", async () => {
+    const invalidRequest = new Request("http://localhost/api/packages?offset=1", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
+        },
+        body: JSON.stringify([{}]), // Missing required fields
+    });
+
+    if (handler.POST) { // Check if handler.POST is defined
+        const response = await handler.POST(invalidRequest, mockContext);
+        assertEquals(response.status, 400);
+        const body = await response.text();
+        assertEquals(body, "Invalid request: 'Version' must be a string");
+    } else {
+        throw new Error("handler.POST is undefined");
+    }
+});
+
+Deno.test("Invalid authentication token should return 403", async () => {
+    const invalidAuthRequest = new Request("http://localhost/api/packages?offset=1", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Authorization": "invalid-auth-token", // Simulate invalid token
+        },
+        body: JSON.stringify([
+            {
+                Version: "Exact (1.2.3)",
+                Name: "package_name",
+            },
+        ]),
+    });
+
+    if (handler.POST) { // Check if handler.POST is defined
+        const response = await handler.POST(invalidAuthRequest, mockContext);
+        assertEquals(response.status, 403);
+        const body = await response.text();
+        assertEquals(body, "Unauthorized access");
+    } else {
+        throw new Error("handler.POST is undefined");
+    }
+});
+
+Deno.test("Missing X-Authorization header should return 400", async () => {
+    const missingAuthRequest = new Request("http://localhost/api/packages?offset=1", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+            {
+                Version: "Exact (1.2.3)",
+                Name: "package_name",
+            },
+        ]),
+    });
+
+    if (handler.POST) { // Check if handler.POST is defined
+        const response = await handler.POST(missingAuthRequest, mockContext);
+        assertEquals(response.status, 400);
+        const body = await response.text();
+        assertEquals(body, "Invalid request: missing authentication token");
+    } else {
+        throw new Error("handler.POST is undefined");
+    }
 });
