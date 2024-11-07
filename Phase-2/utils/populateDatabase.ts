@@ -1,5 +1,6 @@
 import { logger } from "../src/logFile.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 /**
  * @function populateDatabase
@@ -7,8 +8,9 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
  * @param {DB} db - The database instance to populate.
  * @description Populates the database with initial sample data for packages and users. Open and close is the responsibility of the caller.
  * @throws {Error} If there's an issue with database operations.
+ * NOTE: this function does not Close the Database connection.
  */
-export async function populateDatabase(db: DB) {
+export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = true): Promise<void> {
 	// open the database if it is not already open
 
 	const dbentries = {
@@ -42,28 +44,32 @@ export async function populateDatabase(db: DB) {
 		],
 		users: [
 			{
-				username: "admin",
-				hashed_password: "hashed_admin_password",
+				username: "ece30861defaultadminuser",
+				hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa", // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
 				can_search: true,
 				can_download: true,
 				can_upload: true,
 				user_group: "admin",
 				token_start_time: Date.now(),
 				token_api_interactions: 0,
-				password_salt: "admin_salt",
-				password_rounds: 10000,
+				password_salt: "f5429e4041729b8a",
+				password_rounds: 5227,
+				is_admin: true,
+				token: "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
 			},
 			{
-				username: "user1",
-				hashed_password: "hashed_user1_password",
+				username: "pi",
+				hashed_password: "f636675642fc2a2b777d34a137210866d3dd1cc5bcdb5ec03406d381adfe3143", // password is "password"
 				can_search: true,
 				can_download: true,
 				can_upload: false,
 				user_group: "user",
 				token_start_time: Date.now(),
 				token_api_interactions: 0,
-				password_salt: "user1_salt",
-				password_rounds: 4324,
+				password_salt: "7913fd0effdbdc62",
+				password_rounds: 5125,
+				is_admin: false,
+				token: "bearer 1f62b376-a9f7-4088-9a8d-a245d1998566",
 			},
 		],
 	};
@@ -87,24 +93,24 @@ export async function populateDatabase(db: DB) {
 	);
 
 	// insert the packages into the database
-	const pkgQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	);
 	for (const entry of dbentries.packages) {
-		pkgQuery.execute([
-			entry.name,
-			entry.url,
-			entry.version,
-			entry.license_score,
-			entry.netscore,
-			entry.dependency_pinning_score,
-			entry.rampup_score,
-			entry.review_percentage_score,
-			entry.bus_factor,
-			entry.correctness,
-			entry.responsive_maintainer,
-		]);
+		await db.query(
+			`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				entry.name,
+				entry.url,
+				entry.version,
+				entry.license_score,
+				entry.netscore,
+				entry.dependency_pinning_score,
+				entry.rampup_score,
+				entry.review_percentage_score,
+				entry.bus_factor,
+				entry.correctness,
+				entry.responsive_maintainer,
+			],
+		);
 	}
 
 	// create the users table
@@ -120,29 +126,41 @@ export async function populateDatabase(db: DB) {
             token_start_time INTEGER, 
             token_api_interactions INTEGER, 
             password_salt TEXT, 
-            password_rounds INTEGER
+            password_rounds INTEGER,
+			is_admin BOOLEAN,
+			token TEXT
         )`,
 	);
 
 	// insert the users into the database
-	const userQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	);
 	for (const entry of dbentries.users) {
-		userQuery.execute([
-			entry.username,
-			entry.hashed_password,
-			entry.can_search,
-			entry.can_download,
-			entry.can_upload,
-			entry.user_group,
-			entry.token_start_time,
-			entry.token_api_interactions,
-			entry.password_salt,
-			entry.password_rounds,
-		]);
+		await db.query(
+			`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				entry.username,
+				entry.hashed_password,
+				entry.can_search,
+				entry.can_download,
+				entry.can_upload,
+				entry.user_group,
+				entry.token_start_time,
+				entry.token_api_interactions,
+				entry.password_salt,
+				entry.password_rounds,
+				entry.is_admin,
+				entry.token,
+			],
+		);
 	}
 
+	// await all queries to finish
 	logger.info("Database populated");
+	if (autoCloseDB) db.close(true);
+}
+
+// if main, run the function
+if (import.meta.main) {
+	console.log("Populating the database...");
+	await populateDatabase();
 }

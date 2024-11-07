@@ -7,11 +7,36 @@ import { populateDatabase } from "../utils/populateDatabase.ts";
  * @param dbname The name of the database (not used in this implementation)
  * @return Promise<DB> A promise that resolves to the initialized database
  */
-export async function setup(dbname: string) {
+export async function setup(): Promise<DB> {
 	//setup test database in memory
 	const db = new DB(":memory:");
-	await populateDatabase(db);
+	await populateDatabase(db, false);
 	return db;
+}
+
+/**
+ * @brief Cleans up the test environment
+ * @param db The database to clean up
+ * @param filename The name of the test file being cleaned up
+ * @return Promise<void>
+ */
+export async function cleanup(db: DB | undefined) {
+	try {
+		// Close the database if it's open (in-memory or file-based)
+		if (db && !db.isClosed) {
+			await db.close(true); // Ensure all resources in memory are released
+		}
+
+		// If the DB object has in-memory references, ensure all memory is cleared
+		if (db) {
+			// Reset or nullify references to help with garbage collection
+			db = undefined;
+		}
+	} catch (error) {
+		testLogger.error(`Error during cleanup: ${error}`);
+	} finally {
+		testLogger.debug(`End Test`);
+	}
 }
 
 export const testLogger: Logger = createLogger({
@@ -27,19 +52,3 @@ export const testLogger: Logger = createLogger({
 		}),
 	],
 });
-
-/**
- * @brief Cleans up the test environment
- * @param db The database to clean up
- * @param filename The name of the test file being cleaned up
- * @return Promise<void>
- */
-export async function cleanup(db: DB | undefined, filename: string) {
-	// delete the data.db file
-	// if the database is open, close it
-	if (db && !db.isClosed) {
-		await db.close(true);
-	}
-
-	testLogger.debug(`End Test: ${filename}`);
-}
