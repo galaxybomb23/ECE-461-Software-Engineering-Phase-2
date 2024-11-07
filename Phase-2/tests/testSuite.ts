@@ -14,6 +14,31 @@ export async function setup(dbname: string) {
 	return db;
 }
 
+/**
+ * @brief Cleans up the test environment
+ * @param db The database to clean up
+ * @param filename The name of the test file being cleaned up
+ * @return Promise<void>
+ */
+export async function cleanup(db: DB | undefined, filename: string) {
+	try {
+		// Close the database if it's open (in-memory or file-based)
+		if (db && !db.isClosed) {
+			await db.close(true); // Ensure all resources in memory are released
+		}
+
+		// If the DB object has in-memory references, ensure all memory is cleared
+		if (db) {
+			// Reset or nullify references to help with garbage collection
+			db = null as any;
+		}
+	} catch (error) {
+		testLogger.error(`Error during cleanup: ${error}`);
+	} finally {
+		testLogger.debug(`End Test: ${filename}`);
+	}
+}
+
 export const testLogger: Logger = createLogger({
 	level: "debug",
 	format: format.combine(
@@ -27,19 +52,3 @@ export const testLogger: Logger = createLogger({
 		}),
 	],
 });
-
-/**
- * @brief Cleans up the test environment
- * @param db The database to clean up
- * @param filename The name of the test file being cleaned up
- * @return Promise<void>
- */
-export async function cleanup(db: DB | undefined, filename: string) {
-	// delete the data.db file
-	// if the database is open, close it
-	if (db && !db.isClosed) {
-		await db.close(true);
-	}
-
-	testLogger.debug(`End Test: ${filename}`);
-}
