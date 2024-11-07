@@ -80,6 +80,7 @@ export async function listPackages(
 	req: packagesRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
+	returnAll = false,
 ): Promise<Response> {
 	logger.debug(`Listing packages with query: ${JSON.stringify(req.requestBody)}`);
 	const entriesPerPage = 10;
@@ -92,7 +93,7 @@ export async function listPackages(
 	if (autoCloseDB) db.close(); // Close the database connection after querying
 
 	// check for "too many results" error // NOTE: 100 is an arbitrary limit set by me
-	if (rows.length > 100) {
+	if (rows.length > 10 && !returnAll) {
 		logger.error("Too many results: ", rows.length);
 		return new Response("Too many Packages returned", { status: 413 });
 	}
@@ -135,7 +136,7 @@ export async function listPackages(
 	logger.debug(`Parsed version type: ${versionType}, value: ${versionValue}`);
 
 	// Implement pagination
-	const paginatedPackages = filteredPackages.slice(
+	const paginatedPackages =  (returnAll) ? filteredPackages : filteredPackages.slice(
 		(req.offset - 1) * entriesPerPage,
 		req.offset * entriesPerPage,
 	);

@@ -41,6 +41,19 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 				correctness: 90,
 				responsive_maintainer: 92,
 			},
+			{
+				name: "sample-package-3",
+				url: "https://example.com/sample-package-3",
+				version: "3.0.1",
+				license_score: 85,
+				netscore: 82,
+				dependency_pinning_score: 88,
+				rampup_score: 90,
+				review_percentage_score: 80,
+				bus_factor: 2,
+				correctness: 88,
+				responsive_maintainer: 90,
+			}
 		],
 		users: [
 			{
