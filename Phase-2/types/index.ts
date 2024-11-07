@@ -34,6 +34,7 @@ export interface PackageCost {
 	};
 }
 
+// <--- for use in /package/byName/{name} --->
 export interface PackageHistoryEntry {
 	User: User;
 	Date: string;
@@ -55,7 +56,14 @@ export interface AuthenticationRequest {
 
 export type AuthenticationToken = string;
 
+// <--- for use in /packages --->
+export interface packagesRequest {
+	offset?: number;
+	authToken: string;
+	requestBody: PackageQuery;
+}
+
 export interface PackageQuery {
-	Version?: string;
+	Version: string;
 	Name: string;
 }
