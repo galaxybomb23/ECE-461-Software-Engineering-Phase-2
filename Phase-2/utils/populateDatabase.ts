@@ -1,5 +1,6 @@
 import { logger } from "../src/logFile.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 /**
  * @function populateDatabase
@@ -9,7 +10,7 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
  * @throws {Error} If there's an issue with database operations.
  * NOTE: this function does not Close the Database connection.
  */
-export async function populateDatabase(db: DB) {
+export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = false): Promise<void> {
 	// open the database if it is not already open
 
 	const dbentries = {
@@ -155,12 +156,11 @@ export async function populateDatabase(db: DB) {
 
 	// await all queries to finish
 	logger.info("Database populated");
+	if (autoCloseDB) db.close(true);
 }
 
 // if main, run the function
 if (import.meta.main) {
 	console.log("Populating the database...");
-	const db = new DB("data/data.db");
-	await populateDatabase(db);
-	db.close(true);
+	await populateDatabase(undefined, true);
 }
