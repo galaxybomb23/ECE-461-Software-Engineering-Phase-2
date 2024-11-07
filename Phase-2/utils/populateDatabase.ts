@@ -92,24 +92,24 @@ export async function populateDatabase(db: DB) {
 	);
 
 	// insert the packages into the database
-	const pkgQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	);
 	for (const entry of dbentries.packages) {
-		pkgQuery.execute([
-			entry.name,
-			entry.url,
-			entry.version,
-			entry.license_score,
-			entry.netscore,
-			entry.dependency_pinning_score,
-			entry.rampup_score,
-			entry.review_percentage_score,
-			entry.bus_factor,
-			entry.correctness,
-			entry.responsive_maintainer,
-		]);
+		await db.query(
+			`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				entry.name,
+				entry.url,
+				entry.version,
+				entry.license_score,
+				entry.netscore,
+				entry.dependency_pinning_score,
+				entry.rampup_score,
+				entry.review_percentage_score,
+				entry.bus_factor,
+				entry.correctness,
+				entry.responsive_maintainer,
+			],
+		);
 	}
 
 	// create the users table
@@ -132,27 +132,28 @@ export async function populateDatabase(db: DB) {
 	);
 
 	// insert the users into the database
-	const userQuery = db.prepareQuery(
-		`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	);
 	for (const entry of dbentries.users) {
-		userQuery.execute([
-			entry.username,
-			entry.hashed_password,
-			entry.can_search,
-			entry.can_download,
-			entry.can_upload,
-			entry.user_group,
-			entry.token_start_time,
-			entry.token_api_interactions,
-			entry.password_salt,
-			entry.password_rounds,
-			entry.is_admin,
-			entry.token,
-		]);
+		await db.query(
+			`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				entry.username,
+				entry.hashed_password,
+				entry.can_search,
+				entry.can_download,
+				entry.can_upload,
+				entry.user_group,
+				entry.token_start_time,
+				entry.token_api_interactions,
+				entry.password_salt,
+				entry.password_rounds,
+				entry.is_admin,
+				entry.token,
+			],
+		);
 	}
 
+	// await all queries to finish
 	logger.info("Database populated");
 }
 
