@@ -53,7 +53,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 				bus_factor: 2,
 				correctness: 88,
 				responsive_maintainer: 90,
-			}
+			},
 		],
 		users: [
 			{

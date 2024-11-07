@@ -136,7 +136,7 @@ export async function listPackages(
 	logger.debug(`Parsed version type: ${versionType}, value: ${versionValue}`);
 
 	// Implement pagination
-	const paginatedPackages =  (returnAll) ? filteredPackages : filteredPackages.slice(
+	const paginatedPackages = returnAll ? filteredPackages : filteredPackages.slice(
 		(req.offset - 1) * entriesPerPage,
 		req.offset * entriesPerPage,
 	);

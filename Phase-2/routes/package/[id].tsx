@@ -1,38 +1,39 @@
 import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/components/Navbar.tsx";
 import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
+import DownloadButton from "~/islands/DownloadButton.tsx";
 
 export const handler = async (req: Request, ctx: FreshContext) => {
 	const { id } = ctx.params;
 
 	try {
 		const packageResponse = await fetch(`${APIBaseURL}/api/package/${id}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
-            },
-        });
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
+			},
+		});
 		if (!packageResponse.ok) throw new Error("Package data fetch failed");
 		const packageData: Package = await packageResponse.json();
 
 		const costResponse = await fetch(`${APIBaseURL}/api/package/${id}/cost`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
-            },
-        });
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
+			},
+		});
 		if (!costResponse.ok) throw new Error("Cost data fetch failed");
 		const costData: PackageCost = await costResponse.json();
 
 		const rateResponse = await fetch(`${APIBaseURL}/api/package/${id}/rate`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
-            },
-        });
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
+			},
+		});
 		if (!rateResponse.ok) throw new Error("Rating data fetch failed");
 		const rateData: PackageRating = await rateResponse.json();
 
@@ -94,9 +95,13 @@ export default function Ident({
 						<p>
 							<strong>Version:</strong> {packageData.metadata.Version}
 						</p>
-						<p>
-							<strong>Content:</strong> {packageData.data?.Content ?? "No content"}
-						</p>
+
+						{/* Use the DownloadButton island */}
+						<DownloadButton
+							base64Content={packageData.data?.Content ?? ""}
+							fileName={packageData.metadata.Name}
+						/>
+
 						<p>
 							<strong>Standalone Cost:</strong> {costData?.standaloneCost ?? "N/A"}
 						</p>

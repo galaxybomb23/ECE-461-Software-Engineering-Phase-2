@@ -23,6 +23,7 @@ import * as $package_id_ from "./routes/package/[id].tsx";
 import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
 import * as $Admin from "./islands/Admin.tsx";
+import * as $DownloadButton from "./islands/DownloadButton.tsx";
 import * as $GroupManagement from "./islands/GroupManagement.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
 import * as $Pagination from "./islands/Pagination.tsx";
@@ -58,6 +59,7 @@ const manifest = {
 	},
 	islands: {
 		"./islands/Admin.tsx": $Admin,
+		"./islands/DownloadButton.tsx": $DownloadButton,
 		"./islands/GroupManagement.tsx": $GroupManagement,
 		"./islands/LoginForm.tsx": $LoginForm,
 		"./islands/Pagination.tsx": $Pagination,
