@@ -72,6 +72,8 @@ export const handler: Handlers = {
 				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
 			} else if ((error as Error).message.includes("package.json not found")) {
 				return new Response("package.json not found", { status: 400 });
+			} else if ((error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")) {
+				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
 			} else {
 				return new Response(
 					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)",
@@ -95,8 +97,8 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	// Write the base64 content to a temp zip file
 	await Deno.writeFile(tempFilePath, new Uint8Array([...decodedContent].map((c) => c.charCodeAt(0))));
 
-	// Check if the package is a zip bomb (> 700MB)
-	if (!(await pleaseDontZipBombMe(tempFilePath, 700 * 1024 * 1024))) {
+	// Check if the package is a zip bomb (> 1GB)
+	if (!(await pleaseDontZipBombMe(tempFilePath, 1024 * 1024 * 1024))) {
 		const cmd = new Deno.Command("unzip", { args: ["-q", tempFilePath, "-d", unzipPath] });
 		await cmd.output();
 	} else {
@@ -251,7 +253,7 @@ export async function uploadZipToSQLite(tempFilePath: string, packageJSON: Packa
 	}
 
 	// Insert the package into the database
-	db.query(
+	await db.query(
 		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
 		[packageJSON.metadata.Name, packageJSON.data.URL, packageJSON.metadata.Version, zipBase64],
 	);
@@ -265,12 +267,10 @@ async function pleaseDontZipBombMe(tempFilePath: string, maxDecompressedSize: nu
 
 	const entries = await zipReader.getEntries();
 	let decompressedSize = 0;
-	let fileCount = 0;
 
 	for (const entry of entries) {
 		if (entry.directory) continue; // Skip directories
 		decompressedSize += entry.uncompressedSize || 0;
-		fileCount++;
 
 		// Check limits
 		if (decompressedSize > maxDecompressedSize) {
