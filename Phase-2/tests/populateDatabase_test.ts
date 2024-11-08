@@ -5,7 +5,8 @@ import { cleanup, setup, testLogger } from "./testSuite.ts";
 
 const TESTNAME = "populateDatabase";
 
-Deno.test(TESTNAME, async () => {
+Deno.test(TESTNAME, async (t) => {
+	await t.step(TESTNAME, async () => {
 	// setup
 	testLogger.info(`TEST: ${TESTNAME}`);
 	const db: DB = new DB(":memory:"); //cant use setup bc populateDatabase used in setup
@@ -20,4 +21,6 @@ Deno.test(TESTNAME, async () => {
 
 	// cleanup
 	await cleanup(db);
+	db.close(true);
+	});
 });
