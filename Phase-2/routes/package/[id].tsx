@@ -26,6 +26,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		});
 		if (!costResponse.ok) throw new Error("Cost data fetch failed");
 		const costData: PackageCost = await costResponse.json();
+		console.log(costData);
 
 		const rateResponse = await fetch(`${APIBaseURL}/api/package/${id}/rate`, {
 			method: "GET",
@@ -39,7 +40,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 
 		return ctx.render({ packageData, costData, rateData });
 	} catch (error) {
-		console.warn("API unavailable, using mock data:", error);
+		console.warn(`API unavailable, using mock data:`, error);
 
 		return ctx.render({
 			packageData: {
@@ -103,11 +104,13 @@ export default function Ident({
 						/>
 
 						<p>
-							<strong>Standalone Cost:</strong> {costData?.standaloneCost ?? "N/A"}
+							<strong>Standalone Cost:</strong>{" "}
+							{Object.values(costData ?? {})[0]?.standaloneCost ?? "N/A"}
 						</p>
 						<p>
-							<strong>Total Cost:</strong> {costData?.totalCost}
+							<strong>Total Cost:</strong> {Object.values(costData ?? {})[0]?.totalCost ?? "N/A"}
 						</p>
+
 						<p>
 							<strong>Net Score:</strong> {rateData?.NetScore}
 						</p>

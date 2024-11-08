@@ -43,11 +43,9 @@ export default function UploadForm() {
 			return;
 		}
 
-		if (selectedOption === "url") {
-			if (!inputUrl) {
-				setUploadStatus("Please enter a URL.");
-				return;
-			}
+		if (selectedOption === "url" && !inputUrl) {
+			setUploadStatus("Please enter a URL.");
+			return;
 		}
 
 		if (!authToken) {
@@ -76,10 +74,10 @@ export default function UploadForm() {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = "/package";
+			const endpoint = "/api/package"; // Ensure correct endpoint
 			const method = "POST";
 
-			// Log the full request details
+			// Log request details
 			console.log("Request Type:", method);
 			console.log("Endpoint:", endpoint);
 			console.log("Headers:", headers);
@@ -92,14 +90,16 @@ export default function UploadForm() {
 				body: JSON.stringify(payload),
 			});
 
-			if (!response.ok) {
-				throw new Error("Upload failed");
-			}
+			console.log(response.body?.values);
 
 			const result = await response.json();
-			setUploadStatus(
-				`Upload successful: Package ID ${result.metadata.ID}`,
-			);
+			console.log("Response data:", result); // Log response for debugging
+
+			if (!response.ok) {
+				throw new Error(`Upload failed with status ${response.status}: ${result.message}`);
+			}
+
+			setUploadStatus(`Upload successful: Package ID ${result.metadata.ID}`);
 		} catch (error) {
 			console.error("Error uploading:", error);
 			setUploadStatus("Error uploading.");

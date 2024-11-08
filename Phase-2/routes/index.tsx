@@ -22,7 +22,6 @@ export const handler = async (_req: Request, _ctx: FreshContext) => {
 	// Parse the response body as JSON
 	const packagesData: PackageMetadata[] = await packages.json();
 
-	console.log(packagesData);
 	return _ctx.render({ packages: packagesData });
 };
 
