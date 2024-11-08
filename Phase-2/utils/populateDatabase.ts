@@ -157,7 +157,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 		logger.info("Database populated");
 	} finally {
 		// mem safety close
-		if (autoCloseDB){ db.close(true);}
+		if (autoCloseDB) db.close(true);
 	}
 }
 

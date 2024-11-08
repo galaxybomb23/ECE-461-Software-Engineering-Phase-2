@@ -4,147 +4,147 @@ import { logger } from "~/src/logFile.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 function sha256(data: string) {
-  return crypto.createHash("sha256").update(data).digest("hex");
+	return crypto.createHash("sha256").update(data).digest("hex");
 }
 
 export function getUnixTimeInSeconds(): number {
-  return Math.floor(Date.now() / 1000);
+	return Math.floor(Date.now() / 1000);
 }
 
 export interface LoginResponse {
-  isAuthenticated: boolean;
-  token?: string;
+	isAuthenticated: boolean;
+	token?: string;
 }
 
 export async function login(
-  username: string,
-  password: string,
-  is_admin: boolean,
-  db = new DB(DATABASEFILE),
-  autoCloseDB = true
+	username: string,
+	password: string,
+	is_admin: boolean,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
 ): Promise<LoginResponse> {
-  try {
-    type resultRow = [string, string, number, boolean];
-    const result = await db.query(
-      `SELECT hashed_password, password_salt, password_rounds, is_admin FROM users WHERE username = ?`,
-      [username]
-    );
-    if (result === undefined || result.length == 0) {
-      // make sure the username exist
-      logger.debug(`there was no result from the db. result: {result}`);
-      return { isAuthenticated: false };
-    }
+	try {
+		type resultRow = [string, string, number, boolean];
+		const result = await db.query(
+			`SELECT hashed_password, password_salt, password_rounds, is_admin FROM users WHERE username = ?`,
+			[username],
+		);
+		if (result === undefined || result.length == 0) {
+			// make sure the username exist
+			logger.debug(`there was no result from the db. result: {result}`);
+			return { isAuthenticated: false };
+		}
 
-    const user = result[0] as resultRow;
-    // get the values needed to calculate the password hash
-    const known_password_hash = user[0];
-    const password_salt = user[1];
-    const password_rounds = user[2];
-    const user_admin_status = user[3];
+		const user = result[0] as resultRow;
+		// get the values needed to calculate the password hash
+		const known_password_hash = user[0];
+		const password_salt = user[1];
+		const password_rounds = user[2];
+		const user_admin_status = user[3];
 
-    // calculate the password hash
-    let to_check_password_hash = password;
-    for (let i = 0; i < password_rounds; i++) {
-      to_check_password_hash = sha256(to_check_password_hash + password_salt);
-    }
+		// calculate the password hash
+		let to_check_password_hash = password;
+		for (let i = 0; i < password_rounds; i++) {
+			to_check_password_hash = sha256(to_check_password_hash + password_salt);
+		}
 
-    if (
-      known_password_hash == to_check_password_hash &&
-      is_admin == user_admin_status
-    ) {
-      const token = `bearer ${crypto.randomUUID()}`;
+		if (
+			known_password_hash == to_check_password_hash &&
+			is_admin == user_admin_status
+		) {
+			const token = `bearer ${crypto.randomUUID()}`;
 
-      await db.query(
-        `UPDATE users SET token_start_time = ?, token_api_interactions = 0, token = ? WHERE username = ?;`,
-        [getUnixTimeInSeconds(), token, username]
-      );
-      return { isAuthenticated: true, token: token };
-    } else {
-      return { isAuthenticated: false };
-    }
-  } finally {
-    // mem safety close
-    if (autoCloseDB) {
-      db.close(true);
-    }
-  }
+			await db.query(
+				`UPDATE users SET token_start_time = ?, token_api_interactions = 0, token = ? WHERE username = ?;`,
+				[getUnixTimeInSeconds(), token, username],
+			);
+			return { isAuthenticated: true, token: token };
+		} else {
+			return { isAuthenticated: false };
+		}
+	} finally {
+		// mem safety close
+		if (autoCloseDB) {
+			db.close(true);
+		}
+	}
 }
 
 export async function adminCreateAccount(
-  username: string, // this parameter and the next are for the new users
-  password: string,
-  can_search: boolean,
-  can_download: boolean,
-  can_upload: boolean,
-  user_group: string,
-  is_admin: boolean,
-  db = new DB(DATABASEFILE),
-  autoCloseDB = true
+	username: string, // this parameter and the next are for the new users
+	password: string,
+	can_search: boolean,
+	can_download: boolean,
+	can_upload: boolean,
+	user_group: string,
+	is_admin: boolean,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
 ): Promise<boolean> {
-  try {
-    // make sure username doesn't exist - if it does return false
-    const result = await db.query(`SELECT id FROM users WHERE username = ?`, [
-      username,
-    ]);
-    if (result.length > 0) {
-      return false;
-    }
+	try {
+		// make sure username doesn't exist - if it does return false
+		const result = await db.query(`SELECT id FROM users WHERE username = ?`, [
+			username,
+		]);
+		if (result.length > 0) {
+			return false;
+		}
 
-    // another variable is token_start_time, token_api_interaction
-    const token_start_time = getUnixTimeInSeconds();
-    const token_api_interactions = 0;
+		// another variable is token_start_time, token_api_interaction
+		const token_start_time = getUnixTimeInSeconds();
+		const token_api_interactions = 0;
 
-    // another variable is password_salt, password_rounds, password_hash, password_algorithm, = sha256 (will not send this one)
-    const password_salt = crypto.randomBytes(8).toString("hex");
-    const password_rounds = crypto.randomInt(1000) + 4500;
-    let hashed_password = password;
-    for (let i = 0; i < password_rounds; i++) {
-      hashed_password = sha256(hashed_password + password_salt);
-    }
+		// another variable is password_salt, password_rounds, password_hash, password_algorithm, = sha256 (will not send this one)
+		const password_salt = crypto.randomBytes(8).toString("hex");
+		const password_rounds = crypto.randomInt(1000) + 4500;
+		let hashed_password = password;
+		for (let i = 0; i < password_rounds; i++) {
+			hashed_password = sha256(hashed_password + password_salt);
+		}
 
-    const token = "";
+		const token = "";
 
-    // send all variables to .db
-    await db.query(
-      `INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
+		// send all variables to .db
+		await db.query(
+			`INSERT OR IGNORE INTO users (username, hashed_password, can_search, can_download, can_upload, user_group, token_start_time, token_api_interactions, password_salt, password_rounds, is_admin, token) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        username,
-        hashed_password,
-        can_search,
-        can_download,
-        can_upload,
-        user_group,
-        token_start_time,
-        token_api_interactions,
-        password_salt,
-        password_rounds,
-        is_admin,
-        token,
-      ]
-    );
+			[
+				username,
+				hashed_password,
+				can_search,
+				can_download,
+				can_upload,
+				user_group,
+				token_start_time,
+				token_api_interactions,
+				password_salt,
+				password_rounds,
+				is_admin,
+				token,
+			],
+		);
 
-    return true;
-  } finally {
-    // mem safe close
-    if (autoCloseDB) {
-      db.close(true);
-    }
-  }
+		return true;
+	} finally {
+		// mem safe close
+		if (autoCloseDB) {
+			db.close(true);
+		}
+	}
 }
 
 export async function deleteAccount(
-  username: string,
-  db = new DB(DATABASEFILE),
-  autoCloseDB = true
+	username: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
 ): Promise<boolean> {
-  try {
-    await db.query(`DELETE FROM users WHERE username = ?`, [username]);
-    return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
-  } finally {
-    // mem safety close
-    if (autoCloseDB) {
-      db.close(true);
-    }
-  }
+	try {
+		await db.query(`DELETE FROM users WHERE username = ?`, [username]);
+		return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
+	} finally {
+		// mem safety close
+		if (autoCloseDB) {
+			db.close(true);
+		}
+	}
 }

@@ -14,6 +14,13 @@ const JOKES = [
 	"An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
 ];
 
+/**
+ * Handles an incoming request and returns a random joke from the JOKES array.
+ *
+ * @param _req - The incoming request object.
+ * @param _ctx - The context object provided by the Fresh framework.
+ * @returns A Response object containing a random joke.
+ */
 export const handler = (_req: Request, _ctx: FreshContext): Response => {
 	const randomIndex = Math.floor(Math.random() * JOKES.length);
 	const body = JOKES[randomIndex];
