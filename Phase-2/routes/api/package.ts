@@ -1,7 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
 import type { PackageMetadata } from "~/types/index.ts";
-import { PackageData } from "../../types/index.ts";
+import { PackageData, Package } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
@@ -15,7 +15,6 @@ export const handler: Handlers = {
 
 		try {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
-			let packageJSON: any;
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
@@ -26,6 +25,7 @@ export const handler: Handlers = {
 			}
 
 			// Handle package data based on URL or Content
+			let packageJSON: Package;
 			if (packageData.URL) {
 				logger.debug("package.ts: Received package data with URL: " + packageData.URL);
 				packageJSON = await handleURL(db, packageData.URL);
@@ -41,18 +41,18 @@ export const handler: Handlers = {
 			// get package ID from db
 			const packageID = await db.query(
 				"SELECT id FROM packages WHERE name = ? AND version = ?",
-				[packageJSON.name, packageJSON.version],
+				[packageJSON.metadata.Name, packageJSON.metadata.Version],
 			);
 
 			// Populate JSON response to server
 			const jsonReturn = {
 				metadata: {
-					Name: packageJSON.name,
-					Version: packageJSON.version,
-					ID: packageID[0][0] || "no-id",
+					Name: packageJSON.metadata.Name,
+					Version: packageJSON.metadata.Version,
+					ID: packageID[0][0] || "",
 				} as PackageMetadata,
 				data: {
-					Content: packageData.Content || "Base64 encoded content here...",
+					Content: packageJSON.data.Content,
 					JSProgram:
 						"if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
 				},
@@ -110,27 +110,26 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	// parse and verify package.json
 	const packageJSON = await parsePackageJSON(unzipPath);
 	let metrics = null;
-	if (url != "No repository URL" && url) packageJSON.url = url;
-	if (packageJSON.url != "No repository URL") {
-		logger.debug("package.ts: Calling phase 1 on: " + packageJSON.url);
-		metrics = await getMetrics(packageJSON.url);
+	if (url != "No repository URL" && url) packageJSON.data.URL = url; // If URL is provided, use it
+	if (packageJSON.data.URL) {
+		logger.debug("package.ts: Calling phase 1 on: " + packageJSON.data.URL);
+		metrics = await getMetrics(packageJSON.data.URL);
 	} else {
 		logger.debug(
-			"package.ts: No repository URL found in package.json for " + packageJSON.name + ", not running Phase 1",
-		);
+			"package.ts: No repository URL found in package.json for " + packageJSON.metadata.Name + ", skipping phase 1",);
 	}
 
 	// Metrics check, all metrics must be above 0.5 to ingest
 	if (metrics) {
 		metrics = JSON.parse(metrics);
 		if (
-			metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 &&
-			metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5
+			(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 &&
+			metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5)
 		) {
 			await uploadZipToSQLite(tempFilePath, packageJSON, db);
 		} else {
 			logger.debug(
-				"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+				"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
 					"] failed metric check - status 400",
 			);
 
@@ -143,7 +142,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	} // Something goes wrong with the metrics
 	else {
 		logger.debug(
-			"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+			"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
 				"] failed metric check - status 400",
 		);
 
@@ -158,6 +157,7 @@ export async function handleContent(db: DB, content: string, url?: string) {
 	await Deno.remove(unzipPath, { recursive: true });
 	await Deno.remove("./temp", { recursive: true });
 
+	packageJSON.data.Content = content;
 	return packageJSON;
 }
 
@@ -200,53 +200,51 @@ export async function parsePackageJSON(filePath: string) {
 	}
 
 	logger.debug("package.ts: Reading package.json");
-	let packageJSON: any;
 	const rootPath = `${filePath}/package.json`;
 	const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
 
-	try {
-		packageJSON = JSON.parse(await Deno.readTextFile(rootPath));
-		logger.debug("parsed package.json: " + packageJSON);
-		logger.debug("package.ts: Found package.json in root");
-	} catch {
-		try {
-			packageJSON = JSON.parse(await Deno.readTextFile(subDirPath));
-			logger.debug("package.ts: Found package.json in subdirectory");
-		} catch {
-			logger.debug("package.ts: package.json not found - status 400");
-			throw new Error("package.json not found");
-		}
+	const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+	if (!packageJSONPath) {
+		logger.debug("package.ts: package.json not found - status 400");
+		throw new Error("package.json not found");
 	}
+	const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
 	return {
-		name: packageJSON.name?.split("/").pop() || "No name",
-		version: packageJSON.version || "No version",
-		url: packageJSON.repository?.url || packageJSON.url || "No repository URL",
-		json: packageJSON || {},
-	};
+		metadata: {
+			Name: packageJSON.name,
+			Version: packageJSON.version,
+			ID: packageJSON.name + "@" + packageJSON.version,
+		},
+		data: {
+			Content: "",
+			// url can be repository.url or repository or url
+			URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
+		},
+	} as Package;
 }
 
 // Uploads the package zip to the SQLite database
 // If originally was a URL, we downloaded the .zip from GitHub and will upload it to the database
 // If originally was a base64 Content, we unzipped and processed the package, so now we encode and upload to the database 
-export async function uploadZipToSQLite(tempFilePath: string, packageJSON: any, db: DB) {
+export async function uploadZipToSQLite(tempFilePath: string, packageJSON: Package, db: DB) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
 	logger.debug(
-		"package.ts: Adding package zip named [" + packageJSON.name + "] @ [" + packageJSON.version + "] located at " +
+		"package.ts: Adding package zip named [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
 			tempFilePath + " to SQLite database",
 	);
 
 	// Check if the package already exists in the database
 	const packageExists = await db.query(
 		"SELECT * FROM packages WHERE name = ? AND version = ?",
-		[packageJSON.name.toString(), packageJSON.version.toString()],
+		[packageJSON.metadata.Name, packageJSON.metadata.Version],
 	);
 
 	if (packageExists.length > 0) {
 		logger.debug(
-			"package.ts: Package [" + packageJSON.name + "] @ [" + packageJSON.version +
+			"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
 				"] already exists in database - status 409",
 		);
 		throw new Error("Package already exists in database");
@@ -255,7 +253,7 @@ export async function uploadZipToSQLite(tempFilePath: string, packageJSON: any, 
 	// Insert the package into the database
 	db.query(
 		"INSERT OR IGNORE INTO packages (name, url, version, base64_content) VALUES (?, ?, ?, ?)",
-		[packageJSON.name, packageJSON.url, packageJSON.version, zipBase64],
+		[packageJSON.metadata.Name, packageJSON.data.URL, packageJSON.metadata.Version, zipBase64],
 	);
 }
 
