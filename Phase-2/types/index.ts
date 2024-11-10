@@ -18,15 +18,24 @@ export interface PackageData {
 
 export interface PackageRating {
 	BusFactor: number;
+	BusFactorLatency: number;
 	Correctness: number;
+	CorrectnessLatency: number;
 	RampUp: number;
+	RampUpLatency: number;
 	ResponsiveMaintainer: number;
+	ResponsiveMaintainerLatency: number;
 	LicenseScore: number;
+	LicenseScoreLatency: number;
 	GoodPinningPractice: number;
+	GoodPinningPracticeLatency: number;
 	PullRequest: number;
+	PullRequestLatency: number;
 	NetScore: number;
+	NetScoreLatency: number;
 }
 
+// <--- for use in /package/{id}/cost --->
 export interface PackageCost {
 	[key: string]: {
 		standaloneCost?: number;
@@ -34,6 +43,7 @@ export interface PackageCost {
 	};
 }
 
+// <--- for use in /package/byName/{name} --->
 export interface PackageHistoryEntry {
 	User: User;
 	Date: string;
@@ -46,6 +56,10 @@ export interface User {
 	isAdmin: boolean;
 }
 
+// <--- for use in /package/byRegx
+export interface regexRequest {
+	regex: string;
+}
 export interface AuthenticationRequest {
 	User: User;
 	Secret: {
@@ -55,7 +69,14 @@ export interface AuthenticationRequest {
 
 export type AuthenticationToken = string;
 
+// <--- for use in /packages --->
+export interface packagesRequest {
+	offset?: number;
+	authToken: string;
+	requestBody: PackageQuery;
+}
+
 export interface PackageQuery {
-	Version?: string;
+	Version: string;
 	Name: string;
 }
