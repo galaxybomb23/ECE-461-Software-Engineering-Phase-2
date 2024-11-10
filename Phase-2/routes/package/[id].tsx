@@ -26,7 +26,6 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		});
 		if (!costResponse.ok) throw new Error("Cost data fetch failed");
 		const costData: PackageCost = await costResponse.json();
-		console.log(costData);
 
 		const rateResponse = await fetch(`${APIBaseURL}/api/package/${id}/rate`, {
 			method: "GET",
