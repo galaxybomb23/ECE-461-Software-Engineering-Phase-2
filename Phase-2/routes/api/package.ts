@@ -1,7 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
 import type { PackageMetadata } from "~/types/index.ts";
-import { PackageData, Package } from "../../types/index.ts";
+import { Package, PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
@@ -61,8 +61,8 @@ export const handler: Handlers = {
 			logger.info("package.ts: ✓ Package added!");
 			return new Response(JSON.stringify(jsonReturn), { status: 201 });
 
-		// Handle HTTP errors. each function may throw an error, and the handler will catch it
-		// This is done instead of each function returning a Response object which couples them to the server and complicates return types
+			// Handle HTTP errors. each function may throw an error, and the handler will catch it
+			// This is done instead of each function returning a Response object which couples them to the server and complicates return types
 		} catch (error) {
 			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
 
@@ -72,7 +72,9 @@ export const handler: Handlers = {
 				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
 			} else if ((error as Error).message.includes("package.json not found")) {
 				return new Response("package.json not found", { status: 400 });
-			} else if ((error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")) {
+			} else if (
+				(error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")
+			) {
 				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
 			} else {
 				return new Response(
@@ -119,19 +121,36 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 			metrics = await getMetrics(packageJSON.data.URL);
 		} else {
 			logger.debug(
-				"package.ts: No repository URL found in package.json for " + packageJSON.metadata.Name + ", skipping phase 1",);
+				"package.ts: No repository URL found in package.json for " + packageJSON.metadata.Name +
+					", skipping phase 1",
+			);
 		}
 
 		// Metrics check, all metrics must be above 0.5 to ingest
 		if (metrics) {
 			metrics = JSON.parse(metrics);
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
-			if ( 
-				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 && metrics.RampUp > 0.5 &&
-				metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 && metrics.ReviewPercentage > 0.5)
+			if (
+				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
+					metrics.RampUp > 0.5 &&
+					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
+					metrics.ReviewPercentage > 0.5)
 			) {
 				// metrics
-				await uploadZipToSQLite(tempFilePath, packageJSON, metrics.BusFactor, metrics.Correctness, metrics.License, metrics.RampUp, metrics.ResponsiveMaintainer, metrics.dependencyPinning, metrics.ReviewPercentage, metrics.NetScore, db, true);
+				await uploadZipToSQLite(
+					tempFilePath,
+					packageJSON,
+					metrics.BusFactor,
+					metrics.Correctness,
+					metrics.License,
+					metrics.RampUp,
+					metrics.ResponsiveMaintainer,
+					metrics.dependencyPinning,
+					metrics.ReviewPercentage,
+					metrics.NetScore,
+					db,
+					true,
+				);
 			} else {
 				logger.debug(
 					"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
@@ -164,8 +183,7 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 
 		packageJSON.data.Content = content;
 		return packageJSON;
-	}
-	finally {
+	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
@@ -235,8 +253,21 @@ export async function parsePackageJSON(filePath: string) {
 
 // Uploads the package zip to the SQLite database
 // If originally was a URL, we downloaded the .zip from GitHub and will upload it to the database
-// If originally was a base64 Content, we unzipped and processed the package, so now we encode and upload to the database 
-export async function uploadZipToSQLite(tempFilePath: string, packageJSON: Package, busFactor: number, correctness: number, license: number, rampUp: number, responsiveMaintainer: number, dependencyPinning: number, reviewPercentage: number, netscore: number, db = new DB(DATABASEFILE), autoCloseDB = true) {
+// If originally was a base64 Content, we unzipped and processed the package, so now we encode and upload to the database
+export async function uploadZipToSQLite(
+	tempFilePath: string,
+	packageJSON: Package,
+	busFactor: number,
+	correctness: number,
+	license: number,
+	rampUp: number,
+	responsiveMaintainer: number,
+	dependencyPinning: number,
+	reviewPercentage: number,
+	netscore: number,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
@@ -262,7 +293,20 @@ export async function uploadZipToSQLite(tempFilePath: string, packageJSON: Packa
 	// Insert the package into the database
 	await db.query(
 		"INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		[packageJSON.metadata.Name, packageJSON.data.URL, packageJSON.metadata.Version, zipBase64, license, netscore, dependencyPinning, rampUp, reviewPercentage, busFactor, correctness, responsiveMaintainer],
+		[
+			packageJSON.metadata.Name,
+			packageJSON.data.URL,
+			packageJSON.metadata.Version,
+			zipBase64,
+			license,
+			netscore,
+			dependencyPinning,
+			rampUp,
+			reviewPercentage,
+			busFactor,
+			correctness,
+			responsiveMaintainer,
+		],
 	);
 }
 

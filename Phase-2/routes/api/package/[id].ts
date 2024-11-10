@@ -9,7 +9,6 @@ import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
-
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
@@ -48,9 +47,12 @@ export const handler: Handlers = {
 	},
 };
 
-export async function queryPackageById(id: string, db = new DB(DATABASEFILE), autoCloseDB = true): Promise<Package | null> {
-	
-	try { 
+export async function queryPackageById(
+	id: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+): Promise<Package | null> {
+	try {
 		const matchedPackages = await db.query("SELECT * FROM packages WHERE ID = ?", [id]);
 
 		if (matchedPackages.length > 0) {
@@ -69,8 +71,7 @@ export async function queryPackageById(id: string, db = new DB(DATABASEFILE), au
 		} else {
 			return null;
 		}
-	}
-	finally {
-		if (autoCloseDB) { db.close(); }
+	} finally {
+		if (autoCloseDB) db.close();
 	}
 }

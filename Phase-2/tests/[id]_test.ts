@@ -13,7 +13,7 @@ let TESTNAME = "queryExistingPackage";
 Deno.test(TESTNAME, async () => {
 	// pre test setup
 	testLogger.info(`TEST: ${TESTNAME}`);
-	const db: DB = await setup(); 
+	const db: DB = await setup();
 
 	// test code
 	const id = "1";
