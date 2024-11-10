@@ -1,4 +1,3 @@
-/* General Page Container */
 .page-container {
     background-color: #0c0c0c;
     color: #fafafa;
@@ -9,7 +8,6 @@
     align-items: center;
 }
 
-/* Content Wrapper to Center Card */
 .content-wrapper {
     display: flex;
     justify-content: center;
@@ -20,7 +18,6 @@
     margin-top: 4rem;
 }
 
-/* Card Design */
 .card {
     background-color: #2e2b298d;
     border: 1px solid #a5a5af8a;
@@ -32,15 +29,13 @@
     text-align: center;
 }
 
-/* Title */
-.title {
+.card .title {
     font-size: 2rem;
     margin-bottom: 1rem;
     color: #076861;
     text-transform: uppercase;
 }
 
-/* Details Section */
 .details p {
     font-size: 1.1rem;
     color: #afbbcc;
@@ -51,7 +46,6 @@
     color: #fafafa;
 }
 
-/* Download Button */
 .download-button {
     padding: 12px 24px;
     background-color: #076861;
@@ -68,7 +62,6 @@
     background-color: #06544f;
 }
 
-/* Rating Section */
 .rating-title {
     font-size: 1.5rem;
     margin-top: 1.5rem;
@@ -86,7 +79,6 @@
     margin: 0.5rem 0;
 }
 
-/* Navbar */
 .navbar {
     background-image: linear-gradient(90deg, #bfbebe, #076861, #076861, #0b1e26);
     padding: 1rem;
