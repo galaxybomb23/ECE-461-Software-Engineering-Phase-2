@@ -19,7 +19,18 @@ import * as $api_tracks from "./routes/api/tracks.ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
+import * as $package_id_ from "./routes/package/[id].tsx";
+import * as $search_results from "./routes/search-results.tsx";
+import * as $upload from "./routes/upload.tsx";
+import * as $Admin from "./islands/Admin.tsx";
+import * as $GroupManagement from "./islands/GroupManagement.tsx";
+import * as $LoginForm from "./islands/LoginForm.tsx";
+import * as $Pagination from "./islands/Pagination.tsx";
+import * as $PermissionManagement from "./islands/PermissionManagement.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
+import * as $UpdateForm from "./islands/UpdateForm.tsx";
+import * as $UploadForm from "./islands/UploadForm.tsx";
+import * as $UserManagement from "./islands/UserManagement.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -41,9 +52,20 @@ const manifest = {
 		"./routes/greet/[name].tsx": $greet_name_,
 		"./routes/index.tsx": $index,
 		"./routes/login.tsx": $login,
+		"./routes/package/[id].tsx": $package_id_,
+		"./routes/search-results.tsx": $search_results,
+		"./routes/upload.tsx": $upload,
 	},
 	islands: {
+		"./islands/Admin.tsx": $Admin,
+		"./islands/GroupManagement.tsx": $GroupManagement,
+		"./islands/LoginForm.tsx": $LoginForm,
+		"./islands/Pagination.tsx": $Pagination,
+		"./islands/PermissionManagement.tsx": $PermissionManagement,
 		"./islands/SearchBar.tsx": $SearchBar,
+		"./islands/UpdateForm.tsx": $UpdateForm,
+		"./islands/UploadForm.tsx": $UploadForm,
+		"./islands/UserManagement.tsx": $UserManagement,
 	},
 	baseUrl: import.meta.url,
 } satisfies Manifest;
