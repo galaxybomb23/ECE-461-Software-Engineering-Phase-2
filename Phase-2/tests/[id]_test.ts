@@ -3,6 +3,7 @@ import { assertNotEquals } from "$std/assert/assert_not_equals.ts";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 //import the function to be tested
 import { queryPackageById } from "~/routes/api/package/[id].ts";
@@ -12,11 +13,11 @@ let TESTNAME = "queryExistingPackage";
 Deno.test(TESTNAME, async () => {
 	// pre test setup
 	testLogger.info(`TEST: ${TESTNAME}`);
-	const db: DB = await setup(TESTNAME);
+	const db: DB = await setup(); 
 
 	// test code
 	const id = "1";
-	const pkg = await queryPackageById(db, id);
+	const pkg = await queryPackageById(id, db, false);
 
 	assertNotEquals(pkg, null, "Package should not be null");
 
@@ -32,5 +33,5 @@ Deno.test(TESTNAME, async () => {
 	}
 
 	// post test cleanup
-	await cleanup(db, TESTNAME); // cleanup the database if used
+	await cleanup(db); // cleanup the database if used
 });

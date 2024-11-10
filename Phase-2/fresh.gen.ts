@@ -13,6 +13,7 @@ import * as $api_package_id_ from "./routes/api/package/[id].ts";
 import * as $api_package_id_cost from "./routes/api/package/[id]/cost.ts";
 import * as $api_package_id_rate from "./routes/api/package/[id]/rate.ts";
 import * as $api_package_byName_name_ from "./routes/api/package/byName/[name].ts";
+import * as $api_package_byRegEx from "./routes/api/package/byRegEx.ts";
 import * as $api_packages from "./routes/api/packages.ts";
 import * as $api_reset from "./routes/api/reset.ts";
 import * as $api_tracks from "./routes/api/tracks.ts";
@@ -46,6 +47,7 @@ const manifest = {
 		"./routes/api/package/[id]/cost.ts": $api_package_id_cost,
 		"./routes/api/package/[id]/rate.ts": $api_package_id_rate,
 		"./routes/api/package/byName/[name].ts": $api_package_byName_name_,
+		"./routes/api/package/byRegEx.ts": $api_package_byRegEx,
 		"./routes/api/packages.ts": $api_packages,
 		"./routes/api/reset.ts": $api_reset,
 		"./routes/api/tracks.ts": $api_tracks,

@@ -7,18 +7,16 @@ import { Handlers } from "$fresh/server.ts";
 import { logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
-const DB_PATH = "data/data.db";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		const { id } = ctx.params;
-		const db = new DB(DB_PATH);
 
 		try {
-			const pkg = await queryPackageById(db, id);
-			await db.close(true)
+			const pkg = await queryPackageById(id);
 
 			if (pkg) {
 				return new Response(JSON.stringify(pkg), { status: 200 });
@@ -27,7 +25,6 @@ export const handler: Handlers = {
 			}
 		} catch (error) {
 			logger.error(`GET /package/{id}: Error - ${error}`);
-			await db.close(true)
 			return new Response(
 				"There is missing field(s) in the PackageID or it is formed improperly, or is invalid",
 				{ status: 400 },
@@ -51,23 +48,29 @@ export const handler: Handlers = {
 	},
 };
 
-export async function queryPackageById(db: DB, id: string) {
-	const matchedPackages = await db.query("SELECT * FROM packages WHERE ID = ?", [id]);
+export async function queryPackageById(id: string, db = new DB(DATABASEFILE), autoCloseDB = true): Promise<Package | null> {
+	
+	try { 
+		const matchedPackages = await db.query("SELECT * FROM packages WHERE ID = ?", [id]);
 
-	if (matchedPackages.length > 0) {
-		logger.debug(`queryPackageById: Found package with ID: ${id}`);
-		const pkg = {
-			metadata: {
-				ID: matchedPackages[0][0],
-				Name: matchedPackages[0][1],
-				Version: matchedPackages[0][3],
-			} as PackageMetadata,
-			data: {
-				Content: matchedPackages[0][4],
-			} as PackageData,
-		} as Package;
-		return pkg;
-	} else {
-		return null;
+		if (matchedPackages.length > 0) {
+			logger.debug(`queryPackageById: Found package with ID: ${id}`);
+			const pkg = {
+				metadata: {
+					ID: matchedPackages[0][0],
+					Name: matchedPackages[0][1],
+					Version: matchedPackages[0][3],
+				} as PackageMetadata,
+				data: {
+					Content: matchedPackages[0][4],
+				} as PackageData,
+			} as Package;
+			return pkg;
+		} else {
+			return null;
+		}
+	}
+	finally {
+		if (autoCloseDB) { db.close(); }
 	}
 }

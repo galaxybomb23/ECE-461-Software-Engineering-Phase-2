@@ -18,6 +18,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					name: "sample-package-1",
 					url: "https://example.com/sample-package-1",
 					version: "1.0.0",
+					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
 					license_score: 80,
 					netscore: 75,
 					dependency_pinning_score: 90,
@@ -31,6 +32,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					name: "sample-package-2",
 					url: "https://example.com/sample-package-2",
 					version: "2.1.3",
+					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
 					license_score: 95,
 					netscore: 88,
 					dependency_pinning_score: 85,
@@ -77,9 +79,9 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 		await db.execute(
 			`CREATE TABLE IF NOT EXISTS packages (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
             url TEXT NOT NULL,
-            version TEXT UNIQUE,
+            version TEXT,
 			base64_content TEXT,
             license_score INTEGER, 
             netscore INTEGER, 
@@ -95,12 +97,13 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 		// insert the packages into the database
 		for (const entry of dbentries.packages) {
 			await db.query(
-				`INSERT OR IGNORE INTO packages (name, url, version, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					entry.name,
 					entry.url,
 					entry.version,
+					entry.base64_content,
 					entry.license_score,
 					entry.netscore,
 					entry.dependency_pinning_score,
