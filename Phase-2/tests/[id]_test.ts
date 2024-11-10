@@ -9,7 +9,7 @@ import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
 
 // test suite
-let TESTNAME = "queryExistingPackage";
+const TESTNAME = "queryExistingPackage";
 Deno.test(TESTNAME, async () => {
 	// pre test setup
 	testLogger.info(`TEST: ${TESTNAME}`);
