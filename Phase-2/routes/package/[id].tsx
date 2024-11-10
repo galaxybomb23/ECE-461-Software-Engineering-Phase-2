@@ -87,56 +87,34 @@ export default function Ident({
 	}
 
 	return (
-		<div>
+		<div className="page-container">
 			<Navbar />
-			<div className="horizontal-container">
-				<div className="vertical-container">
-					<div className="title">Package Details for {packageData.metadata.Name}</div>
+			<div className="content-wrapper">
+				<div className="card">
+					<h1 className="title">Package Details for {packageData?.metadata?.Name ?? "Package"}</h1>
+					
 					<div className="details">
-						<p>
-							<strong>Version:</strong> {packageData.metadata.Version}
-						</p>
+						<p><strong>Version:</strong> {packageData?.metadata?.Version ?? "N/A"}</p>
 
-						{/* Use the DownloadButton island */}
 						<DownloadButton
-							base64Content={packageData.data?.Content ?? ""}
-							fileName={packageData.metadata.Name}
+							base64Content={packageData?.data?.Content ?? ""}
+							fileName={packageData?.metadata?.Name ?? "Package"}
 						/>
 
-						<p>
-							<strong>Standalone Cost:</strong>{" "}
-							{Object.values(costData ?? {})[0]?.standaloneCost ?? "N/A"}
-						</p>
-						<p>
-							<strong>Total Cost:</strong> {Object.values(costData ?? {})[0]?.totalCost ?? "N/A"}
-						</p>
+						<p><strong>Standalone Cost:</strong> {Object.values(costData ?? {})[0]?.standaloneCost ?? "N/A"}</p>
+						<p><strong>Total Cost:</strong> {Object.values(costData ?? {})[0]?.totalCost ?? "N/A"}</p>
 
-						<p>
-							<strong>Net Score:</strong> {rateData?.NetScore}
-						</p>
-						<h3>Rating Breakdown:</h3>
-						<ul>
-							<li>
-								<strong>Bus Factor:</strong> {rateData?.BusFactor}
-							</li>
-							<li>
-								<strong>Correctness:</strong> {rateData?.Correctness}
-							</li>
-							<li>
-								<strong>Ramp Up:</strong> {rateData?.RampUp}
-							</li>
-							<li>
-								<strong>Responsive Maintainer:</strong> {rateData?.ResponsiveMaintainer}
-							</li>
-							<li>
-								<strong>License Score:</strong> {rateData?.LicenseScore}
-							</li>
-							<li>
-								<strong>Good Pinning Practice:</strong> {rateData?.GoodPinningPractice}
-							</li>
-							<li>
-								<strong>Pull Request:</strong> {rateData?.PullRequest}
-							</li>
+						<p><strong>Net Score:</strong> {rateData?.NetScore ?? "N/A"}</p>
+						
+						<h3 className="rating-title">Rating Breakdown:</h3>
+						<ul className="rating-list">
+							<li><strong>Bus Factor:</strong> {rateData?.BusFactor ?? "N/A"}</li>
+							<li><strong>Correctness:</strong> {rateData?.Correctness ?? "N/A"}</li>
+							<li><strong>Ramp Up:</strong> {rateData?.RampUp ?? "N/A"}</li>
+							<li><strong>Responsive Maintainer:</strong> {rateData?.ResponsiveMaintainer ?? "N/A"}</li>
+							<li><strong>License Score:</strong> {rateData?.LicenseScore ?? "N/A"}</li>
+							<li><strong>Good Pinning Practice:</strong> {rateData?.GoodPinningPractice ?? "N/A"}</li>
+							<li><strong>Pull Request:</strong> {rateData?.PullRequest ?? "N/A"}</li>
 						</ul>
 					</div>
 				</div>
