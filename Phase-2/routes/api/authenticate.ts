@@ -4,7 +4,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest, AuthenticationToken } from "../../types/index.ts";
 import { login, LoginResponse } from "~/utils/userManagement.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { logger } from "../../src/logFile.ts";
 
 export const handler: Handlers = {
@@ -30,7 +29,7 @@ export const handler: Handlers = {
 	 */
 	async PUT(req) {
 		let name, is_admin, password;
-		const db = new DB(DATABASEFILE);
+
 		try { // database open
 			try {
 				// Parse the incoming request to extract the authentication details
@@ -60,7 +59,7 @@ export const handler: Handlers = {
 
 			try {
 				// Attempt to authenticate the user using the provided credentials
-				const { isAuthenticated, token } = login(db, name, password, is_admin);
+				const { isAuthenticated, token } = await login(name, password, is_admin);
 
 				// Check if the authentication was successful
 				if (isAuthenticated) {
@@ -87,8 +86,7 @@ export const handler: Handlers = {
 				return new Response(`Internal Exception: ${error}`, { status: 500 });
 			}
 		} finally {
-			// mem safe close
-			db.close(true);
+			// logger.debug("")
 		}
 	},
 };

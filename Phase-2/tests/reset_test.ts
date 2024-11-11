@@ -31,7 +31,7 @@ Deno.test("ResetTest", async (t) => {
 		);
 		// assets
 		assertEquals(packages.length, 0, "Packages table should be empty");
-		assertEquals(users.length, 1, "Users table should have 2 entries");
+		assertEquals(users.length, 1, "Users table should have 1 entries");
 		assertEquals(
 			packageSequence.length,
 			0,

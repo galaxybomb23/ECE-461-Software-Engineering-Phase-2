@@ -20,11 +20,12 @@ export async function login(
 	username: string,
 	password: string,
 	is_admin: boolean,
-	db = new DB(DATABASEFILE),
-	autoCloseDB = true,
+	db: DB = new DB(DATABASEFILE),
+	autoCloseDB: boolean = true,
 ): Promise<LoginResponse> {
 	try {
 		type resultRow = [string, string, number, boolean];
+
 		const result = await db.query(
 			`SELECT hashed_password, password_salt, password_rounds, is_admin FROM users WHERE username = ?`,
 			[username],
