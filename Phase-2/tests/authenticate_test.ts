@@ -12,7 +12,7 @@ Deno.test("authenticate", async (t) => {
 
 	const db: DB = new DB(DATABASEFILE);
 	await populateDatabase(db, false);
-	let mockContext: FreshContext;
+	const mockContext: FreshContext = {} as FreshContext;
 
 	await t.step("Testing Successful Admin Login", async () => {
 		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
@@ -28,16 +28,11 @@ Deno.test("authenticate", async (t) => {
 			}),
 		});
 
-		// Check if handler.PUT is defined before calling
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 200);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 200);
 
-			const responseData = await response.json();
-			assert(responseData.token);
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		const responseData = await response.json();
+		assert(responseData.token);
 	});
 
 	await t.step("Testing Incorrect Password Login", async () => {
@@ -54,14 +49,10 @@ Deno.test("authenticate", async (t) => {
 			}),
 		});
 
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 401);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 401);
 
-			await response.body?.cancel();
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		await response.body?.cancel();
 	});
 
 	await t.step("Testing Admin Login as Non Admin", async () => {
@@ -78,14 +69,10 @@ Deno.test("authenticate", async (t) => {
 			}),
 		});
 
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 401);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 401);
 
-			await response.body?.cancel();
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		await response.body?.cancel();
 	});
 
 	await t.step("Testing Successful User Login", async () => {
@@ -102,15 +89,11 @@ Deno.test("authenticate", async (t) => {
 			}),
 		});
 
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 200);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 200);
 
-			const responseData = await response.json();
-			assert(responseData.token);
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		const responseData = await response.json();
+		assert(responseData.token);
 	});
 
 	await t.step("Testing User login as Admin", async () => {
@@ -127,14 +110,10 @@ Deno.test("authenticate", async (t) => {
 			}),
 		});
 
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 401);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 401);
 
-			await response.body?.cancel();
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		await response.body?.cancel();
 	});
 
 	await t.step("Incorrectly Formatted JSON", async () => {
@@ -143,15 +122,10 @@ Deno.test("authenticate", async (t) => {
 			body: "{ This: Is , An `` Improper :} formatted JSON Body",
 		});
 
-		// Check if handler.PUT is defined before calling
-		if (handler.PUT) {
-			const response = await handler.PUT(loginRequest, mockContext);
-			assertEquals(response.status, 400);
+		const response = await handler.PUT!(loginRequest, mockContext);
+		assertEquals(response.status, 400);
 
-			await response.body?.cancel();
-		} else {
-			throw new Error("PUT method not implemented in handler");
-		}
+		await response.body?.cancel();
 	});
 
 	await resetDatabase(db, true);
