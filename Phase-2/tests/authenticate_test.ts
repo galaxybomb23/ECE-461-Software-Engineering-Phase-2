@@ -15,7 +15,7 @@ Deno.test("authenticate", async (t) => {
 	let mockContext: FreshContext;
 
 	await t.step("Testing Successful Admin Login", async () => {
-		const adminLoginRequest = new Request("http://localhost:8000/api/authenticate", {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
 				User: {
@@ -30,7 +30,7 @@ Deno.test("authenticate", async (t) => {
 
 		// Check if handler.PUT is defined before calling
 		if (handler.PUT) {
-			const response = await handler.PUT(adminLoginRequest, mockContext);
+			const response = await handler.PUT(loginRequest, mockContext);
 			assertEquals(response.status, 200);
 
 			const responseData = await response.json();
@@ -41,9 +41,8 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Incorrect Password Login", async () => {
-		const db: DB = await setup();
 
-		const adminLoginRequest = new Request("http://localhost:8000/api/authenticate", {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
 				User: {
@@ -57,7 +56,7 @@ Deno.test("authenticate", async (t) => {
 		});
 
 		if (handler.PUT) {
-			const response = await handler.PUT(adminLoginRequest, mockContext);
+			const response = await handler.PUT(loginRequest, mockContext);
 			assertEquals(response.status, 401);
 
 			await response.body?.cancel();
@@ -67,9 +66,8 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Admin Login as Non Admin", async () => {
-		const db: DB = await setup();
 
-		const adminLoginRequest = new Request("http://localhost:8000/api/authenticate", {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
 				User: {
@@ -83,7 +81,7 @@ Deno.test("authenticate", async (t) => {
 		});
 
 		if (handler.PUT) {
-			const response = await handler.PUT(adminLoginRequest, mockContext);
+			const response = await handler.PUT(loginRequest, mockContext);
 			assertEquals(response.status, 401);
 
 			await response.body?.cancel();
@@ -93,9 +91,8 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Successful User Login", async () => {
-		const db: DB = await setup();
 
-		const adminLoginRequest = new Request("http://localhost:8000/api/authenticate", {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
 				User: {
@@ -109,7 +106,7 @@ Deno.test("authenticate", async (t) => {
 		});
 
 		if (handler.PUT) {
-			const response = await handler.PUT(adminLoginRequest, mockContext);
+			const response = await handler.PUT(loginRequest, mockContext);
 			assertEquals(response.status, 200);
 
 			const responseData = await response.json();
@@ -120,9 +117,8 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing User login as Admin", async () => {
-		const db: DB = await setup();
 
-		const adminLoginRequest = new Request("http://localhost:8000/api/authenticate", {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
 				User: {
@@ -136,8 +132,25 @@ Deno.test("authenticate", async (t) => {
 		});
 
 		if (handler.PUT) {
-			const response = await handler.PUT(adminLoginRequest, mockContext);
+			const response = await handler.PUT(loginRequest, mockContext);
 			assertEquals(response.status, 401);
+
+			await response.body?.cancel();
+		} else {
+			throw new Error("PUT method not implemented in handler");
+		}
+	});
+
+	await t.step("Incorrectly Formatted JSON", async () => {
+		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
+			method: "PUT",
+			body: "{ This: Is , An `` Improper :} formatted JSON Body",
+		});
+
+		// Check if handler.PUT is defined before calling
+		if (handler.PUT) {
+			const response = await handler.PUT(loginRequest, mockContext);
+			assertEquals(response.status, 400);
 
 			await response.body?.cancel();
 		} else {
