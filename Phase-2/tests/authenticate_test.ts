@@ -41,7 +41,6 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Incorrect Password Login", async () => {
-
 		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
@@ -66,7 +65,6 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Admin Login as Non Admin", async () => {
-
 		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
@@ -91,7 +89,6 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing Successful User Login", async () => {
-
 		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
@@ -117,7 +114,6 @@ Deno.test("authenticate", async (t) => {
 	});
 
 	await t.step("Testing User login as Admin", async () => {
-
 		const loginRequest = new Request("http://localhost:8000/api/authenticate", {
 			method: "PUT",
 			body: JSON.stringify({
