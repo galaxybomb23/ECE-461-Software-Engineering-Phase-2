@@ -1,6 +1,7 @@
 import { logger } from "../src/logFile.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { getUnixTimeInSeconds } from "./userManagement.ts";
 
 /**
  * @function populateDatabase
@@ -51,7 +52,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					can_download: true,
 					can_upload: true,
 					user_group: "admin",
-					token_start_time: Date.now(),
+					token_start_time: getUnixTimeInSeconds(),
 					token_api_interactions: 0,
 					password_salt: "f5429e4041729b8a",
 					password_rounds: 5227,
@@ -65,7 +66,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					can_download: true,
 					can_upload: false,
 					user_group: "user",
-					token_start_time: Date.now(),
+					token_start_time: getUnixTimeInSeconds(),
 					token_api_interactions: 0,
 					password_salt: "7913fd0effdbdc62",
 					password_rounds: 5125,

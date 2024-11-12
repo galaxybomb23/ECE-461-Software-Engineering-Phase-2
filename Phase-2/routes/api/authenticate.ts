@@ -4,7 +4,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest, AuthenticationToken } from "../../types/index.ts";
 import { login, LoginResponse } from "~/utils/userManagement.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { logger } from "../../src/logFile.ts";
 
 export const handler: Handlers = {
@@ -30,65 +29,60 @@ export const handler: Handlers = {
 	 */
 	async PUT(req) {
 		let name, is_admin, password;
-		const db = new DB(DATABASEFILE);
-		try { // database open
-			try {
-				// Parse the incoming request to extract the authentication details
-				const auth_request = await req.json() as AuthenticationRequest;
 
-				// Extract the necessary fields from the authentication request
-				name = auth_request.User.name;
-				is_admin = auth_request.User.isAdmin;
-				password = auth_request.Secret.password;
+		try {
+			// Parse the incoming request to extract the authentication details
+			const auth_request = await req.json() as AuthenticationRequest;
 
-				// Validate the presence of required fields in the authentication request
-				if (name === undefined || is_admin === undefined || password === undefined) {
-					throw Error("");
-				}
-			} catch (error) {
-				// Log the error for debugging purposes
-				logger.debug(`${error}`);
+			// Extract the necessary fields from the authentication request
+			name = auth_request.User.name;
+			is_admin = auth_request.User.isAdmin;
+			password = auth_request.Secret.password;
 
-				// Return a response indicating that there are missing or improperly formed fields
-				return new Response(
-					"There is missing field(s) in the AuthenticationRequest or it is formed improperly.",
-					{
-						status: 400,
-					},
-				);
+			// Validate the presence of required fields in the authentication request
+			if (name === undefined || is_admin === undefined || password === undefined) {
+				throw Error("");
 			}
+		} catch (error) {
+			// Log the error for debugging purposes
+			logger.debug(`${error}`);
 
-			try {
-				// Attempt to authenticate the user using the provided credentials
-				const { isAuthenticated, token } = login(db, name, password, is_admin);
+			// Return a response indicating that there are missing or improperly formed fields
+			return new Response(
+				"There is missing field(s) in the AuthenticationRequest or it is formed improperly.",
+				{
+					status: 400,
+				},
+			);
+		}
 
-				// Check if the authentication was successful
-				if (isAuthenticated) {
-					// Log the successful login attempt
-					logger.info(`${name} login was successful`);
+		try {
+			// Attempt to authenticate the user using the provided credentials
+			const { isAuthenticated, token } = await login(name, password, is_admin);
 
-					// Return a success response with the authentication token
-					return new Response(JSON.stringify({ token }), {
-						headers: { "Content-Type": "application/json" },
-						status: 200,
-					});
-				} else {
-					// Log the unsuccessful login attempt
-					logger.info(`${name} login was unsuccessful`);
+			// Check if the authentication was successful
+			if (isAuthenticated) {
+				// Log the successful login attempt
+				logger.info(`${name} login was successful`);
 
-					// Return a response indicating invalid user or password
-					return new Response("The user or password is invalid.", { status: 401 });
-				}
-			} catch (error) {
-				// Log the error for debugging purposes
-				logger.error(error);
+				// Return a success response with the authentication token
+				return new Response(JSON.stringify({ token }), {
+					headers: { "Content-Type": "application/json" },
+					status: 200,
+				});
+			} else {
+				// Log the unsuccessful login attempt
+				logger.info(`${name} login was unsuccessful`);
 
-				// Return a response indicating an internal server error
-				return new Response(`Internal Exception: ${error}`, { status: 500 });
+				// Return a response indicating invalid user or password
+				return new Response("The user or password is invalid.", { status: 401 });
 			}
-		} finally {
-			// mem safe close
-			db.close(true);
+		} catch (error) {
+			// Log the error for debugging purposes
+			logger.error(error);
+
+			// Return a response indicating an internal server error
+			return new Response(`Internal Exception: ${error}`, { status: 500 });
 		}
 	},
 };
