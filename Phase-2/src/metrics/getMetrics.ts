@@ -29,7 +29,8 @@ export async function getMetrics(URL: string): Promise<string> {
 		URL = await getNodeJsAPILink(URL); // Fetch the Node.js API link
 	} else {
 		// Normalize the URL (remove 'git+', 'ssh://git@', and '.git' if present)
-		URL = URL.replace(/^git\+/, '').replace(/^ssh:\/\/git@github.com/, 'https://github.com').replace(/\.git$/, '').replace(/^git:\/\//, 'https://');
+		URL = URL.replace(/^git\+/, "").replace(/^ssh:\/\/git@github.com/, "https://github.com").replace(/\.git$/, "")
+			.replace(/^git:\/\//, "https://");
 	}
 
 	// Fetch various metrics concurrently
