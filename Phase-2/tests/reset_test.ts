@@ -1,6 +1,7 @@
 import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
+import { login, LoginResponse } from "~/utils/userManagement.ts";
 
 // Test Handler
 import { handler } from "~/routes/api/reset.ts";
@@ -28,10 +29,19 @@ Deno.test("ResetTest", async (t) => {
 		const userSequence: Row[] = await db.query(
 			`SELECT * FROM sqlite_sequence WHERE name = 'users'`,
 		);
+		// assets
 		assertEquals(packages.length, 0, "Packages table should be empty");
-		assertEquals(users.length, 2, "Users table should have 2 entries");
-		assertEquals(packageSequence.length, 0, "Package sequence should be reset to 0");
-		assertEquals(userSequence.length, 1, "User sequence should be 1 for 2 users");
+		assertEquals(users.length, 1, "Users table should have 2 entries");
+		assertEquals(
+			packageSequence.length,
+			0,
+			"Package sequence should be reset to 0",
+		);
+		assertEquals(
+			userSequence.length,
+			1,
+			"User sequence should be 1 for 2 users",
+		);
 		testLogger.debug(`Packages: ${packages.toString()}`);
 
 		// post test cleanup
@@ -46,23 +56,6 @@ Deno.test("ResetTest", async (t) => {
 	let mockContext: FreshContext;
 
 	// <--- Test the Handler --->
-	await t.step("ResetTest - Handler: Valid Reset Request", async () => {
-		const validRequest = new Request("http://localhost:8000/api/reset", {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
-			},
-		});
-
-		if (handler.DELETE) {
-			const response = await handler.DELETE(validRequest, mockContext);
-			assertEquals(response.status, 200, "Response status should be 200");
-		} else {
-			throw new Error("Handler.DELETE not defined");
-		}
-	});
-
 	await t.step("ResetTest - Handler: Missing AuthToken", async () => {
 		const invalidRequest = new Request("http://localhost:8000/api/reset", {
 			method: "DELETE",
@@ -101,13 +94,30 @@ Deno.test("ResetTest", async (t) => {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",
-				"X-Authorization": "bearer 1f62b376-a9f7-4088-9a8d-a245d1998566", // pi user (not admin)
+				"X-Authorization": `bearer 1f62b376-a9f7-4088-9a8d-a245d1998566`, // pi user (not admin)
 			},
 		});
 
 		if (handler.DELETE) {
 			const response = await handler.DELETE(invalidRequest, mockContext);
 			assertEquals(response.status, 401, "Response status should be 401");
+		} else {
+			throw new Error("Handler.DELETE not defined");
+		}
+	});
+
+	await t.step("ResetTest - Handler: Valid Reset Request", async () => {
+		const validRequest = new Request("http://localhost:8000/api/reset", {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
+			},
+		});
+
+		if (handler.DELETE) {
+			const response = await handler.DELETE(validRequest, mockContext);
+			assertEquals(response.status, 200, "Response status should be 200");
 		} else {
 			throw new Error("Handler.DELETE not defined");
 		}
