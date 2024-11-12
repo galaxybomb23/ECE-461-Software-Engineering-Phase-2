@@ -1,25 +1,15 @@
-import { signal } from "@preact/signals";
+import Navbar from "~/components/Navbar.tsx";
+import LoginForm from "~/islands/LoginForm.tsx";
 
-export default function Login() {
+export default function LoginPage() {
 	return (
 		<div>
-			<div>
-				<nav className="navbar">
-					<ul>
-						<li>
-							<a href="/">Home</a>
-						</li>
-						<li>
-							<a href="/login">Login</a>
-						</li>
-						<li>
-							<a href="/admin">Admin</a>
-						</li>
-					</ul>
-				</nav>
-			</div>
-			<div className="title">
-				Login
+			<Navbar />
+			<div className="horizontal-container">
+				<LoginForm />
+				<div className="vertical-container">
+					<LoginForm />
+				</div>
 			</div>
 		</div>
 	);

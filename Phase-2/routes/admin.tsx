@@ -1,26 +1,11 @@
-import { signal } from "@preact/signals";
+import Navbar from "~/components/Navbar.tsx";
+import Admin from "~/islands/Admin.tsx";
 
-export default function Admin() {
+export default function AdminPage() {
 	return (
 		<div>
-			<div>
-				<nav className="navbar">
-					<ul>
-						<li>
-							<a href="/">Home</a>
-						</li>
-						<li>
-							<a href="/login">Login</a>
-						</li>
-						<li>
-							<a href="/admin">Admin</a>
-						</li>
-					</ul>
-				</nav>
-			</div>
-			<div className="title">
-				Admin
-			</div>
+			<Navbar />
+			<Admin />
 		</div>
 	);
 }
