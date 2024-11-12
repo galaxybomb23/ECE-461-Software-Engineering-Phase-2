@@ -10,8 +10,7 @@ import type { FreshContext } from "$fresh/src/server/types.ts";
 Deno.test("authenticate", async (t) => {
 	testLogger.info(`TEST: authenticate`);
 
-	const db: DB = new DB(DATABASEFILE);
-	await populateDatabase(db, false);
+	await populateDatabase();
 	const mockContext: FreshContext = {} as FreshContext;
 
 	await t.step("Testing Successful Admin Login", async () => {
@@ -128,5 +127,5 @@ Deno.test("authenticate", async (t) => {
 		await response.body?.cancel();
 	});
 
-	await resetDatabase(db, true);
+	await resetDatabase();
 });
