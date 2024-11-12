@@ -75,7 +75,6 @@ export const handler: Handlers = {
 	// This is a non-baseline endpoint
 	async DELETE(req, ctx) {
 		const { id } = ctx.params;
-		const db = new DB(DB_PATH);
 
 		try {
 			// First ensure the package exists
