@@ -21,5 +21,5 @@ export default function DownloadButton({ base64Content, fileName }: { base64Cont
 		}
 	};
 
-	return <button onClick={handleDownload} className = "download-button">Download Package</button>;
+	return <button onClick={handleDownload} className="download-button">Download Package</button>;
 }
