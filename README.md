@@ -4,7 +4,7 @@ Deno Documentation: https://docs.deno.com/
 Requirements:
 Here's the table rewritten as a markdown checklist:
 
-- [ ] **Upload, Update, Download Packages**
+- [x] **Upload, Update, Download Packages**
   - The system must allow the upload, update, and download of NPM modules, along with checking the package rating.
 
 - [ ] **Debloat Options for Upload and Update**
