@@ -9,8 +9,6 @@ import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
-const DB_PATH = "data/data.db";
-
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
