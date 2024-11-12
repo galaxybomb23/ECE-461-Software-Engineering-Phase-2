@@ -15,7 +15,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		const { id } = ctx.params;
- 
+
 		try {
 			const pkg = await queryPackageById(id);
 
@@ -38,7 +38,10 @@ export const handler: Handlers = {
 		const body = await req.json();
 
 		try {
-			if (!body.metadata || !body.metadata.ID || !body.metadata.Name || !body.metadata.Version || !body.data.URL || !body.data || !body.data.Content) {
+			if (
+				!body.metadata || !body.metadata.ID || !body.metadata.Name || !body.metadata.Version ||
+				!body.data.URL || !body.data || !body.data.Content
+			) {
 				return new Response("Missing required fields in the request body", { status: 400 });
 			}
 			// Qeury target package:  MUST match all of ID, Name, and Version of an existing package
@@ -47,20 +50,21 @@ export const handler: Handlers = {
 			if (pkg) {
 				// Update the package content AND url
 				const success = await updatePackageContent(body.metadata.ID, body.data.URL, body.data.Content);
-				
-				if (success) { logger.info(`PUT /package/{id}: Package updated - ID: ${body.metadata.ID}, To URL: ${body.data.URL} and Content`); }
-				else {
+
+				if (success) {
+					logger.info(
+						`PUT /package/{id}: Package updated - ID: ${body.metadata.ID}, To URL: ${body.data.URL} and Content`,
+					);
+				} else {
 					logger.error(`PUT /package/{id}: Package not updated`);
 					return new Response("Package not updated", { status: 400 });
 				}
-			}
-			else {
+			} else {
 				return new Response("Package not found", { status: 404 });
 			}
-		
+
 			return new Response("Package updated", { status: 200 });
-		}
-		catch (error) {
+		} catch (error) {
 			logger.error(`PUT /package/{id}: Error - ${error}`);
 			return new Response(
 				"There is missing field(s) in the PackageID or it is formed improperly, or is invalid - " + error,
@@ -78,7 +82,7 @@ export const handler: Handlers = {
 		try {
 			// First ensure the package exists
 			const pkg = await queryPackageById(id);
-			if (!pkg) { return new Response("Package not found", { status: 404 });}
+			if (!pkg) return new Response("Package not found", { status: 404 });
 
 			// Package exists, delete it
 			const success = await deletePackage(id);
@@ -90,7 +94,6 @@ export const handler: Handlers = {
 				logger.error(`DELETE /package/{id}: Package not deleted`);
 				return new Response("Package not deleted", { status: 400 });
 			}
-			
 		} catch (error) {
 			logger.error(`DELETE /package/{id}: Error - ${error}`);
 			return new Response(
@@ -98,7 +101,7 @@ export const handler: Handlers = {
 				{ status: 400 },
 			);
 		}
-	}
+	},
 };
 
 export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
@@ -110,31 +113,43 @@ export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoC
 		// Return true if rows were deleted, false otherwise
 		return db.changes > 0;
 	} finally {
-		if (autoCloseDB) { db.close(); }
+		if (autoCloseDB) db.close();
 	}
 }
 
 // Based on ID, update the package content and URL
 // We ensured package exists matching the ID, Name, and Version. So we can just use the ID now instead of all 3
-export async function updatePackageContent(id: string, URL: string, content: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function updatePackageContent(
+	id: string,
+	URL: string,
+	content: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
 	try {
 		const query = "UPDATE packages SET base64_content = ?, url = ? WHERE ID = ?";
 		const params = [content, URL, id];
 		await db.query(query, params);
 
 		// Return true if rows were updated, false otherwise
-		return db.changes > 0;	
+		return db.changes > 0;
 	} finally {
-		if (autoCloseDB) { db.close(); }
+		if (autoCloseDB) db.close();
 	}
 }
 
-export async function queryPackageById(id: string, name?: string, version?: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
-	try { 
+export async function queryPackageById(
+	id: string,
+	name?: string,
+	version?: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
+	try {
 		let query = "SELECT * FROM packages WHERE ID = ?";
 		const queryParams = [id];
 
-	// Add additional conditions if name and version are provided
+		// Add additional conditions if name and version are provided
 		if (name) {
 			query += " AND Name = ?";
 			queryParams.push(name);
@@ -149,7 +164,11 @@ export async function queryPackageById(id: string, name?: string, version?: stri
 
 		// If a package is found, return the package object
 		if (matchedPackages.length > 0) {
-			logger.debug(`queryPackage: Found package with ID: ${id}${name ? `, Name: ${name}` : ''}${version ? `, Version: ${version}` : ''}`);
+			logger.debug(
+				`queryPackage: Found package with ID: ${id}${name ? `, Name: ${name}` : ""}${
+					version ? `, Version: ${version}` : ""
+				}`,
+			);
 
 			const pkg = {
 				metadata: {
@@ -166,6 +185,6 @@ export async function queryPackageById(id: string, name?: string, version?: stri
 			return null;
 		}
 	} finally {
-		if (autoCloseDB) { db.close(); }
+		if (autoCloseDB) db.close();
 	}
 }
