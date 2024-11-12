@@ -1,15 +1,14 @@
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { setup, testLogger } from "./testSuite.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 import { handler } from "~/routes/api/authenticate.ts";
 import { resetDatabase } from "~/routes/api/reset.ts";
-import { populateDatabase } from "../utils/populateDatabase.ts";
-import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { populateDatabase } from "~/utils/populateDatabase.ts";
 import type { FreshContext } from "$fresh/src/server/types.ts";
 
 Deno.test("authenticate", async (t) => {
 	testLogger.info(`TEST: authenticate`);
 
+	await resetDatabase();
 	await populateDatabase();
 	const mockContext: FreshContext = {} as FreshContext;
 
