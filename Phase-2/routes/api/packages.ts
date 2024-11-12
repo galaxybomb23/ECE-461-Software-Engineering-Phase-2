@@ -3,7 +3,7 @@
 import { Handlers } from "https://deno.land/x/fresh@1.7.2/server.ts";
 import { PackageMetadata, PackageQuery, packagesRequest } from "../../types/index.ts";
 import { logger } from "~/src/logFile.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import type { Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import * as semver from "https://deno.land/x/semver@v1.4.0/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";

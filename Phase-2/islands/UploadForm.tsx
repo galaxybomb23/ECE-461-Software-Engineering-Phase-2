@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { APIBaseURL } from "~/types/index.ts";
 
 export default function UploadForm() {
 	const [selectedOption, setSelectedOption] = useState<"file" | "url">(
@@ -74,7 +75,7 @@ export default function UploadForm() {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = "/api/package"; // Ensure correct endpoint
+			const endpoint = APIBaseURL + "/api/package";
 			const method = "POST";
 
 			// Log request details

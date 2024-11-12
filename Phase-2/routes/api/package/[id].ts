@@ -5,10 +5,9 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "~/src/logFile.ts";
-import type { Package, PackageData, PackageMetadata } from "~/types/index.ts";
+import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
-
-const DB_PATH = "data/data.db";
+import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
