@@ -4,8 +4,8 @@ Deno Documentation: https://docs.deno.com/
 Requirements:
 Here's the table rewritten as a markdown checklist:
 
-- [x] **Upload, Update, Download Packages**
-  - The system must allow the upload, update, and download of NPM modules, along with checking the package rating.
+- [x] **Upload, Update, Download, and Delete Packages**
+  - The system must allow the upload, update, and download of NPM modules, along with checking the package rating. A user should also be able to delete a package by ID.
 
 - [ ] **Debloat Options for Upload and Update**
   - Remove unnecessary bloat from a package using tree-shaking and/or minification.
@@ -18,7 +18,7 @@ Here's the table rewritten as a markdown checklist:
 - [x] **Fetch Versions**
   - Support fetching package versions based on exact or ranged versions.
 
-- [ ] **Request Public NPM Packages**
+- [x] **Request Public NPM Packages**
   - Add a feature to request the ingestion of public npm packages.
     - Package must score 0.5 on each of the non-latency metrics from the “rate” behavior. If ingestible, proceed to package upload.
 
