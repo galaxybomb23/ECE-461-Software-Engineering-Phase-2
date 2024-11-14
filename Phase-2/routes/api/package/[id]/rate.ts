@@ -2,7 +2,7 @@
 // Description: Get ratings for this package. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { PackageRating, type DatabasePackageRow } from "~/types/index.ts";
+import { type DatabasePackageRow, PackageRating } from "~/types/index.ts";
 import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
@@ -27,8 +27,7 @@ export const handler: Handlers = {
 			// }
 
 			return calcPackageRating(id);
-		}
-		catch (error) {
+		} catch (error) {
 			logger.error(`GET /package/{id}/rate: Error - ${error}`);
 			return new Response("Invalid package ID or other error:", { status: 400 });
 		}
@@ -48,7 +47,7 @@ export async function calcPackageRating(id: number, db = new DB(DATABASEFILE), a
 	}
 
 	// Aiming to find a better solution than this which doesn't directly index
-	// since the order of the columns in the database might change. However query 
+	// since the order of the columns in the database might change. However query
 	// returns an array, and DatabasePackageRow cannot be directly assigned as.
 	const rating: PackageRating = {
 		BusFactor: pkg[15] as number,
@@ -79,23 +78,20 @@ export async function calcPackageRating(id: number, db = new DB(DATABASEFILE), a
 }
 
 export async function queryPackageById(
-  id: string,
-  db = new DB(DATABASEFILE),
-  autoCloseDB = true,
+	id: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
 ) {
-  try {
-    const query = "SELECT * FROM packages WHERE ID = ?";
-    const queryParams = [id];
+	try {
+		const query = "SELECT * FROM packages WHERE ID = ?";
+		const queryParams = [id];
 
-	const result = await db.query(query, queryParams);
-	if (result.length === 0) {
-	  return null;
+		const result = await db.query(query, queryParams);
+		if (result.length === 0) {
+			return null;
+		}
+		return result[0];
+	} finally {
+		if (autoCloseDB) db.close();
 	}
-	return result[0];
-
-  } finally {
-    if (autoCloseDB) db.close();
-  }
 }
-
-
