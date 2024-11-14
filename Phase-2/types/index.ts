@@ -16,6 +16,30 @@ export interface PackageData {
 	JSProgram?: string;
 }
 
+export interface DatabasePackageRow {
+	id: number;
+	name: string;
+	url: string;
+	version: string;
+	base64_content: string;
+	license_score: number;
+	license_latency: number;
+	netscore: number;
+	netscore_latency: number;
+	dependency_pinning_score: number;
+	dependency_pinning_latency: number;
+	rampup_score: number;
+	rampup_latency: number;
+	review_percentage_score: number;
+	review_percentage_latency: number;
+	bus_factor: number;
+	bus_factor_latency: number;
+	correctness: number;
+	correctness_latency: number;
+	responsive_maintainer: number;
+	responsive_maintainer_latency: number;
+}
+
 export interface PackageRating {
 	BusFactor: number;
 	BusFactorLatency: number;

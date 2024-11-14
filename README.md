@@ -25,6 +25,7 @@ Here's the table rewritten as a markdown checklist:
 - [ ] **Search and Fetch Directory/Package**
   - Provide a way to search for packages and fetch a directory of packages.
   - Search for packages through package name and README.
+  - Search and fetch packages matching Regex
 
 - [ ] **Size Cost Calculation**
   - Compute the size of a package:
