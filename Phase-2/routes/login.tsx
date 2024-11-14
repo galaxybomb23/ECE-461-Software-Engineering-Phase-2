@@ -6,7 +6,6 @@ export default function LoginPage() {
 		<div>
 			<Navbar />
 			<div className="horizontal-container">
-				<LoginForm />
 				<div className="vertical-container">
 					<LoginForm />
 				</div>

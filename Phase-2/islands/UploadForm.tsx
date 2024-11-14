@@ -1,15 +1,14 @@
 import { useState } from "preact/hooks";
+import { APIBaseURL } from "~/types/index.ts";
 
 export default function UploadForm() {
-	const [selectedOption, setSelectedOption] = useState<"file" | "url">(
-		"file",
-	);
+	const [selectedOption, setSelectedOption] = useState<"file" | "url">("file");
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [inputUrl, setInputUrl] = useState<string>("");
 	const [uploadStatus, setUploadStatus] = useState<string>("");
 	const [authToken, setAuthToken] = useState<string>("");
-
 	const [debloat, setDebloat] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
 
 	// Handle file input change
 	const handleFileChange = (event: Event) => {
@@ -38,22 +37,25 @@ export default function UploadForm() {
 	const handleUpload = async (event: Event) => {
 		event.preventDefault();
 
+		// Clear the status message each time the upload begins
+		setUploadStatus("");
+
 		if (selectedOption === "file" && !selectedFile) {
 			setUploadStatus("Please select a file.");
 			return;
 		}
 
-		if (selectedOption === "url") {
-			if (!inputUrl) {
-				setUploadStatus("Please enter a URL.");
-				return;
-			}
+		if (selectedOption === "url" && !inputUrl) {
+			setUploadStatus("Please enter a URL.");
+			return;
 		}
 
 		if (!authToken) {
 			setUploadStatus("Please provide the authorization token.");
 			return;
 		}
+
+		setIsLoading(true); // Set loading to true when upload starts
 
 		try {
 			const payload: {
@@ -76,33 +78,25 @@ export default function UploadForm() {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = "/package";
-			const method = "POST";
-
-			// Log the full request details
-			console.log("Request Type:", method);
-			console.log("Endpoint:", endpoint);
-			console.log("Headers:", headers);
-			console.log("Payload:", payload);
-
-			// Send the actual request
+			const endpoint = APIBaseURL + "/api/package";
 			const response = await fetch(endpoint, {
-				method: method,
+				method: "POST",
 				headers: headers,
 				body: JSON.stringify(payload),
 			});
 
+			const result = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Upload failed");
+				throw new Error(`Upload failed with status ${response.status}: ${result.message}`);
 			}
 
-			const result = await response.json();
-			setUploadStatus(
-				`Upload successful: Package ID ${result.metadata.ID}`,
-			);
+			setUploadStatus(`Upload successful: Package ID ${result.metadata.ID}`);
 		} catch (error) {
 			console.error("Error uploading:", error);
 			setUploadStatus("Error uploading.");
+		} finally {
+			setIsLoading(false); // Set loading to false after upload completes
 		}
 	};
 
@@ -200,10 +194,11 @@ export default function UploadForm() {
 					/>
 				</div>
 
-				<button type="submit" className="upload-button">
-					Upload Package
+				<button type="submit" className="upload-button" disabled={isLoading}>
+					{isLoading ? "Uploading..." : "Upload Package"}
 				</button>
 
+				{isLoading && <p>Loading, please wait...</p>} {/* Loading indicator */}
 				{uploadStatus && <p>{uploadStatus}</p>}
 			</form>
 		</div>

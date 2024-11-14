@@ -2,10 +2,11 @@ import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
 import type { PackageMetadata } from "~/types/index.ts";
 import { Package, PackageData } from "../../types/index.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { getGithubUrlFromNpm } from "~/src/API.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -25,7 +26,14 @@ export const handler: Handlers = {
 			// Handle package data based on URL or Content
 			let packageJSON: Package;
 			if (packageData.URL) {
-				logger.debug("package.ts: Received package data with URL: " + packageData.URL);
+				packageData.URL = packageData.URL.replace(/\/$/, "");
+				logger.debug("package.ts: Original package data with URL: " + packageData.URL);
+				// convert url to github url if it is npmjs url
+				if (packageData.URL.includes("npmjs.com")) {
+					const changedURL = await getGithubUrlFromNpm(packageData.URL);
+					if (changedURL) packageData.URL = changedURL;
+					logger.debug("package.ts: Converted npmjs URL to GitHub URL: " + packageData.URL);
+				}
 				packageJSON = await handleURL(packageData.URL);
 			} else if (packageData.Content) {
 				logger.debug("package.ts: Received package data with content");
@@ -78,7 +86,8 @@ export const handler: Handlers = {
 				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
 			} else {
 				return new Response(
-					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)",
+					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)" +
+						(error as Error).message,
 					{ status: 400 },
 				);
 			}
