@@ -16,6 +16,14 @@ export interface PackageData {
 	JSProgram?: string;
 }
 
+// Used in package.ts for returning cost 
+export interface ExtendedPackage extends Package {
+    data: PackageData & {
+        Dependencies: number;
+    };
+}
+
+
 export interface DatabasePackageRow {
 	id: number;
 	name: string;
