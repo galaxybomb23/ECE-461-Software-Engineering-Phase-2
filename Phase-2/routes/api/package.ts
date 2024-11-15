@@ -1,7 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
 import type { PackageMetadata } from "~/types/index.ts";
-import { Package, PackageData, ExtendedPackage } from "../../types/index.ts";
+import { ExtendedPackage, Package, PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
@@ -161,7 +161,6 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 					true,
 				);
 
-
 				// Now we add the dependency cost
 				await db.query(
 					"UPDATE packages SET dependency_cost = ? WHERE name = ? AND version = ?",
@@ -253,8 +252,7 @@ export async function parsePackageJSON(filePath: string) {
 	}
 	const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
-	// Find number of dependencies and upload to db.
-	// Required for some retrieving cost of packages later
+	// Find number of dependencies. Required for some retrieving cost of packages later
 	const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
 		Object.keys(packageJSON.devDependencies || {}).length;
 
@@ -268,7 +266,7 @@ export async function parsePackageJSON(filePath: string) {
 			Content: "",
 			// url can be repository.url or repository or url
 			URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
-			Dependencies: numberDependencies
+			Dependencies: numberDependencies,
 		},
 	} as ExtendedPackage;
 }
@@ -277,26 +275,26 @@ export async function parsePackageJSON(filePath: string) {
 // If originally was a URL, we downloaded the .zip from GitHub and will upload it to the database
 // If originally was a base64 Content, we unzipped and processed the package, so now we encode and upload to the database
 export async function uploadZipToSQLite(
-    tempFilePath: string,
-    packageJSON: Package,
-    busFactor: number,
-    busFactorLatency: number,
-    correctness: number,
-    correctnessLatency: number,
-    license: number,
-    licenseLatency: number,
-    rampUp: number,
-    rampUpLatency: number,
-    responsiveMaintainer: number,
-    responsiveMaintainerLatency: number,
-    dependencyPinning: number,
-    dependencyPinningLatency: number,
-    reviewPercentage: number,
-    reviewPercentageLatency: number,
-    netscore: number,
+	tempFilePath: string,
+	packageJSON: Package,
+	busFactor: number,
+	busFactorLatency: number,
+	correctness: number,
+	correctnessLatency: number,
+	license: number,
+	licenseLatency: number,
+	rampUp: number,
+	rampUpLatency: number,
+	responsiveMaintainer: number,
+	responsiveMaintainerLatency: number,
+	dependencyPinning: number,
+	dependencyPinningLatency: number,
+	reviewPercentage: number,
+	reviewPercentageLatency: number,
+	netscore: number,
 	netscoreLatency: number,
-    db = new DB(DATABASEFILE),
-    autoCloseDB = true,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
 ) {
 	const zipData = await Deno.readFile(tempFilePath);
 	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
@@ -322,7 +320,7 @@ export async function uploadZipToSQLite(
 
 	// Insert the package into the database
 	await db.query(
-    `INSERT OR IGNORE INTO packages (
+		`INSERT OR IGNORE INTO packages (
         name, url, version, base64_content, 
         license_score, license_latency, netscore, netscore_latency, 
         dependency_pinning_score, dependency_pinning_latency, 
@@ -330,17 +328,29 @@ export async function uploadZipToSQLite(
         review_percentage_latency, bus_factor, bus_factor_latency, 
         correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-        packageJSON.metadata.Name,
-        packageJSON.data.URL,
-        packageJSON.metadata.Version,
-        zipBase64,
-        license, licenseLatency, netscore, netscoreLatency,
-        dependencyPinning, dependencyPinningLatency,
-        rampUp, rampUpLatency, reviewPercentage, reviewPercentageLatency,
-        busFactor, busFactorLatency, correctness, correctnessLatency,
-        responsiveMaintainer, responsiveMaintainerLatency,
-    ]);
+		[
+			packageJSON.metadata.Name,
+			packageJSON.data.URL,
+			packageJSON.metadata.Version,
+			zipBase64,
+			license,
+			licenseLatency,
+			netscore,
+			netscoreLatency,
+			dependencyPinning,
+			dependencyPinningLatency,
+			rampUp,
+			rampUpLatency,
+			reviewPercentage,
+			reviewPercentageLatency,
+			busFactor,
+			busFactorLatency,
+			correctness,
+			correctnessLatency,
+			responsiveMaintainer,
+			responsiveMaintainerLatency,
+		],
+	);
 }
 
 // Checks if the package is a zip bomb
