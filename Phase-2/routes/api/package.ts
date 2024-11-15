@@ -7,6 +7,7 @@ import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -14,6 +15,17 @@ export const handler: Handlers = {
 
 		try {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
+
+			// Extract and validate the 'X-Authentication' token
+			const authToken = req.headers.get("X-Authorization") ?? "";
+			if (!authToken) {
+				logger.info("Invalid request: missing authentication token");
+				return new Response("Invalid request: missing authentication token", { status: 403 });
+			}
+			if (!getUserAuthInfo(authToken).is_token_valid) {
+				logger.info("Unauthorized request: invalid token");
+				return new Response("Unauthorized request: invalid token", { status: 403 });
+			}
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");

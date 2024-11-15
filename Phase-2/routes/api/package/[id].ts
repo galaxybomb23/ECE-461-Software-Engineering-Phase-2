@@ -8,11 +8,23 @@ import { logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		const { id } = ctx.params;
+
+		// Extract and validate the 'X-Authentication' token
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.info("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.info("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
 
 		try {
 			const pkg = await queryPackageById(id);
