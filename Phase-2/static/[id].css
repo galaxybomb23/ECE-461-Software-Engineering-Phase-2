@@ -1,0 +1,104 @@
+.page-container {
+	background-color: #0c0c0c;
+	color: #fafafa;
+	font-family: "Roboto", sans-serif;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.content-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	padding: 2rem;
+	box-sizing: border-box;
+	margin-top: 4rem;
+}
+
+.card {
+	background-color: #2e2b298d;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.5rem;
+	max-width: 600px;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	width: 100%;
+	text-align: center;
+}
+
+.card .title {
+	font-size: 2rem;
+	margin-bottom: 1rem;
+	color: #076861;
+	text-transform: uppercase;
+}
+
+.details p {
+	font-size: 1.1rem;
+	color: #afbbcc;
+	margin: 0.5rem 0;
+}
+
+.details strong {
+	color: #fafafa;
+}
+
+.download-button {
+	padding: 12px 24px;
+	background-color: #076861;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	color: #fafafa;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+	width: 100%;
+	margin: 1rem 0;
+}
+
+.download-button:hover {
+	background-color: #06544f;
+}
+
+.rating-title {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+	color: #076861;
+}
+
+.rating-list {
+	list-style: none;
+	padding: 0;
+	font-size: 1rem;
+	color: #afbbcc;
+}
+
+.rating-list li {
+	margin: 0.5rem 0;
+}
+
+.navbar {
+	background-image: linear-gradient(90deg, #bfbebe, #076861, #076861, #0b1e26);
+	padding: 1rem;
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	box-sizing: border-box;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1000;
+	border-bottom: 1px solid #a5a5af8a;
+}
+
+.navbar a {
+	color: #afbbcc;
+	text-decoration: none;
+	transition: color 0.3s;
+}
+
+.navbar a:hover {
+	color: #8a94a1;
+}

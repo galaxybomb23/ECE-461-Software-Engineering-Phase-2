@@ -8,7 +8,9 @@ export default function Navbar() {
 
 	return (
 		<nav className="navbar">
-			<img src="logo.png" />
+			<a href="/">
+				<img src="/logo.png" alt="Logo" />
+			</a>
 			<SearchBar search={searchQuery} searchResults={searchResults} />
 			<ul>
 				<li>

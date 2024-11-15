@@ -6,7 +6,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts"; // SQLite3 import
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 export const handler: Handlers = {
