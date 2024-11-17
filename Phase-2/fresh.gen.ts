@@ -31,6 +31,7 @@ import * as $LoginForm from "./islands/LoginForm.tsx";
 import * as $Pagination from "./islands/Pagination.tsx";
 import * as $PermissionManagement from "./islands/PermissionManagement.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
+import * as $UpdateButton from "./islands/UpdateButton.tsx";
 import * as $UpdateForm from "./islands/UpdateForm.tsx";
 import * as $UploadForm from "./islands/UploadForm.tsx";
 import * as $UserManagement from "./islands/UserManagement.tsx";
@@ -69,6 +70,7 @@ const manifest = {
 		"./islands/Pagination.tsx": $Pagination,
 		"./islands/PermissionManagement.tsx": $PermissionManagement,
 		"./islands/SearchBar.tsx": $SearchBar,
+		"./islands/UpdateButton.tsx": $UpdateButton,
 		"./islands/UpdateForm.tsx": $UpdateForm,
 		"./islands/UploadForm.tsx": $UploadForm,
 		"./islands/UserManagement.tsx": $UserManagement,

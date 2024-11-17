@@ -3,6 +3,9 @@ import Navbar from "~/components/Navbar.tsx";
 import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
 import DownloadButton from "~/islands/DownloadButton.tsx";
 import DeleteButton from "~/islands/DeleteButton.tsx";
+import UpdateButton from "~/islands/UpdateButton.tsx";
+import { useState } from "preact/hooks";
+import UpdateForm from "~/islands/UpdateForm.tsx";
 
 export const handler = async (req: Request, ctx: FreshContext) => {
 	const { id } = ctx.params;
@@ -90,7 +93,8 @@ export default function Ident({
 		<div className="page-container">
 			<Navbar />
 			<div className="content-wrapper">
-				<div className="delete-button-container">
+				<div className="action-buttons-container">
+					<UpdateButton metadata={packageData.metadata} />
 					<DeleteButton packageId={packageData.metadata.ID} />
 				</div>
 				<div className="card">
