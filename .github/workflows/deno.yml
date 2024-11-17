@@ -53,12 +53,20 @@ jobs:
       - name: generate coverage report
         run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
 
-      - name: post coverage report
+        # Read the coverage report into an environment variable
+      - name: Save coverage report to ENV
+        id: coverage
+        run: |
+          echo "COVERAGE_REPORT<<EOF" >> $GITHUB_ENV
+          cat coverage_report.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # Post the coverage report as a PR comment
+      - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          path: coverage_report.txt
           header: Coverage Report
           message: |
             ```plaintext
-            $(cat coverage_report.txt)
+            ${{ env.COVERAGE_REPORT }}
             ```
