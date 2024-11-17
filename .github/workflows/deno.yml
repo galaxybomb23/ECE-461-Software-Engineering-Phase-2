@@ -53,23 +53,32 @@ jobs:
       - name: generate coverage report
         run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
 
-      # Generate the HTML coverage report
-      - name: Convert ANSI to HTML
+      # Install ansi2text to clean up the report
+      - name: Install ansi2text
         run: |
-          npm install -g ansi-to-html
-          cat coverage_report.txt | ansi-to-html > coverage_report.html
+          sudo apt-get update
+          sudo apt-get install python3-pip
+          pip3 install ansi2text
 
-      # Save the HTML content to an environment variable
-      - name: Save HTML report to ENV
-        id: coverage_html
+      # Remove ANSI escape codes from the coverage report
+      - name: Clean coverage report
         run: |
-          echo "COVERAGE_REPORT_HTML<<EOF" >> $GITHUB_ENV
-          cat coverage_report.html >> $GITHUB_ENV
+          cat coverage_report.txt | ansi2text > cleaned_coverage_report.txt
+
+      # Save the cleaned report to an environment variable
+      - name: Save cleaned coverage report to ENV
+        id: coverage
+        run: |
+          echo "CLEANED_COVERAGE_REPORT<<EOF" >> $GITHUB_ENV
+          cat cleaned_coverage_report.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Post the HTML coverage report as a PR comment
+      # Post the cleaned coverage report as a PR comment
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Coverage Report
-          message: ${{ env.COVERAGE_REPORT_HTML }}
+          message: |
+            ```plaintext
+            ${{ env.CLEANED_COVERAGE_REPORT }}
+            ```
