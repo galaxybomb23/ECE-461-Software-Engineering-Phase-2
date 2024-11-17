@@ -22,7 +22,7 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Add subtle shadow */
 }
 
-.upload-form {
+.update-form {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -33,9 +33,9 @@
 	box-sizing: border-box; /* Include padding and border in width */
 }
 
-.upload-form > div,
-.upload-form > label,
-.upload-form > button {
+.update-form > div,
+.update-form > label,
+.update-form > button {
 	width: 100%; /* Ensure all child elements fit within the modal */
 }
 
