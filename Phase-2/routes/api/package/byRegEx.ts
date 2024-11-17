@@ -6,10 +6,11 @@ import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
-import { PackageQuery, regexRequest } from "~/types/index.ts";
+import { PackageMetadata, regexRequest } from "~/types/index.ts";
 
 export const handler: Handlers = {
   async POST(req) {
+    logger.info("Request to /packages/byRegEx");
     // Extract and validate the 'X-Authentication' token
     const authToken = req.headers.get("X-Authorization") ?? "";
     if (!authToken) {
@@ -26,7 +27,7 @@ export const handler: Handlers = {
     }
 
     // validate regex
-    let body;
+    let body: regexRequest;
     try {
       body = (await req.json()) as regexRequest;
     } catch (error) {
@@ -35,9 +36,9 @@ export const handler: Handlers = {
         status: 400,
       });
     }
-
+    logger.debug("Request body: " + JSON.stringify(body));
     if (!body.RegEx) {
-      logger.info("Invalid request: missing regex");
+      logger.info(`Invalid request: missing regex`);
       return new Response("Invalid request: missing regex", { status: 400 });
     }
 
@@ -81,7 +82,11 @@ export async function getPackagesByRegEx(
 
     const packages: PackageMetadata[] = [];
     for (const [name, version, id] of db.query(query, params)) {
-      packages.push({ name, version, id });
+      packages.push({
+        Name: String(name),
+        Version: String(version),
+        ID: String(id),
+      });
     }
 
     if (packages.length === 0) {
