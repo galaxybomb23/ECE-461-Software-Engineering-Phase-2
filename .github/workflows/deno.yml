@@ -53,17 +53,10 @@ jobs:
       - name: generate coverage report
         run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
 
-      # Install ansi2text to clean up the report
-      - name: Install ansi2text
-        run: |
-          sudo apt-get update
-          sudo apt-get install python3-pip
-          pip3 install ansi2text
-
-      # Remove ANSI escape codes from the coverage report
+      # Remove ANSI escape codes from the coverage report using sed
       - name: Clean coverage report
         run: |
-          cat coverage_report.txt | ansi2text > cleaned_coverage_report.txt
+          sed 's/\x1b\[[0-9;]*m//g' coverage_report.txt > cleaned_coverage_report.txt
 
       # Save the cleaned report to an environment variable
       - name: Save cleaned coverage report to ENV
