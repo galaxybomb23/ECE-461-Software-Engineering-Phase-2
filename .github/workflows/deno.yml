@@ -53,20 +53,23 @@ jobs:
       - name: generate coverage report
         run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
 
-        # Read the coverage report into an environment variable
-      - name: Save coverage report to ENV
-        id: coverage
+      # Generate the HTML coverage report
+      - name: Convert ANSI to HTML
         run: |
-          echo "COVERAGE_REPORT<<EOF" >> $GITHUB_ENV
-          cat coverage_report.txt >> $GITHUB_ENV
+          npm install -g ansi-to-html
+          cat coverage_report.txt | ansi-to-html > coverage_report.html
+
+      # Save the HTML content to an environment variable
+      - name: Save HTML report to ENV
+        id: coverage_html
+        run: |
+          echo "COVERAGE_REPORT_HTML<<EOF" >> $GITHUB_ENV
+          cat coverage_report.html >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Post the coverage report as a PR comment
+      # Post the HTML coverage report as a PR comment
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Coverage Report
-          message: |
-            <pre>
-            ${{ env.COVERAGE_REPORT }}
-            </pre>
+          message: ${{ env.COVERAGE_REPORT_HTML }}
