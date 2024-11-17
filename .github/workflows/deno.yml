@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test:
@@ -47,6 +48,16 @@ jobs:
         run: deno lint
 
       - name: Run tests
-        run: |
-         deno test -A  --coverage=cov_profile  tests
-         deno coverage cov_profile --exclude=src/
+        run: deno test -A  --coverage=cov_profile  tests
+
+      - name: generate coverage report
+        run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
+
+      - name: post coverage report
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Coverage Report
+          message: |
+            ```plaintext
+            $(cat coverage_report.txt)
+            ```
