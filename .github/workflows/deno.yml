@@ -67,6 +67,6 @@ jobs:
         with:
           header: Coverage Report
           message: |
-            ```plaintext
+            <pre>
             ${{ env.COVERAGE_REPORT }}
-            ```
+            </pre>
