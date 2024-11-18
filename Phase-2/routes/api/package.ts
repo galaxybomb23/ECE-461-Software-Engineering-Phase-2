@@ -91,8 +91,7 @@ export const handler: Handlers = {
 					{ status: 400 },
 				);
 			}
-		}
-		finally {
+		} finally {
 			db.close();
 		}
 	},
@@ -216,8 +215,7 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 
 		const packageJSON = await handleContent(base64Content, url, db, false);
 		return packageJSON;
-	}
-	finally {
+	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
@@ -280,7 +278,8 @@ export async function uploadZipToSQLite(
 		const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
 		logger.debug(
-			"package.ts: Adding package zip named [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
+			"package.ts: Adding package zip named [" + packageJSON.metadata.Name + "] @ [" +
+				packageJSON.metadata.Version +
 				tempFilePath + " to SQLite database",
 		);
 
@@ -316,8 +315,7 @@ export async function uploadZipToSQLite(
 				responsiveMaintainer,
 			],
 		);
-	}
-	finally {
+	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
