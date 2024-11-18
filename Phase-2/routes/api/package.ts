@@ -96,13 +96,15 @@ export const handler: Handlers = {
 };
 
 export async function handleContent(content: string, url?: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
-	try {
-		// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
-		const suffix = Date.now() + Math.random().toString(36).substring(7);
-		const decodedContent = atob(content);
+	// Moved outside try block so we can cleanup in the finally block
+	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
+	const suffix = Date.now() + Math.random().toString(36).substring(7);
+	const decodedContent = atob(content);
 
-		const tempFilePath = "./temp/pkg_" + suffix + ".zip";
-		const unzipPath = "./temp/pkg_unzip_" + suffix;
+	const tempFilePath = "./temp/pkg_" + suffix + ".zip";
+	const unzipPath = "./temp/pkg_unzip_" + suffix;
+
+	try {
 		await Deno.mkdir("./temp", { recursive: true });
 		await Deno.mkdir(unzipPath, { recursive: true });
 
@@ -115,9 +117,6 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 			await cmd.output();
 		} else {
 			logger.warn("package.ts: Bomb detected - 😞");
-			await Deno.remove(tempFilePath);
-			await Deno.remove(unzipPath, { recursive: true });
-			await Deno.remove("./temp", { recursive: true });
 			throw new Error("Package is too large, why are you trying to upload a zip bomb?");
 		}
 
@@ -166,10 +165,6 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 						"] failed metric check - status 400",
 				);
 
-				await Deno.remove(tempFilePath);
-				await Deno.remove(unzipPath, { recursive: true });
-				await Deno.remove("./temp", { recursive: true });
-
 				throw new Error("Package is not uploaded due to the disqualified rating");
 			}
 		} // Something goes wrong with the metrics
@@ -179,20 +174,16 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 					"] failed metric check - status 400",
 			);
 
-			await Deno.remove(tempFilePath);
-			await Deno.remove(unzipPath, { recursive: true });
-			await Deno.remove("./temp", { recursive: true });
-
 			throw new Error("Package is not uploaded due to the disqualified rating");
 		}
-
-		await Deno.remove(tempFilePath);
-		await Deno.remove(unzipPath, { recursive: true });
-		await Deno.remove("./temp", { recursive: true });
 
 		packageJSON.data.Content = content;
 		return packageJSON;
 	} finally {
+		await Deno.remove(tempFilePath).catch(() => {});
+		await Deno.remove(unzipPath, { recursive: true }).catch(() => {});
+		await Deno.remove("./temp", { recursive: true }).catch(() => {});
+
 		if (autoCloseDB) db.close();
 	}
 }
