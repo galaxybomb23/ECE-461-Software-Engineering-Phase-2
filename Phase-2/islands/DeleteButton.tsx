@@ -48,9 +48,7 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 				/>
 			)}
 
-			{feedbackMessage && (
-				<div className="feedback-message">{feedbackMessage}</div>
-			)}
+			{feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
 
 			<button className="delete-button" onClick={() => setShowModal(true)}>
 				Delete Package

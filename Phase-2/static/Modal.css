@@ -149,11 +149,10 @@
 	}
 }
 
-
 /* Action Buttons Container */
 .action-buttons-container {
 	position: fixed;
-	top: 100px; 
+	top: 100px;
 	right: 20px;
 	display: flex;
 	flex-direction: column; /* Stack buttons vertically */
@@ -163,7 +162,7 @@
 
 /* Update Button */
 .update-button {
-	background-color: #4CAF50;
+	background-color: #4caf50;
 	color: #ffffff;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
@@ -200,7 +199,6 @@
 	background-color: #c9302c;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 
 /* Close Button */
 .close-button {
