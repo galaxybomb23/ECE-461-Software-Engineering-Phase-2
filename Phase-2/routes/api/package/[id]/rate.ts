@@ -40,41 +40,44 @@ export const handler: Handlers = {
  * @returns {Response} The response containing the package rating.
  */
 export async function calcPackageRating(id: number, db = new DB(DATABASEFILE), autoCloseDB = true): Promise<Response> {
-	const pkg = await queryPackageById(id.toString(), db, false);
+	try {
+		const pkg = await queryPackageById(id.toString(), db, false);
 
-	if (!pkg) {
-		return new Response("Package does not exist", { status: 404 });
+		if (!pkg) {
+			return new Response("Package does not exist", { status: 404 });
+		}
+
+		// Aiming to find a better solution than this which doesn't directly index
+		// since the order of the columns in the database might change. However query
+		// returns an array, and DatabasePackageRow cannot be directly assigned as.
+		const rating: PackageRating = {
+			BusFactor: pkg[15] as number,
+			BusFactorLatency: pkg[16] as number,
+			Correctness: pkg[17] as number,
+			CorrectnessLatency: pkg[18] as number,
+			RampUp: pkg[11] as number,
+			RampUpLatency: pkg[12] as number,
+			ResponsiveMaintainer: pkg[19] as number,
+			ResponsiveMaintainerLatency: pkg[20] as number,
+			LicenseScore: pkg[5] as number,
+			LicenseScoreLatency: pkg[6] as number,
+			GoodPinningPractice: pkg[9] as number,
+			GoodPinningPracticeLatency: pkg[10] as number,
+			PullRequest: pkg[13] as number,
+			PullRequestLatency: pkg[14] as number,
+			NetScore: pkg[7] as number,
+			NetScoreLatency: pkg[8] as number,
+		};
+
+		return new Response(JSON.stringify(rating), {
+			headers: { "Content-Type": "application/json" },
+			status: 200,
+		});
+	} finally {
+		if (autoCloseDB) {
+			db.close();
+		}
 	}
-
-	// Aiming to find a better solution than this which doesn't directly index
-	// since the order of the columns in the database might change. However query
-	// returns an array, and DatabasePackageRow cannot be directly assigned as.
-	const rating: PackageRating = {
-		BusFactor: pkg[15] as number,
-		BusFactorLatency: pkg[16] as number,
-		Correctness: pkg[17] as number,
-		CorrectnessLatency: pkg[18] as number,
-		RampUp: pkg[11] as number,
-		RampUpLatency: pkg[12] as number,
-		ResponsiveMaintainer: pkg[19] as number,
-		ResponsiveMaintainerLatency: pkg[20] as number,
-		LicenseScore: pkg[5] as number,
-		LicenseScoreLatency: pkg[6] as number,
-		GoodPinningPractice: pkg[9] as number,
-		GoodPinningPracticeLatency: pkg[10] as number,
-		PullRequest: pkg[13] as number,
-		PullRequestLatency: pkg[14] as number,
-		NetScore: pkg[7] as number,
-		NetScoreLatency: pkg[8] as number,
-	};
-
-	if (autoCloseDB) {
-		db.close();
-	}
-	return new Response(JSON.stringify(rating), {
-		headers: { "Content-Type": "application/json" },
-		status: 200,
-	});
 }
 
 export async function queryPackageById(
