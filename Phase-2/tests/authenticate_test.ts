@@ -5,7 +5,7 @@ import { resetDatabase } from "~/routes/api/reset.ts";
 import { populateDatabase } from "~/utils/populateDatabase.ts";
 import type { FreshContext } from "$fresh/src/server/types.ts";
 
-Deno.test("authenticate", async (t) => {
+Deno.test("AuthenticateTest...", async (t) => {
 	testLogger.info(`TEST: authenticate`);
 
 	await resetDatabase();

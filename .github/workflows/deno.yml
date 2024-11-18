@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test:
@@ -47,4 +48,31 @@ jobs:
         run: deno lint
 
       - name: Run tests
-        run: deno test -A
+        run: deno test -A  --coverage=cov_profile  tests
+
+      - name: generate coverage report
+        run: deno coverage cov_profile --exclude=src/ > coverage_report.txt
+
+      # Remove ANSI escape codes from the coverage report using sed
+      - name: Clean coverage report
+        run: |
+          sed 's/\x1b\[[0-9;]*m//g' coverage_report.txt > cleaned_coverage_report.txt
+
+      # Save the cleaned report to an environment variable
+      - name: Save cleaned coverage report to ENV
+        id: coverage
+        run: |
+          echo "CLEANED_COVERAGE_REPORT<<EOF" >> $GITHUB_ENV
+          cat cleaned_coverage_report.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # Post the cleaned coverage report as a PR comment
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          header: Coverage Report
+          message: |
+            ```plaintext
+            ${{ env.CLEANED_COVERAGE_REPORT }}
+            ```

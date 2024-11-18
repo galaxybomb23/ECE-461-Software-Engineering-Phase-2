@@ -11,7 +11,7 @@ import type { FreshContext } from "$fresh/src/server/types.ts";
 // import the function to test
 import { resetDatabase } from "~/routes/api/reset.ts";
 
-Deno.test("ResetTest", async (t) => {
+Deno.test("ResetTest...", async (t) => {
 	await t.step("ResetTest - resetDatabase: base functionality", async () => {
 		// pre test setup
 		testLogger.info(`TEST: Reset Database`);
