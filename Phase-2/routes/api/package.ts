@@ -11,6 +11,7 @@ import { getGithubUrlFromNpm } from "~/src/API.ts";
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("package.ts: Received package upload request");
+		const db = new DB(DATABASEFILE);
 
 		try {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
@@ -45,7 +46,6 @@ export const handler: Handlers = {
 			}
 
 			// get package ID from db
-			const db = new DB(DATABASEFILE);
 			const packageID = await db.query(
 				"SELECT id FROM packages WHERE name = ? AND version = ?",
 				[packageJSON.metadata.Name, packageJSON.metadata.Version],
@@ -91,6 +91,9 @@ export const handler: Handlers = {
 					{ status: 400 },
 				);
 			}
+		}
+		finally {
+			db.close();
 		}
 	},
 };
@@ -180,39 +183,43 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 		packageJSON.data.Content = content;
 		return packageJSON;
 	} finally {
+		if (autoCloseDB) db.close();
 		await Deno.remove(tempFilePath).catch(() => {});
 		await Deno.remove(unzipPath, { recursive: true }).catch(() => {});
 		await Deno.remove("./temp", { recursive: true }).catch(() => {});
-
-		if (autoCloseDB) db.close();
 	}
 }
 
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
 export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
-	// Use these URLs fetch the .zip for a package
-	let response = await fetch(url + "/zipball/master");
-	if (!response.ok) {
-		response = await fetch(url + "/zipball/main");
+	try {
+		// Use these URLs fetch the .zip for a package
+		let response = await fetch(url + "/zipball/master");
+		if (!response.ok) {
+			response = await fetch(url + "/zipball/main");
+		}
+
+		if (!response.ok) {
+			const errMsg = `Failed to fetch: ${response.status} ${response.statusText}`;
+			logger.debug("package.ts: " + errMsg);
+			throw new Error(errMsg);
+		}
+
+		// After we have the .zip, we base64 encode it and handle it as Content
+		// This is done since the logic for handling the package is the same for both URL and Content after getting the .zip
+		const content = await response.arrayBuffer();
+		logger.debug("package.ts: Successfully read package content");
+		const base64Content = btoa(
+			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
+		);
+
+		const packageJSON = await handleContent(base64Content, url, db, false);
+		return packageJSON;
 	}
-
-	if (!response.ok) {
-		const errMsg = `Failed to fetch: ${response.status} ${response.statusText}`;
-		logger.debug("package.ts: " + errMsg);
-		throw new Error(errMsg);
+	finally {
+		if (autoCloseDB) db.close();
 	}
-
-	// After we have the .zip, we base64 encode it and handle it as Content
-	// This is done since the logic for handling the package is the same for both URL and Content after getting the .zip
-	const content = await response.arrayBuffer();
-	logger.debug("package.ts: Successfully read package content");
-	const base64Content = btoa(
-		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
-	);
-
-	const packageJSON = await handleContent(base64Content, url, db, autoCloseDB);
-	return packageJSON;
 }
 
 export async function parsePackageJSON(filePath: string) {
@@ -268,46 +275,51 @@ export async function uploadZipToSQLite(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
-	const zipData = await Deno.readFile(tempFilePath);
-	const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
+	try {
+		const zipData = await Deno.readFile(tempFilePath);
+		const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 
-	logger.debug(
-		"package.ts: Adding package zip named [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-			tempFilePath + " to SQLite database",
-	);
-
-	// Check if the package already exists in the database
-	const packageExists = await db.query(
-		"SELECT * FROM packages WHERE name = ? AND version = ?",
-		[packageJSON.metadata.Name, packageJSON.metadata.Version],
-	);
-
-	if (packageExists.length > 0) {
 		logger.debug(
-			"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-				"] already exists in database - status 409",
+			"package.ts: Adding package zip named [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
+				tempFilePath + " to SQLite database",
 		);
-		throw new Error("Package already exists in database");
-	}
 
-	// Insert the package into the database
-	await db.query(
-		"INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		[
-			packageJSON.metadata.Name,
-			packageJSON.data.URL,
-			packageJSON.metadata.Version,
-			zipBase64,
-			license,
-			netscore,
-			dependencyPinning,
-			rampUp,
-			reviewPercentage,
-			busFactor,
-			correctness,
-			responsiveMaintainer,
-		],
-	);
+		// Check if the package already exists in the database
+		const packageExists = await db.query(
+			"SELECT * FROM packages WHERE name = ? AND version = ?",
+			[packageJSON.metadata.Name, packageJSON.metadata.Version],
+		);
+
+		if (packageExists.length > 0) {
+			logger.debug(
+				"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
+					"] already exists in database - status 409",
+			);
+			throw new Error("Package already exists in database");
+		}
+
+		// Insert the package into the database
+		await db.query(
+			"INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			[
+				packageJSON.metadata.Name,
+				packageJSON.data.URL,
+				packageJSON.metadata.Version,
+				zipBase64,
+				license,
+				netscore,
+				dependencyPinning,
+				rampUp,
+				reviewPercentage,
+				busFactor,
+				correctness,
+				responsiveMaintainer,
+			],
+		);
+	}
+	finally {
+		if (autoCloseDB) db.close();
+	}
 }
 
 // Checks if the package is a zip bomb
