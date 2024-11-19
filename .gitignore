@@ -10,6 +10,10 @@ _fresh/
 # npm dependencies
 node_modules/
 
+#coverage 
+cov_profile/
+temp/
+
 # Ignore environment variables
 .env
 

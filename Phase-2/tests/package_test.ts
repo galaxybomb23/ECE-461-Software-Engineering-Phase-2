@@ -11,7 +11,10 @@ const VERSION = 3;
 const BASE64_CONTENT = 4;
 
 // function to assert function throws error async
-async function assertThrowsAsyncWithMessage(fn: () => Promise<void>, message: string) {
+async function assertThrowsAsyncWithMessage(
+	fn: () => Promise<void>,
+	message: string,
+) {
 	try {
 		await fn();
 		throw new Error("Function did not throw");
@@ -20,7 +23,7 @@ async function assertThrowsAsyncWithMessage(fn: () => Promise<void>, message: st
 	}
 }
 
-Deno.test("package test", async (t) => {
+Deno.test("PackageTest...", async (t) => {
 	await t.step("packageUploadURL-Lodash", async () => {
 		const db: DB = await setup();
 		testLogger.info(`TEST: packageUploadContent-simplenpmpackage`);
@@ -32,8 +35,14 @@ Deno.test("package test", async (t) => {
 		}, "Package is not uploaded due to the disqualified rating");
 
 		// Read db and ensure package is NOT uploaded
-		const packages = await db.query("SELECT * FROM packages WHERE NAME = 'lodash'");
-		assertEquals(packages.length, 0, "Package should NOT be uploaded due to metric < 0.5");
+		const packages = await db.query(
+			"SELECT * FROM packages WHERE NAME = 'lodash'",
+		);
+		assertEquals(
+			packages.length,
+			0,
+			"Package should NOT be uploaded due to metric < 0.5",
+		);
 
 		await cleanup(db); // cleanup the database if used
 	});
@@ -52,8 +61,14 @@ Deno.test("package test", async (t) => {
 		}, "Package is not uploaded due to the disqualified rating");
 
 		// Read db and ensure package is NOT uploaded
-		const packages = await db.query("SELECT * FROM packages WHERE NAME = 'simple-npm-package'");
-		assertEquals(packages.length, 0, "Package should NOT be uploaded due to metric < 0.5");
+		const packages = await db.query(
+			"SELECT * FROM packages WHERE NAME = 'simple-npm-package'",
+		);
+		assertEquals(
+			packages.length,
+			0,
+			"Package should NOT be uploaded due to metric < 0.5",
+		);
 
 		await cleanup(db); // cleanup the database if used
 	});

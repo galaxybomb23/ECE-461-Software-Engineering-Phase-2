@@ -3,7 +3,7 @@ import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 
-const TESTNAME = "populateDatabase";
+const TESTNAME = "PopulateDatabaseTest...";
 
 Deno.test(TESTNAME, async (t) => {
 	await t.step(TESTNAME, async () => {
