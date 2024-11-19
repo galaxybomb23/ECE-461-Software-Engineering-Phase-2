@@ -76,19 +76,19 @@ export default function UpdateForm({ metadata }: UpdateFormProps) {
 			};
 
 			const endpoint = `${APIBaseURL}/api/package/${packageID}`;
+
 			const response = await fetch(endpoint, {
 				method: "PUT",
-				headers,
+				headers: headers,
 				body: JSON.stringify(payload),
 			});
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				throw new Error(`Update failed with status ${response.status}: ${errorText}`);
+				throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
 			}
 
-			const result = await response.json();
-			setUploadStatus(`Update successful: Package ID ${result.metadata.ID}`);
+			setUploadStatus(`Update successful`);
 		} catch (error) {
 			console.error("Error updating package:", error);
 			setUploadStatus(`Error updating package: ${(error as Error).message}`);

@@ -10,6 +10,7 @@
 	justify-content: center;
 	align-items: center;
 	z-index: 1001;
+	overflow: auto;
 }
 
 .modal {
@@ -20,6 +21,7 @@
 	max-width: 500px; /* Limit maximum width */
 	position: relative;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Add subtle shadow */
+	overflow: auto;
 }
 
 .update-form {
@@ -54,6 +56,7 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	text-align: center;
 	position: relative;
+	overflow: auto;
 }
 
 /* Modal Title */

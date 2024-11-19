@@ -7,7 +7,7 @@ import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
-import { ensureDir } from "https://deno.land/std/fs/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
 
 export const handler: Handlers = {
