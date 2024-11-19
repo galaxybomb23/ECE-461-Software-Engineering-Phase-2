@@ -4,9 +4,11 @@ import type { PackageMetadata } from "~/types/index.ts";
 import { Package, PackageData } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
-import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
+import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
+import { ensureDir } from "https://deno.land/std/fs/mod.ts";
+import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -115,8 +117,7 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 
 		// Check if the package is a zip bomb (> 1GB)
 		if (!(await pleaseDontZipBombMe(tempFilePath, 1024 * 1024 * 1024))) {
-			const cmd = new Deno.Command("unzip", { args: ["-q", tempFilePath, "-d", unzipPath] });
-			await cmd.output();
+			await unzipFile(tempFilePath, unzipPath);
 		} else {
 			logger.warn("package.ts: Bomb detected - 😞");
 			throw new Error("Package is too large, why are you trying to upload a zip bomb?");
@@ -254,6 +255,40 @@ export async function parsePackageJSON(filePath: string) {
 			URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
 		},
 	} as Package;
+}
+
+export async function unzipFile(zipFilePath: string, outputDir: string) {
+	// Ensure the output directory exists
+	await ensureDir(outputDir);
+  
+	// Read the ZIP file as a Blob
+	const zipData = await Deno.readFile(zipFilePath);
+	const zipBlob = new Blob([zipData]);
+  
+	// Create a ZipReader
+	const zipReader = new ZipReader(new BlobReader(zipBlob));
+  
+	// Get all entries in the ZIP file
+	const entries = await zipReader.getEntries();
+  
+	for (const entry of entries) {
+	  const outputPath = `${outputDir}/${entry.filename}`;
+  
+	  if (await entry.directory) {
+		// Create directories for folder entries
+		await ensureDir(outputPath);
+	  } else {
+		// Extract files
+		if (entry && entry.getData) {
+		  const fileData = await entry.getData(new Uint8ArrayWriter());
+		  await Deno.writeFile(outputPath, fileData);
+		  }
+	  }
+	}
+  
+	// Close the reader
+	await zipReader.close();
+	await terminateWorkers();
 }
 
 // Uploads the package zip to the SQLite database

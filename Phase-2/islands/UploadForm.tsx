@@ -94,7 +94,7 @@ export default function UploadForm() {
 			setUploadStatus(`Upload successful: Package ID ${result.metadata.ID}`);
 		} catch (error) {
 			console.error("Error uploading:", error);
-			setUploadStatus("Error uploading.");
+			setUploadStatus(`Error uploading. ${(error as Error).message}`);
 		} finally {
 			setIsLoading(false); // Set loading to false after upload completes
 		}
