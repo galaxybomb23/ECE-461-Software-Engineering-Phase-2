@@ -91,7 +91,7 @@ export interface User {
 
 // <--- for use in /package/byRegx
 export interface regexRequest {
-	regex: string;
+	RegEx: string;
 }
 export interface AuthenticationRequest {
 	User: User;
