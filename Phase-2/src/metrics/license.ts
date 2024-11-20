@@ -21,7 +21,7 @@ export async function getLicenseScore(
 		.replace(/^git:\/\//, "https://")
 		.replace(/^http:\/\//, "https://");
 	const repoName = gitURL.split("/").pop();
-	const repoDir = `./temp-${repoName}`; // Directory to clone the repo into	
+	const repoDir = `./temp-${repoName}`; // Directory to clone the repo into
 
 	try {
 		// Clone the repository
@@ -37,7 +37,7 @@ export async function getLicenseScore(
 				password: "x-oauth-basic", // GitHub tokens are passed as the password
 			}),
 		});
-		
+
 		// Check for a LICENSE file in the root of the repo
 		const licenseInfo = await extractLicenseInfo(repoDir);
 		let license_score: number = 0;

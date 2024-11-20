@@ -260,32 +260,32 @@ export async function parsePackageJSON(filePath: string) {
 export async function unzipFile(zipFilePath: string, outputDir: string) {
 	// Ensure the output directory exists
 	await ensureDir(outputDir);
-  
+
 	// Read the ZIP file as a Blob
 	const zipData = await Deno.readFile(zipFilePath);
 	const zipBlob = new Blob([zipData]);
-  
+
 	// Create a ZipReader
 	const zipReader = new ZipReader(new BlobReader(zipBlob));
-  
+
 	// Get all entries in the ZIP file
 	const entries = await zipReader.getEntries();
-  
+
 	for (const entry of entries) {
-	  const outputPath = `${outputDir}/${entry.filename}`;
-  
-	  if (await entry.directory) {
-		// Create directories for folder entries
-		await ensureDir(outputPath);
-	  } else {
-		// Extract files
-		if (entry && entry.getData) {
-		  const fileData = await entry.getData(new Uint8ArrayWriter());
-		  await Deno.writeFile(outputPath, fileData);
-		  }
-	  }
+		const outputPath = `${outputDir}/${entry.filename}`;
+
+		if (await entry.directory) {
+			// Create directories for folder entries
+			await ensureDir(outputPath);
+		} else {
+			// Extract files
+			if (entry && entry.getData) {
+				const fileData = await entry.getData(new Uint8ArrayWriter());
+				await Deno.writeFile(outputPath, fileData);
+			}
+		}
 	}
-  
+
 	// Close the reader
 	await zipReader.close();
 	await terminateWorkers();
