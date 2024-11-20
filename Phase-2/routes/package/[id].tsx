@@ -4,8 +4,6 @@ import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.t
 import DownloadButton from "~/islands/DownloadButton.tsx";
 import DeleteButton from "~/islands/DeleteButton.tsx";
 import UpdateButton from "~/islands/UpdateButton.tsx";
-import { useState } from "preact/hooks";
-import UpdateForm from "~/islands/UpdateForm.tsx";
 
 export const handler = async (req: Request, ctx: FreshContext) => {
 	const { id } = ctx.params;
@@ -40,6 +38,9 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		});
 		if (!rateResponse.ok) throw new Error("Rating data fetch failed");
 		const rateData: PackageRating = await rateResponse.json();
+		console.debug("Package data:", packageData);
+		console.debug("Cost data:", costData);
+		console.debug("Rating data:", rateData);
 
 		return ctx.render({ packageData, costData, rateData });
 	} catch (error) {
