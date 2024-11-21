@@ -74,7 +74,7 @@ Deno.test("PackageIdTest...", async (t) => {
 				version,
 				"Package version should be 1.0.0",
 			);
-			assertEquals(pkg.metadata.ID.toString(), id, "Package ID should be 1");
+			assertEquals(pkg.metadata.ID.toString(), id, "Package ID should match");
 			assertEquals(
 				pkg.data.Content,
 				content,
@@ -86,6 +86,8 @@ Deno.test("PackageIdTest...", async (t) => {
 		const newURL = "https://new-url.com";
 		const success = await updatePackageContent(
 			id,
+			name,
+			version,
 			newURL,
 			newContent,
 			db,
@@ -93,8 +95,8 @@ Deno.test("PackageIdTest...", async (t) => {
 		);
 		assertEquals(success, true, "Package should be updated");
 
-		const updatedPkg = await queryPackageById(id, name, version, db, false);
-		assertNotEquals(updatedPkg, null, "Package should not be null");
+		const updatedPkg = await queryPackageById("3", name, version, db, false);
+		assertNotEquals(updatedPkg, null, "New package should not be null");
 		if (updatedPkg) {
 			assertEquals(
 				updatedPkg.data.Content,
@@ -113,7 +115,7 @@ Deno.test("PackageIdTest...", async (t) => {
 			);
 			assertEquals(
 				updatedPkg.metadata.ID.toString(),
-				id,
+				"3",
 				"Package ID should not be updated",
 			);
 		}
@@ -135,6 +137,8 @@ Deno.test("PackageIdTest...", async (t) => {
 
 		const success = await updatePackageContent(
 			id,
+			name,
+			version,
 			"https://new-url.com",
 			"New content",
 			db,
@@ -142,7 +146,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		);
 		assertEquals(success, false, "Package should not be updated");
 
-		const updatedPkg = await queryPackageById(id, name, version, db, false);
+		const updatedPkg = await queryPackageById(id + 1, name, version, db, false);
 		assertEquals(updatedPkg, null, "Package should still be null");
 
 		await new Promise((r) => setTimeout(r, 10));

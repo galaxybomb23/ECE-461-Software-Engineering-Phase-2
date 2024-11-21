@@ -32,7 +32,7 @@ export const handler: Handlers = {
 	},
 
 	// Handles PUT request to update a package
-	async PUT(req, ctx) {
+	async POST(req, ctx) {
 		const body = await req.json();
 
 		try {
@@ -50,10 +50,17 @@ export const handler: Handlers = {
 
 			// Query target package: MUST match all of ID, Name, and Version of an existing package
 			const pkg = await queryPackageById(body.metadata.ID, body.metadata.Name, body.metadata.Version);
+			console.debug("Package: ", pkg);
 
 			if (pkg) {
 				// Update the package based on the provided data
-				const success = await updatePackageContent(body.metadata.ID, body.data.URL, body.data.Content);
+				const success = await updatePackageContent(
+					body.metadata.ID,
+					body.metadata.Name,
+					body.metadata.Version,
+					body.data.URL,
+					body.data.Content,
+				);
 
 				if (success) {
 					logger.info(
@@ -123,37 +130,32 @@ export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoC
 // Update the package (URL or Content, or both) based on what is provided
 export async function updatePackageContent(
 	id: string,
+	name: string, // Name of the package
+	version: string, // New version of the package
 	URL?: string,
 	content?: string,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
 	try {
-		let query = "UPDATE packages SET ";
-		const params: (string | null)[] = [];
+		if (await queryPackageById(id, name, version, db, false)) {
+			const query = "INSERT INTO packages (name, version, url, base64_content) VALUES (?, ?, ?, ?)";
+			const params: (string | null)[] = [name, version];
 
-		// Conditionally add URL and/or Content to the query
-		if (URL) {
-			query += "url = ?";
-			params.push(URL);
+			// Optionally add URL and content if provided
+			if (URL) params.push(URL);
+			else params.push(null);
+
+			if (content) params.push(content);
+			else params.push(null);
+
+			// Execute the insert query
+			await db.query(query, params);
+
+			// Return true if the package is inserted successfully
+			return db.changes > 0;
 		}
-
-		if (content) {
-			// If URL is already included, append a comma
-			if (params.length > 0) query += ", ";
-			query += "base64_content = ?";
-			params.push(content);
-		}
-
-		// Add WHERE clause
-		query += " WHERE ID = ?";
-		params.push(id);
-
-		// Execute the query
-		await db.query(query, params);
-
-		// Return true if rows were updated, false otherwise
-		return db.changes > 0;
+		return false;
 	} finally {
 		if (autoCloseDB) db.close();
 	}
