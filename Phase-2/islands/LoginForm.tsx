@@ -4,6 +4,7 @@ import { APIBaseURL } from "~/types/index.ts";
 export default function LoginForm() {
 	const [username, setUsername] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
+	const [isAdmin, setIsAdmin] = useState<boolean>(false); // Track admin login toggle
 	const [loginStatus, setLoginStatus] = useState<string>("");
 
 	const handleLogin = async (event: Event) => {
@@ -17,11 +18,11 @@ export default function LoginForm() {
 		try {
 			const requestBody = {
 				User: {
-					name: username, // Use the username input value
-					isAdmin: false, // Change this to `true` if admins are logging in
+					name: username,
+					isAdmin: isAdmin, // Set the value of isAdmin based on the toggle
 				},
 				Secret: {
-					password: password, // Use the password input value
+					password: password,
 				},
 			};
 
@@ -33,7 +34,7 @@ export default function LoginForm() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(requestBody), // Send the request body in the expected format
+				body: JSON.stringify(requestBody),
 			});
 
 			if (!response.ok) {
@@ -49,6 +50,12 @@ export default function LoginForm() {
 			if (data.token) {
 				localStorage.setItem("authToken", data.token); // Store token in localStorage
 				setLoginStatus("Login successful!");
+				// Redirect based on user type
+				if (isAdmin) {
+					globalThis.location.href = "/admin"; // Redirect to admin page
+				} else {
+					globalThis.location.href = "/"; // Redirect to user homepage
+				}
 			}
 		} catch (error) {
 			console.error("Error during login:", error);
@@ -59,7 +66,7 @@ export default function LoginForm() {
 	return (
 		<div className="center-wrapper">
 			<form onSubmit={handleLogin} className="upload-form">
-				<h2 className="title">Login</h2>
+				<h2 className="title">{isAdmin ? "Admin Login" : "User Login"}</h2>
 
 				<div className="url-input-row">
 					<label htmlFor="username" className="upload-label">
@@ -84,6 +91,18 @@ export default function LoginForm() {
 						value={password}
 						onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
 						className="url-input"
+					/>
+				</div>
+
+				<div className="url-input-row">
+					<label htmlFor="admin-toggle" className="upload-label">
+						Admin Login:
+					</label>
+					<input
+						type="checkbox"
+						id="admin-toggle"
+						checked={isAdmin}
+						onChange={(e) => setIsAdmin((e.target as HTMLInputElement).checked)}
 					/>
 				</div>
 
