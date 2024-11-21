@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { APIBaseURL } from "~/types/index.ts";
 
 export default function LoginForm() {
 	const [username, setUsername] = useState<string>("");
@@ -14,19 +15,44 @@ export default function LoginForm() {
 		}
 
 		try {
-			// Mock login request, replace with actual endpoint
-			const response = await fetch("/api/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username, password }),
+			const requestBody = {
+				User: {
+					name: username, // Use the username input value
+					isAdmin: false, // Change this to `true` if admins are logging in
+				},
+				Secret: {
+					password: password, // Use the password input value
+				},
+			};
+
+			console.log('endpoint', `${APIBaseURL}/api/authenticate`);
+			console.log('requestBody', requestBody);
+
+			const response = await fetch(`${APIBaseURL}/api/authenticate`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(requestBody), // Send the request body in the expected format
 			});
 
-			if (!response.ok) throw new Error("Login failed");
+			if (!response.ok) {
+				if (response.status === 401) {
+					setLoginStatus("Invalid username or password.");
+				} else {
+					setLoginStatus("An error occurred. Please try again.");
+				}
+				return;
+			}
 
-			setLoginStatus("Login successful!");
+			const data = await response.json();
+			if (data.token) {
+				localStorage.setItem("authToken", data.token); // Store token in localStorage
+				setLoginStatus("Login successful!");
+			}
 		} catch (error) {
-			console.error("Error logging in:", error);
-			setLoginStatus("Invalid username or password.");
+			console.error("Error during login:", error);
+			setLoginStatus("An unexpected error occurred. Please try again.");
 		}
 	};
 
