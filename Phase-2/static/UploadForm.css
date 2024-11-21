@@ -176,3 +176,29 @@ input[type="file"] {
 .custom-checkbox.checked .checkmark {
 	transform: translate(-50%, -50%) scale(1);
 }
+
+/* Container for the delete button */
+.delete-button-container {
+	position: fixed;
+	top: 100px; /* Adjust based on Navbar height */
+	right: 20px;
+	z-index: 1000;
+}
+
+/* Delete Button Styling */
+.delete-button {
+	background-color: #d9534f;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 12px 24px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.delete-button:hover {
+	background-color: #c9302c;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

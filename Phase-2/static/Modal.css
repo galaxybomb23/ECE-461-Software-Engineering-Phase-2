@@ -1,0 +1,228 @@
+/* Modal Overlay */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1001;
+	overflow: auto;
+}
+
+.modal {
+	background-color: #2e2b29;
+	padding: 2rem;
+	border-radius: 0.5rem; /* Slightly rounded corners for consistency */
+	width: 90%; /* Responsive width */
+	max-width: 500px; /* Limit maximum width */
+	position: relative;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Add subtle shadow */
+	overflow: auto;
+}
+
+.update-form {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: stretch; /* Ensure inputs/buttons stretch to fit container */
+	gap: 1rem; /* Add spacing between elements */
+	padding: 0; /* Remove unnecessary padding */
+	width: 100%; /* Form should fully fit within the modal */
+	box-sizing: border-box; /* Include padding and border in width */
+}
+
+.update-form > div,
+.update-form > label,
+.update-form > button {
+	width: 100%; /* Ensure all child elements fit within the modal */
+}
+
+.update-form {
+	border-color: #00000000;
+}
+
+/* Modal Container */
+.modal-container {
+	background-color: #2e2b29;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.5rem;
+	width: 90%;
+	max-width: 600px;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	text-align: center;
+	position: relative;
+	overflow: auto;
+}
+
+/* Modal Title */
+.modal-title {
+	font-size: 1.5rem;
+	color: #fafafa;
+	margin-bottom: 1rem;
+}
+
+/* Modal Message */
+.modal-message {
+	font-size: 1rem;
+	color: #afbbcc;
+	margin-bottom: 2rem;
+}
+
+/* Modal Buttons */
+.modal-buttons {
+	display: flex;
+	justify-content: space-around;
+	gap: 1rem;
+}
+
+.modal-button {
+	padding: 10px 20px;
+	border-radius: 0.3rem;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Confirm Button */
+.modal-button.confirm {
+	background-color: #d9534f;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+}
+
+.modal-button.confirm:hover {
+	background-color: #c9302c;
+}
+
+/* Cancel Button */
+.modal-button.cancel {
+	background-color: #076861;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+}
+
+.modal-button.cancel:hover {
+	background-color: #06544f;
+}
+
+/* Feedback Message */
+.feedback-message {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	background-color: #2e2b29;
+	color: #fafafa;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 1rem;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	animation: fade-in-out 3s ease-in-out;
+	z-index: 1001;
+}
+
+.close-modal {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background: none;
+	border: none;
+	font-size: 1.5rem;
+	color: #fafafa;
+	cursor: pointer;
+}
+
+/* Fade-in-out Animation */
+@keyframes fade-in-out {
+	0% {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	10%, 90% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+}
+
+/* Action Buttons Container */
+.action-buttons-container {
+	position: fixed;
+	top: 100px;
+	right: 20px;
+	display: flex;
+	flex-direction: column; /* Stack buttons vertically */
+	gap: 1rem;
+	z-index: 999; /* Ensure buttons are below navbar but above other content */
+}
+
+/* Update Button */
+.update-button {
+	background-color: #4caf50;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 12px 24px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+	width: 150px; /* Make buttons uniform width */
+	text-align: center;
+}
+
+.update-button:hover {
+	background-color: #45a049;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Delete Button */
+.delete-button {
+	background-color: #d9534f;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 12px 24px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+	width: 150px; /* Make buttons uniform width */
+	text-align: center;
+}
+
+.delete-button:hover {
+	background-color: #c9302c;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Close Button */
+.close-button {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	background-color: #076861;
+	border: 1px solid #a5a5af8a;
+	border-radius: 50%;
+	font-size: 1.25rem;
+	color: #fafafa;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.close-button:hover {
+	background-color: #06544f;
+	transform: scale(1.1); /* Add slight zoom effect */
+}

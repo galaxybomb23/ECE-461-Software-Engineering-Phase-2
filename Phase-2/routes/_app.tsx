@@ -16,6 +16,7 @@ export default function App({ Component }: PageProps) {
 				<link rel="stylesheet" href="/PackageList.css" />
 				<link rel="stylesheet" href="/Admin.css" />
 				<link rel="stylesheet" href="/[id].css" />
+				<link rel="stylesheet" href="/Modal.css" />
 			</head>
 			<body>
 				<Component />

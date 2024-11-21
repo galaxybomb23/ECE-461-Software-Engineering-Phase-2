@@ -2,6 +2,8 @@ import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/components/Navbar.tsx";
 import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
 import DownloadButton from "~/islands/DownloadButton.tsx";
+import DeleteButton from "~/islands/DeleteButton.tsx";
+import UpdateButton from "~/islands/UpdateButton.tsx";
 
 export const handler = async (req: Request, ctx: FreshContext) => {
 	const { id } = ctx.params;
@@ -36,6 +38,9 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		});
 		if (!rateResponse.ok) throw new Error("Rating data fetch failed");
 		const rateData: PackageRating = await rateResponse.json();
+		console.debug("Package data:", packageData);
+		console.debug("Cost data:", costData);
+		console.debug("Rating data:", rateData);
 
 		return ctx.render({ packageData, costData, rateData });
 	} catch (error) {
@@ -89,6 +94,10 @@ export default function Ident({
 		<div className="page-container">
 			<Navbar />
 			<div className="content-wrapper">
+				<div className="action-buttons-container">
+					<UpdateButton metadata={packageData.metadata} />
+					<DeleteButton packageId={packageData.metadata.ID} />
+				</div>
 				<div className="card">
 					<h1 className="title">Package Details for {packageData?.metadata?.Name ?? "Package"}</h1>
 
