@@ -181,7 +181,7 @@ export async function updatePackageContent(
 		}
 		return false;
 	} catch (error) {
-		return Promise.reject(error);
+		return false;
 	} finally {
 		if (autoCloseDB) db.close();
 	}
