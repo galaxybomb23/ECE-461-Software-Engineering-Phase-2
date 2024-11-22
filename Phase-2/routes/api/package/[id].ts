@@ -10,7 +10,7 @@ import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 // uploading functionality
-import { handleURL, handleContent } from "~/routes/api/package.ts";
+import { handleContent, handleURL } from "~/routes/api/package.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
@@ -53,11 +53,11 @@ export const handler: Handlers = {
 
 			// Query target package
 			const pkg = await queryPackageById(undefined, body.metadata.Name, undefined);
-			if (!pkg) { return new Response("Package not found", { status: 404 }); }
+			if (!pkg) return new Response("Package not found", { status: 404 });
 
 			// get versions of existing packages matching the name
-			let version : [string] = [body.metadata.Version];
-			if (Array.isArray(pkg)) { 
+			let version: [string] = [body.metadata.Version];
+			if (Array.isArray(pkg)) {
 				version = [pkg[0].metadata.Version];
 				for (let i = 1; i < pkg.length; i++) {
 					version.push(pkg[i].metadata.Version);
@@ -85,13 +85,15 @@ export const handler: Handlers = {
 			}
 		} catch (error) {
 			logger.error(`PUT /package/{id}: Error - ${error}`);
-						if ((error as Error).message.includes("Package already exists in database")) {
+			if ((error as Error).message.includes("Package already exists in database")) {
 				return new Response("Package already exists in database", { status: 409 });
 			} else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {
 				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
 			} else if ((error as Error).message.includes("package.json not found")) {
 				return new Response("package.json not found", { status: 400 });
-			} else if ((error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")) {
+			} else if (
+				(error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")
+			) {
 				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
 			} else if ((error as Error).message.includes("Package version is lower than the current version")) {
 				return new Response("Package patch version is lower than the current version", { status: 409 });
@@ -151,7 +153,7 @@ export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoC
 export async function updatePackageContent(
 	id: string,
 	name: string, // Name of the package
-	version: [string], 
+	version: [string],
 	URL?: string,
 	content?: string,
 	db = new DB(DATABASEFILE),
@@ -161,23 +163,22 @@ export async function updatePackageContent(
 		// Check if the package already exists
 		if (await queryPackageById(id, name, undefined, db, false)) {
 			let packageJSON: Package | null = null;
-			if (content)
-			{
+			if (content) {
 				packageJSON = await handleContent(content, undefined, db, false, version);
 			}
-			if (URL)
-			{
+			if (URL) {
 				packageJSON = await handleURL(URL, db, false, undefined);
 			}
 
-			if (packageJSON) { return true; }
+			if (packageJSON) return true;
 		}
+		return false;
+	} catch (error) {
 		return false;
 	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
-
 
 export async function queryPackageById(
 	id?: string,
@@ -219,7 +220,7 @@ export async function queryPackageById(
 		}
 
 		// Map database rows to package objects
-		const packages = matchedPackages.map(row => ({
+		const packages = matchedPackages.map((row) => ({
 			metadata: {
 				ID: row[0],
 				Name: row[1],
