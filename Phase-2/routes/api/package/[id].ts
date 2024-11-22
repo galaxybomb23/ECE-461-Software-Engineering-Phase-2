@@ -9,6 +9,9 @@ import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
+// uploading functionality
+import { handleURL, handleContent } from "~/routes/api/package.ts";
+
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
@@ -48,40 +51,57 @@ export const handler: Handlers = {
 				return new Response("At least one of URL or Content must be provided", { status: 400 });
 			}
 
-			// Query target package: MUST match all of ID, Name, and Version of an existing package
-			const pkg = await queryPackageById(body.metadata.ID, body.metadata.Name, body.metadata.Version);
-			console.debug("Package: ", pkg);
+			// Query target package
+			const pkg = await queryPackageById(undefined, body.metadata.Name, undefined);
+			if (!pkg) { return new Response("Package not found", { status: 404 }); }
 
-			if (pkg) {
-				// Update the package based on the provided data
-				const success = await updatePackageContent(
-					body.metadata.ID,
-					body.metadata.Name,
-					body.metadata.Version,
-					body.data.URL,
-					body.data.Content,
-				);
-
-				if (success) {
-					logger.info(
-						`PUT /package/{id}: Package updated - ID: ${body.metadata.ID}, URL: ${
-							body.data.URL || "unchanged"
-						} and Content: ${body.data.Content || "unchanged"}`,
-					);
-					return new Response("Package updated", { status: 200 });
-				} else {
-					logger.error(`PUT /package/{id}: Package not updated`);
-					return new Response("Package not updated", { status: 400 });
+			// get versions of existing packages matching the name
+			let version : [string] = [body.metadata.Version];
+			if (Array.isArray(pkg)) { 
+				version = [pkg[0].metadata.Version];
+				for (let i = 1; i < pkg.length; i++) {
+					version.push(pkg[i].metadata.Version);
 				}
+			}
+			// Update the package based on the provided data
+			const success = await updatePackageContent(
+				body.metadata.ID,
+				body.metadata.Name,
+				version,
+				body.data.URL,
+				body.data.Content,
+			);
+
+			if (success) {
+				logger.info(
+					`PUT /package/{id}: Package updated - ID: ${body.metadata.ID}, URL: ${
+						body.data.URL || "unchanged"
+					} and Content: ${body.data.Content || "unchanged"}`,
+				);
+				return new Response("Package updated", { status: 200 });
 			} else {
-				return new Response("Package not found", { status: 404 });
+				logger.error(`PUT /package/{id}: Package not updated`);
+				return new Response("Package not updated", { status: 400 });
 			}
 		} catch (error) {
 			logger.error(`PUT /package/{id}: Error - ${error}`);
-			return new Response(
-				"There is missing field(s) in the PackageID or it is formed improperly, or is invalid - " + error,
-				{ status: 400 },
-			);
+						if ((error as Error).message.includes("Package already exists in database")) {
+				return new Response("Package already exists in database", { status: 409 });
+			} else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {
+				return new Response("Package is not uploaded due to the disqualified rating", { status: 424 });
+			} else if ((error as Error).message.includes("package.json not found")) {
+				return new Response("package.json not found", { status: 400 });
+			} else if ((error as Error).message.includes("Package is too large, why are you trying to upload a zip bomb?")) {
+				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
+			} else if ((error as Error).message.includes("Package version is lower than the current version")) {
+				return new Response("Package patch version is lower than the current version", { status: 409 });
+			} else {
+				return new Response(
+					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)" +
+						(error as Error).message,
+					{ status: 400 },
+				);
+			}
 		}
 	},
 
@@ -131,29 +151,26 @@ export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoC
 export async function updatePackageContent(
 	id: string,
 	name: string, // Name of the package
-	version: string, // New version of the package
+	version: [string], 
 	URL?: string,
 	content?: string,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
 	try {
-		if (await queryPackageById(id, name, version, db, false)) {
-			const query = "INSERT INTO packages (name, version, url, base64_content) VALUES (?, ?, ?, ?)";
-			const params: (string | null)[] = [name, version];
+		// Check if the package already exists
+		if (await queryPackageById(id, name, undefined, db, false)) {
+			let packageJSON: Package | null = null;
+			if (content)
+			{
+				packageJSON = await handleContent(content, undefined, db, false, version);
+			}
+			if (URL)
+			{
+				packageJSON = await handleURL(URL, db, false, undefined);
+			}
 
-			// Optionally add URL and content if provided
-			if (URL) params.push(URL);
-			else params.push(null);
-
-			if (content) params.push(content);
-			else params.push(null);
-
-			// Execute the insert query
-			await db.query(query, params);
-
-			// Return true if the package is inserted successfully
-			return db.changes > 0;
+			if (packageJSON) { return true; }
 		}
 		return false;
 	} finally {
@@ -161,53 +178,61 @@ export async function updatePackageContent(
 	}
 }
 
+
 export async function queryPackageById(
-	id: string,
+	id?: string,
 	name?: string,
 	version?: string,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
 	try {
-		let query = "SELECT * FROM packages WHERE ID = ?";
-		const queryParams = [id];
+		let query = "SELECT * FROM packages";
+		const queryParams: string[] = [];
+		const conditions: string[] = [];
 
-		// Add additional conditions if name and version are provided
+		// Add conditions dynamically
+		if (id) {
+			conditions.push("ID = ?");
+			queryParams.push(id);
+		}
 		if (name) {
-			query += " AND Name = ?";
+			conditions.push("Name = ?");
 			queryParams.push(name);
 		}
 		if (version) {
-			query += " AND Version = ?";
+			conditions.push("Version = ?");
 			queryParams.push(version);
 		}
 
-		// Find the package with the given ID, Name, and Version
+		// If conditions exist, append them to the query
+		if (conditions.length > 0) {
+			query += " WHERE " + conditions.join(" AND ");
+		}
+
+		// Execute the query
 		const matchedPackages = await db.query(query, queryParams);
 
-		// If a package is found, return the package object
-		if (matchedPackages.length > 0) {
-			logger.debug(
-				`queryPackage: Found package with ID: ${id}${name ? `, Name: ${name}` : ""}${
-					version ? `, Version: ${version}` : ""
-				}`,
-			);
-
-			const pkg = {
-				metadata: {
-					ID: matchedPackages[0][0],
-					Name: matchedPackages[0][1],
-					Version: matchedPackages[0][3],
-				} as PackageMetadata,
-				data: {
-					Content: matchedPackages[0][4],
-					URL: matchedPackages[0][5],
-				} as PackageData,
-			} as Package;
-			return pkg;
-		} else {
+		// If no packages are found, return null
+		if (matchedPackages.length === 0) {
 			return null;
 		}
+
+		// Map database rows to package objects
+		const packages = matchedPackages.map(row => ({
+			metadata: {
+				ID: row[0],
+				Name: row[1],
+				Version: row[3],
+			} as PackageMetadata,
+			data: {
+				Content: row[4],
+				URL: row[5],
+			} as PackageData,
+		} as Package));
+
+		// Return the list if multiple packages are found, or the single package if only one
+		return packages.length === 1 ? packages[0] : packages;
 	} finally {
 		if (autoCloseDB) db.close();
 	}

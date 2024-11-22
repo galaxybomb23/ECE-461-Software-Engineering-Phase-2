@@ -48,6 +48,36 @@ export async function populateDatabase(
 					correctness: 90,
 					responsive_maintainer: 92,
 				},
+				{
+					name: "lodash",
+					url: "https://example.com/lodash",
+					version: "4.17.444", // same as real one besides larger patch, should fail upload
+					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
+					readme: "This is the real lodash package.",
+					license_score: 99,
+					netscore: 100,
+					dependency_pinning_score: 100,
+					rampup_score: 100,
+					review_percentage_score: 100,
+					bus_factor: 5,
+					correctness: 100,
+					responsive_maintainer: 100,
+				},
+				{
+					name: "lodash",
+					url: "https://example.com/lodash",
+					version: "4.17.0", // same as real one besides larger patch, should fail upload
+					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
+					readme: "This is the real lodash package.",
+					license_score: 99,
+					netscore: 100,
+					dependency_pinning_score: 100,
+					rampup_score: 100,
+					review_percentage_score: 100,
+					bus_factor: 5,
+					correctness: 100,
+					responsive_maintainer: 100,
+				},
 			],
 			users: [
 				{
