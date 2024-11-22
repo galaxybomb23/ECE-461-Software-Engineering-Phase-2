@@ -63,7 +63,7 @@ export const handler: Handlers = {
 					version.push(pkg[i].metadata.Version);
 				}
 			}
-			// Update the package based on the provided data
+			// Update the package based on the provided data, pass version array to check if the patch version is higher inside handleContent
 			const success = await updatePackageContent(
 				body.metadata.ID,
 				body.metadata.Name,
@@ -97,6 +97,8 @@ export const handler: Handlers = {
 				return new Response("Package is too large, why are you trying to upload a zip bomb?", { status: 400 });
 			} else if ((error as Error).message.includes("Package version is lower than the current version")) {
 				return new Response("Package patch version is lower than the current version", { status: 409 });
+			} else if ((error as Error).message.includes("Package name does not match the proposed name")) {
+				return new Response("Package name does not match the proposed name", { status: 400 });
 			} else {
 				return new Response(
 					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)" +
@@ -170,11 +172,16 @@ export async function updatePackageContent(
 				packageJSON = await handleURL(URL, db, false, undefined);
 			}
 
-			if (packageJSON) return true;
+			if (packageJSON){
+				// check name matches proposed name
+				if (packageJSON.metadata.Name !== name) {
+					throw new Error("Package name does not match the proposed name");
+				}
+			}
 		}
 		return false;
 	} catch (error) {
-		return false;
+		return Promise.reject(error);
 	} finally {
 		if (autoCloseDB) db.close();
 	}
