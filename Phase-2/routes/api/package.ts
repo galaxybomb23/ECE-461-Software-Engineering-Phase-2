@@ -9,7 +9,6 @@ import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
-import { consumeMediaParam } from "$std/media_types/_util.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
