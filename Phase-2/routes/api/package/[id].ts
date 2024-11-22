@@ -172,7 +172,7 @@ export async function updatePackageContent(
 				packageJSON = await handleURL(URL, db, false, undefined);
 			}
 
-			if (packageJSON){
+			if (packageJSON) {
 				// check name matches proposed name
 				if (packageJSON.metadata.Name !== name) {
 					throw new Error("Package name does not match the proposed name");
