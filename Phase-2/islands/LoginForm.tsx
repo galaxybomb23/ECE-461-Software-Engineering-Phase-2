@@ -1,11 +1,44 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { APIBaseURL } from "~/types/index.ts";
 
 export default function LoginForm() {
 	const [username, setUsername] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
-	const [isAdmin, setIsAdmin] = useState<boolean>(false); // Track admin login toggle
+	const [isAdmin, setIsAdmin] = useState<boolean>(false);
 	const [loginStatus, setLoginStatus] = useState<string>("");
+	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+	const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
+
+	const checkLoginState = () => {
+		const authToken = localStorage.getItem("authToken");
+		const username = localStorage.getItem("username");
+		if (authToken) {
+			try {
+				setIsLoggedIn(true);
+				setLoggedInUser(username);
+			} catch (error) {
+				console.error("Error decoding token:", error);
+				setIsLoggedIn(false);
+			}
+		} else {
+			setIsLoggedIn(false);
+			setLoggedInUser(null);
+		}
+	};
+
+	// Check if the user is already logged in
+	useEffect(() => {
+		checkLoginState();
+
+		// Listen for changes in localStorage to handle logout or login from another tab
+		const handleStorageChange = () => checkLoginState();
+
+		globalThis.addEventListener("storage", handleStorageChange);
+
+		return () => {
+			globalThis.removeEventListener("storage", handleStorageChange);
+		};
+	}, []);
 
 	const handleLogin = async (event: Event) => {
 		event.preventDefault();
@@ -19,15 +52,12 @@ export default function LoginForm() {
 			const requestBody = {
 				User: {
 					name: username,
-					isAdmin: isAdmin, // Set the value of isAdmin based on the toggle
+					isAdmin: isAdmin,
 				},
 				Secret: {
 					password: password,
 				},
 			};
-
-			console.log('endpoint', `${APIBaseURL}/api/authenticate`);
-			console.log('requestBody', requestBody);
 
 			const response = await fetch(`${APIBaseURL}/api/authenticate`, {
 				method: "PUT",
@@ -47,21 +77,44 @@ export default function LoginForm() {
 			}
 
 			const data = await response.json();
+
+			localStorage.setItem("username", username);
+
+			if (isAdmin) {
+				localStorage.setItem("isAdmin", "true");
+			}
+
 			if (data.token) {
-				localStorage.setItem("authToken", data.token); // Store token in localStorage
+				localStorage.setItem("authToken", data.token);
+				checkLoginState();
 				setLoginStatus("Login successful!");
-				// Redirect based on user type
-				if (isAdmin) {
-					globalThis.location.href = "/admin"; // Redirect to admin page
-				} else {
-					globalThis.location.href = "/"; // Redirect to user homepage
-				}
 			}
 		} catch (error) {
 			console.error("Error during login:", error);
 			setLoginStatus("An unexpected error occurred. Please try again.");
 		}
 	};
+
+	const handleLogout = () => {
+		localStorage.removeItem("authToken");
+		localStorage.removeItem("isAdmin");
+		localStorage.removeItem("username");
+		checkLoginState();
+		setLoginStatus("");
+	};
+
+	if (isLoggedIn) {
+		return (
+			<div className="center-wrapper">
+				<div className="upload-form">
+					<h2 className="title">Welcome, {loggedInUser}!</h2>
+					<button onClick={handleLogout} className="upload-button">
+						Log Out
+					</button>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="center-wrapper">

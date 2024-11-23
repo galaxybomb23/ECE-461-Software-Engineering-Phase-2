@@ -11,18 +11,10 @@ export default function Admin() {
 	useEffect(() => {
 		// Check admin authorization
 		const authToken = localStorage.getItem("authToken");
-		if (!authToken) {
+		const isAdmin = localStorage.getItem("isAdmin");
+		if (!authToken || isAdmin !== "true") {
 			setIsAuthorized(false);
 			return;
-		}
-
-		try {
-			// Decode or validate token (if using a JWT or custom logic)
-			const user = JSON.parse(atob(authToken.split(".")[1])); // For JWTs, decode the payload
-			setIsAuthorized(user.isAdmin === true); // Set authorization based on user role
-		} catch (error) {
-			console.error("Error validating token:", error);
-			setIsAuthorized(false);
 		}
 	}, []);
 
