@@ -1,5 +1,5 @@
 import { FreshContext } from "$fresh/server.ts";
-import Navbar from "../islands/Navbar.tsx";
+import Navbar from "~/islands/Navbar.tsx";
 import Pagination from "~/islands/Pagination.tsx";
 import { APIBaseURL, PackageMetadata, packagesRequest } from "~/types/index.ts";
 import { listPackages } from "~/routes/api/packages.ts";

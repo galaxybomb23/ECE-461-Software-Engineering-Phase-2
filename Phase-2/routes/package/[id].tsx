@@ -1,5 +1,5 @@
 import { FreshContext } from "$fresh/server.ts";
-import Navbar from "../../islands/Navbar.tsx";
+import Navbar from "~/islands/Navbar.tsx";
 import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
 import DownloadButton from "~/islands/DownloadButton.tsx";
 import DeleteButton from "~/islands/DeleteButton.tsx";
@@ -68,7 +68,6 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 				notLoggedIn: true, // Add a flag to indicate login status
 			});
 		}
-		
 
 		// Return mock data for other errors
 		return ctx.render({

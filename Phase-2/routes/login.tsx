@@ -1,4 +1,4 @@
-import Navbar from "../islands/Navbar.tsx";
+import Navbar from "~/islands/Navbar.tsx";
 import LoginForm from "~/islands/LoginForm.tsx";
 
 export default function LoginPage() {

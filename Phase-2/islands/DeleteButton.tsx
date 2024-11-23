@@ -38,7 +38,7 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 				setFeedbackMessage(
 					error.message === "User is not logged in."
 						? "Failed to delete package: Not logged in. Please log in and try again."
-						: `Failed to delete package: ${error.message}`
+						: `Failed to delete package: ${error.message}`,
 				);
 			} else {
 				setFeedbackMessage("An unknown error occurred while deleting the package.");

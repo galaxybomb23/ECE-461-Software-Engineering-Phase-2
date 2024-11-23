@@ -40,11 +40,7 @@ export default function Navbar() {
 					<a href="/upload">Upload</a>
 				</li>
 				<li>
-					{isLoggedIn.value ? (
-						<a href="/login">Account</a>
-					) : (
-						<a href="/login">Login</a>)
-					}
+					{isLoggedIn.value ? <a href="/login">Account</a> : <a href="/login">Login</a>}
 				</li>
 				<li>
 					<a href="/admin">Admin</a>

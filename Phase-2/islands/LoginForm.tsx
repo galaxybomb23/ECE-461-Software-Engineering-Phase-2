@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { isLoggedIn, loggedInUser } from "~/signals/auth.ts";
 import { APIBaseURL } from "~/types/index.ts";
 

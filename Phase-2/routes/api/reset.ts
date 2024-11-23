@@ -86,7 +86,7 @@ export async function resetDatabase(
 				// username
 				"ece30861defaultadminuser",
 				// password
-				"correcthorsebatterystaple123(!__+@**(A;DROP TABLE packages",
+				"correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
 				// can_search
 				true,
 				// can_download
