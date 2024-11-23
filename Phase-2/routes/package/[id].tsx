@@ -1,5 +1,5 @@
 import { FreshContext } from "$fresh/server.ts";
-import Navbar from "~/components/Navbar.tsx";
+import Navbar from "../../islands/Navbar.tsx";
 import { APIBaseURL, Package, PackageCost, PackageRating } from "~/types/index.ts";
 import DownloadButton from "~/islands/DownloadButton.tsx";
 import DeleteButton from "~/islands/DeleteButton.tsx";

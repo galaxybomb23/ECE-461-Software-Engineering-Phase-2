@@ -1,6 +1,6 @@
 import UploadForm from "~/islands/UploadForm.tsx";
 import UpdateForm from "~/islands/UpdateForm.tsx";
-import Navbar from "~/components/Navbar.tsx";
+import Navbar from "../islands/Navbar.tsx";
 
 export default function Upload() {
 	return (

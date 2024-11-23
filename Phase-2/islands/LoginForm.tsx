@@ -1,4 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
+import { isLoggedIn, loggedInUser } from "~/signals/auth.ts";
 import { APIBaseURL } from "~/types/index.ts";
 
 export default function LoginForm() {
@@ -6,38 +7,27 @@ export default function LoginForm() {
 	const [password, setPassword] = useState<string>("");
 	const [isAdmin, setIsAdmin] = useState<boolean>(false);
 	const [loginStatus, setLoginStatus] = useState<string>("");
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-	const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
 
 	const checkLoginState = () => {
 		const authToken = localStorage.getItem("authToken");
 		const username = localStorage.getItem("username");
 		if (authToken) {
 			try {
-				setIsLoggedIn(true);
-				setLoggedInUser(username);
+				isLoggedIn.value = true;
+				loggedInUser.value = username;
 			} catch (error) {
 				console.error("Error decoding token:", error);
-				setIsLoggedIn(false);
+				isLoggedIn.value = false;
 			}
 		} else {
-			setIsLoggedIn(false);
-			setLoggedInUser(null);
+			isLoggedIn.value = false;
+			loggedInUser.value = null;
 		}
 	};
 
 	// Check if the user is already logged in
 	useEffect(() => {
 		checkLoginState();
-
-		// Listen for changes in localStorage to handle logout or login from another tab
-		const handleStorageChange = () => checkLoginState();
-
-		globalThis.addEventListener("storage", handleStorageChange);
-
-		return () => {
-			globalThis.removeEventListener("storage", handleStorageChange);
-		};
 	}, []);
 
 	const handleLogin = async (event: Event) => {
@@ -99,15 +89,17 @@ export default function LoginForm() {
 		localStorage.removeItem("authToken");
 		localStorage.removeItem("isAdmin");
 		localStorage.removeItem("username");
+		isLoggedIn.value = false;
+		loggedInUser.value = null;
 		checkLoginState();
 		setLoginStatus("");
 	};
 
-	if (isLoggedIn) {
+	if (isLoggedIn.value) {
 		return (
 			<div className="center-wrapper">
 				<div className="upload-form">
-					<h2 className="title">Welcome, {loggedInUser}!</h2>
+					<h2 className="title">Welcome, {loggedInUser.value}!</h2>
 					<button onClick={handleLogout} className="upload-button">
 						Log Out
 					</button>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import Navbar from "~/components/Navbar.tsx";
+import Navbar from "./Navbar.tsx";
 import UserManagement from "~/islands/UserManagement.tsx";
 import PermissionManagement from "~/islands/PermissionManagement.tsx";
 import GroupManagement from "~/islands/GroupManagement.tsx";
