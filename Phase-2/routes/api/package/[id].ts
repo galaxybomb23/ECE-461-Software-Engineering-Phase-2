@@ -148,51 +148,59 @@ export async function updatePackageContent(
 }
 
 export async function queryPackageById(
-	id: string,
+	id?: string,
 	name?: string,
 	version?: string,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
 	try {
-		let query = "SELECT * FROM packages WHERE ID = ?";
-		const queryParams = [id];
+		let query = "SELECT * FROM packages";
+		const queryParams: string[] = [];
+		const conditions: string[] = [];
 
-		// Add additional conditions if name and version are provided
+		// Add conditions dynamically
+		if (id) {
+			conditions.push("ID = ?");
+			queryParams.push(id);
+		}
 		if (name) {
-			query += " AND Name = ?";
+			conditions.push("Name = ?");
 			queryParams.push(name);
 		}
 		if (version) {
-			query += " AND Version = ?";
+			conditions.push("Version = ?");
 			queryParams.push(version);
 		}
 
-		// Find the package with the given ID, Name, and Version
+		// If conditions exist, append them to the query
+		if (conditions.length > 0) {
+			query += " WHERE " + conditions.join(" AND ");
+		}
+
+		// Execute the query
 		const matchedPackages = await db.query(query, queryParams);
 
-		// If a package is found, return the package object
-		if (matchedPackages.length > 0) {
-			logger.debug(
-				`queryPackage: Found package with ID: ${id}${name ? `, Name: ${name}` : ""}${
-					version ? `, Version: ${version}` : ""
-				}`,
-			);
-
-			const pkg = {
-				metadata: {
-					ID: matchedPackages[0][0],
-					Name: matchedPackages[0][1],
-					Version: matchedPackages[0][3],
-				} as PackageMetadata,
-				data: {
-					Content: matchedPackages[0][4],
-				} as PackageData,
-			} as Package;
-			return pkg;
-		} else {
+		// If no packages are found, return null
+		if (matchedPackages.length === 0) {
 			return null;
 		}
+
+		// Map database rows to package objects
+		const packages = matchedPackages.map((row) => ({
+			metadata: {
+				ID: row[0],
+				Name: row[1],
+				Version: row[3],
+			} as PackageMetadata,
+			data: {
+				Content: row[4],
+				URL: row[5],
+			} as PackageData,
+		} as Package));
+
+		// Return the list if multiple packages are found, or the single package if only one
+		return packages.length === 1 ? packages[0] : packages;
 	} finally {
 		if (autoCloseDB) db.close();
 	}

@@ -37,6 +37,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					responsive_maintainer: 85,
 					responsive_maintainer_latency: 14,
 					dependency_cost: 15,
+					uploaded_by_content: 0, // 1 for content, 0 for URL
 				},
 				{
 					name: "sample-package-2",
@@ -60,6 +61,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					responsive_maintainer: 92,
 					responsive_maintainer_latency: 13,
 					dependency_cost: 20,
+					uploaded_by_content: 1, // 1 for content, 0 for URL
 				},
 			],
 			users: [
@@ -118,15 +120,16 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
             correctness_latency INTEGER,
             responsive_maintainer INTEGER,
             responsive_maintainer_latency INTEGER,
-			dependency_cost INTEGER
+			dependency_cost INTEGER,
+			uploaded_by_content INTEGER
         )`,
 		);
 
 		// insert the packages into the database
 		for (const entry of dbentries.packages) {
 			await db.query(
-				`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, license_latency, netscore, netscore_latency, dependency_pinning_score, dependency_pinning_latency, rampup_score, rampup_latency, review_percentage_score, review_percentage_latency, bus_factor, bus_factor_latency, correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency, dependency_cost)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, license_latency, netscore, netscore_latency, dependency_pinning_score, dependency_pinning_latency, rampup_score, rampup_latency, review_percentage_score, review_percentage_latency, bus_factor, bus_factor_latency, correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency, dependency_cost, uploaded_by_content)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					entry.name,
 					entry.url,
@@ -149,6 +152,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					entry.responsive_maintainer,
 					entry.responsive_maintainer_latency,
 					entry.dependency_cost,
+					entry.uploaded_by_content,
 				],
 			);
 		}

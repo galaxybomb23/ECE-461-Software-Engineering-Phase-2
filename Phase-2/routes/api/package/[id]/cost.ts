@@ -15,15 +15,15 @@ export const handler: Handlers = {
 		const id = parseInt(ctx.params.id);
 
 		// Extract and validate the 'X-Authentication' token
-		const authToken = req.headers.get("X-Authorization") ?? "";
-		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
-			return new Response("Invalid request: missing authentication token", { status: 403 });
-		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
-			return new Response("Unauthorized request: invalid token", { status: 403 });
-		}
+		// const authToken = req.headers.get("X-Authorization") ?? "";
+		// if (!authToken) {
+		// 	logger.info("Invalid request: missing authentication token");
+		// 	return new Response("Invalid request: missing authentication token", { status: 403 });
+		// }
+		// if (!getUserAuthInfo(authToken).is_token_valid) {
+		// 	logger.info("Unauthorized request: invalid token");
+		// 	return new Response("Unauthorized request: invalid token", { status: 403 });
+		// }
 
 		// Extract query parameter (offset for pagination)
 		const url = new URL(req.url);
@@ -50,43 +50,69 @@ export async function calcPackageCost(
 	autoCloseDB = true,
 ): Promise<Response> {
 	try {
-		const depencency_cost_and_base64 = await db.query(
-			"SELECT dependency_cost, base64_content FROM packages WHERE id = ?",
+		const qr = await db.query(
+			"SELECT dependency_cost FROM packages WHERE id = ?",
 			[id],
-		)[0];
+		)[0] as Row;
 
-		if (!depencency_cost_and_base64) {
+		if (qr === undefined) {
 			logger.error(`Package with ID ${id} not found`);
 			return new Response(`Package with ID ${id} not found`, { status: 404 });
 		}
+		
+		const depencency_cost = qr[0] as string
 
-		const dependency_cost = depencency_cost_and_base64[0] as number;
-		const base64_content = depencency_cost_and_base64[1] as string;
-		const program_length = base64_content.length;
+		// split with comma 
+		const dependency_cost = depencency_cost.split(',');
+		const base_pkg_cost = parseInt(dependency_cost[0]);
 
-		if (!dependency_cost || !base64_content) {
-			logger.error(`Error retrieving package cost for ID ${id}`);
-			return new Response(`Error retrieving package cost for ID ${id}`, { status: 500 });
+		// calculate total cost of all dependencies
+		let totalCost = base_pkg_cost;
+		for (let i = 0; i < dependency_cost.length; i++) {
+			if (dependency_cost[i] == "") continue;
+			const id = dependency_cost[i].split(':')[0];
+			const cost = dependency_cost[i].split(':')[1] ?? 0;
+			totalCost += parseInt(cost);
 		}
+		const fullCost = 1024 * 1024; // 1MB
 
-		// function to scale the cost of the package based on the program length and dependency cost
-		const logisticScale = (x: number, x0: number, k: number = 0.01): number => {
-			const scaledValue = 1 / (1 + Math.exp(-k * (x - x0)));
-			return parseFloat(scaledValue.toFixed(2)); // Round to 2 decimal places
-		};
+		if (dependency) {
+			let packageCost: PackageCost = {};
 
-		// Calculate the cost of the package
-		const packageCost: PackageCost = {
-			[id]: {
-				standaloneCost: logisticScale(program_length, 10000000, 0.0000001), // Scale program length
-				totalCost: logisticScale(dependency_cost, 15),
-			},
-		};
 
-		return new Response(JSON.stringify(packageCost), { status: 200 });
+			// calculate total and standalone cost for each dependency
+			for (let i = 0; i < dependency_cost.length; i++) {
+				if (dependency_cost[i] == "") continue;
+
+				// pkg_id is either the dependency's ID or current package's ID
+				let pkg_id = dependency_cost[i].split(':')[0];
+				let pkg_cost = parseInt(dependency_cost[i].split(':')[1] ?? 0);
+
+				if (i == 0) { pkg_id = id.toString(); pkg_cost = base_pkg_cost; }
+
+				// populate the packageCost object
+				packageCost = {
+					...packageCost,
+					[pkg_id]: {
+						totalCost: +(totalCost / fullCost).toFixed(2),
+						standaloneCost: +(pkg_cost / fullCost).toFixed(2),
+					},
+				}
+				totalCost -= pkg_cost;
+			}
+			return new Response(JSON.stringify(packageCost), { status: 200 });
+		}
+		else {
+			const packageCost: PackageCost = {
+				[id]: {
+					totalCost: +(base_pkg_cost / fullCost).toFixed(2),
+				}
+			}
+			return new Response(JSON.stringify(packageCost), { status: 200 });
+		}
 	} catch (error) {
 		logger.error(`Error calculating package cost: ${error}`);
-		return new Response("Error calculating package cost", { status: 500 });
+		return new Response("Error calculating package cost: " + error, { status: 500 });
 	} finally {
 		if (autoCloseDB) db.close();
 	}

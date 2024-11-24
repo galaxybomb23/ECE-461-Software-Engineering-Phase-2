@@ -8,6 +8,7 @@ import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.j
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
+import { queryPackageById } from "~/routes/api/package/[id].ts";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -17,15 +18,15 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 
 			// Extract and validate the 'X-Authentication' token
-			const authToken = req.headers.get("X-Authorization") ?? "";
-			if (!authToken) {
-				logger.info("Invalid request: missing authentication token");
-				return new Response("Invalid request: missing authentication token", { status: 403 });
-			}
-			if (!getUserAuthInfo(authToken).is_token_valid) {
-				logger.info("Unauthorized request: invalid token");
-				return new Response("Unauthorized request: invalid token", { status: 403 });
-			}
+			// const authToken = req.headers.get("X-Authorization") ?? "";
+			// if (!authToken) {
+			// 	logger.info("Invalid request: missing authentication token");
+			// 	return new Response("Invalid request: missing authentication token", { status: 403 });
+			// }
+			// if (!getUserAuthInfo(authToken).is_token_valid) {
+			// 	logger.info("Unauthorized request: invalid token");
+			// 	return new Response("Unauthorized request: invalid token", { status: 403 });
+			// }
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
@@ -107,7 +108,7 @@ export const handler: Handlers = {
 	},
 };
 
-export async function handleContent(content: string, url?: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function handleContent(content: string, url?: string, via_content: number = 1, db = new DB(DATABASEFILE), autoCloseDB = true) {
 	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
@@ -181,9 +182,19 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 				);
 
 				// Now we add the dependency cost
+				// prepend length of base64_content to dependency_cost
+				const program_length = content.length;
+				const cost = program_length + "," + packageJSON.data.Dependencies;
+
 				await db.query(
 					"UPDATE packages SET dependency_cost = ? WHERE name = ? AND version = ?",
-					[packageJSON.data.Dependencies, packageJSON.metadata.Name, packageJSON.metadata.Version],
+					[cost, packageJSON.metadata.Name, packageJSON.metadata.Version],
+				);
+
+				// Add uploaded by content or URL flag
+				await db.query(
+					"UPDATE packages SET uploaded_by_content = ? WHERE name = ? AND version = ?",
+					[via_content, packageJSON.metadata.Name, packageJSON.metadata.Version],
 				);
 			} else {
 				logger.debug(
@@ -237,49 +248,86 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 	);
 
-	const packageJSON = await handleContent(base64Content, url, db, autoCloseDB);
+	const packageJSON = await handleContent(base64Content, url, 0, db, autoCloseDB);
 	return packageJSON;
 }
 
-export async function parsePackageJSON(filePath: string) {
-	const dirEntries = Deno.readDir(filePath);
-	let packageFolder: Deno.DirEntry | null = null;
+export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	try {
+		const dirEntries = Deno.readDir(filePath);
+		let packageFolder: Deno.DirEntry | null = null;
 
-	for await (const entry of dirEntries) {
-		if (entry.isDirectory) {
-			packageFolder = entry;
-			break;
+		for await (const entry of dirEntries) {
+			if (entry.isDirectory) {
+				packageFolder = entry;
+				break;
+			}
+		}
+
+		logger.debug("package.ts: Reading package.json");
+		const rootPath = `${filePath}/package.json`;
+		const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
+
+		const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		if (!packageJSONPath) {
+			logger.debug("package.ts: package.json not found - status 400");
+			throw new Error("package.json not found");
+		}
+		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
+
+		// Find number of dependencies. Required for some retrieving cost of packages later
+		const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
+			Object.keys(packageJSON.devDependencies || {}).length;
+
+		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<string, string>;
+		const deps = await computeDependencies(fullDependencies, db, false);
+		
+		return {
+			metadata: {
+				Name: packageJSON.name,
+				Version: packageJSON.version,
+				ID: packageJSON.name + "@" + packageJSON.version,
+			},
+			data: {
+				Content: "",
+				// url can be repository.url or repository or url
+				URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
+				Dependencies: deps,
+			},
+		} as ExtendedPackage;
+	}
+	finally {
+		if (autoCloseDB) db.close();
+	}
+}
+
+export async function computeDependencies (fullDependencies: Record<string, string>, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	// we will now query by name and version to find IDs of dependencies/devDependencies
+	// build a string of id:cost, id:cost, id:cost
+	let costs = "";
+		
+	for (const [name, version] of Object.entries(fullDependencies)) {
+		const cleanedVersion = (version as string).replace(/^[^\d]*/, ""); // Cast to string and clean
+
+		let pkgs = await queryPackageById(undefined, name, cleanedVersion, db, false);
+		if (pkgs) { 
+			console.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
+			if (!Array.isArray(pkgs)) { pkgs = [pkgs]; }
+
+			for (const pkg of pkgs) {
+				// query db to get base64_content
+				const base64_content = await db.query(
+					"SELECT base64_content FROM packages WHERE id = ?",
+					[pkg.metadata.ID],
+				) as string[][];
+
+				// get length of base64_content and add to costs
+				const program_length = base64_content[0][0].length;
+				costs += pkg.metadata.ID + ":" + program_length + ",";
+			}
 		}
 	}
-
-	logger.debug("package.ts: Reading package.json");
-	const rootPath = `${filePath}/package.json`;
-	const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
-
-	const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
-	if (!packageJSONPath) {
-		logger.debug("package.ts: package.json not found - status 400");
-		throw new Error("package.json not found");
-	}
-	const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
-
-	// Find number of dependencies. Required for some retrieving cost of packages later
-	const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
-		Object.keys(packageJSON.devDependencies || {}).length;
-
-	return {
-		metadata: {
-			Name: packageJSON.name,
-			Version: packageJSON.version,
-			ID: packageJSON.name + "@" + packageJSON.version,
-		},
-		data: {
-			Content: "",
-			// url can be repository.url or repository or url
-			URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
-			Dependencies: numberDependencies,
-		},
-	} as ExtendedPackage;
+	return costs; // either empty string or id:cost, id:cost, id:cost,
 }
 
 // Uploads the package zip to the SQLite database
