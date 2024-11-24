@@ -9,14 +9,14 @@ export default function Navbar() {
 	const searchResults = signal<Package[]>([]);
 
 	const checkLoginState = () => {
-		const authToken = localStorage.getItem("authToken");
+		// Retrieve the auth token from cookies
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
 		if (authToken) {
-			try {
-				isLoggedIn.value = true;
-			} catch (error) {
-				console.error("Error decoding token:", error);
-				isLoggedIn.value = false;
-			}
+			isLoggedIn.value = true;
 		} else {
 			isLoggedIn.value = false;
 		}
@@ -24,6 +24,17 @@ export default function Navbar() {
 
 	useEffect(() => {
 		checkLoginState();
+
+		// Optionally, listen for storage changes to update login state in real-time
+		const handleStorageChange = () => {
+			checkLoginState();
+		};
+
+		globalThis.addEventListener("storage", handleStorageChange);
+
+		return () => {
+			globalThis.removeEventListener("storage", handleStorageChange);
+		};
 	}, []);
 
 	return (
@@ -40,6 +51,7 @@ export default function Navbar() {
 					<a href="/upload">Upload</a>
 				</li>
 				<li>
+					{/* Dynamically change text based on login state */}
 					{isLoggedIn.value ? <a href="/login">Account</a> : <a href="/login">Login</a>}
 				</li>
 				<li>

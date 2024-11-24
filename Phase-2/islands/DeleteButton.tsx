@@ -9,8 +9,11 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 		setShowModal(false);
 
 		try {
-			// Retrieve the token from local storage
-			const authToken = localStorage.getItem("authToken");
+			// Retrieve the token from cookies
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
 
 			if (!authToken) {
 				throw new Error("User is not logged in.");
@@ -20,7 +23,7 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
-					"X-Authorization": authToken, // Use the token from localStorage
+					"X-Authorization": authToken, // Use the token from cookies
 				},
 			});
 

@@ -8,14 +8,27 @@ export default function Admin() {
 	const [selectedTab, setSelectedTab] = useState("user-management");
 	const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null); // Track authorization status
 
-	useEffect(() => {
-		// Check admin authorization
-		const authToken = localStorage.getItem("authToken");
-		const isAdmin = localStorage.getItem("isAdmin");
-		if (!authToken || isAdmin !== "true") {
+	const checkAdminAuthorization = () => {
+		// Retrieve the authToken and isAdmin from cookies
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+		const isAdmin = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("isAdmin="))
+			?.split("=")[1];
+
+		// Check if the user is authorized as admin
+		if (authToken && isAdmin === "true") {
+			setIsAuthorized(true);
+		} else {
 			setIsAuthorized(false);
-			return;
 		}
+	};
+
+	useEffect(() => {
+		checkAdminAuthorization();
 	}, []);
 
 	// Show a loading message while checking authorization

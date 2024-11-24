@@ -9,16 +9,18 @@ export default function LoginForm() {
 	const [loginStatus, setLoginStatus] = useState<string>("");
 
 	const checkLoginState = () => {
-		const authToken = localStorage.getItem("authToken");
-		const username = localStorage.getItem("username");
+		// Read cookies to check for the auth token
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
+		// Retrieve the username from localStorage
+		const storedUsername = localStorage.getItem("username");
+
 		if (authToken) {
-			try {
-				isLoggedIn.value = true;
-				loggedInUser.value = username;
-			} catch (error) {
-				console.error("Error decoding token:", error);
-				isLoggedIn.value = false;
-			}
+			isLoggedIn.value = true;
+			loggedInUser.value = storedUsername;
 		} else {
 			isLoggedIn.value = false;
 			loggedInUser.value = null;
@@ -68,17 +70,17 @@ export default function LoginForm() {
 
 			const data = await response.json();
 
+			// Store username in localStorage
 			localStorage.setItem("username", username);
 
-			if (isAdmin) {
-				localStorage.setItem("isAdmin", "true");
-			}
+			// Store admin flag if applicable
+			document.cookie = `isAdmin=${isAdmin}; path=/;`; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
 
-			if (data.token) {
-				localStorage.setItem("authToken", data.token);
-				checkLoginState();
-				setLoginStatus("Login successful!");
-			}
+			// Store token in cookies
+			document.cookie = `authToken=${data.token}; path=/;`; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
+
+			checkLoginState();
+			setLoginStatus("Login successful!");
 		} catch (error) {
 			console.error("Error during login:", error);
 			setLoginStatus("An unexpected error occurred. Please try again.");
@@ -86,11 +88,16 @@ export default function LoginForm() {
 	};
 
 	const handleLogout = () => {
-		localStorage.removeItem("authToken");
-		localStorage.removeItem("isAdmin");
+		// Clear the auth token from cookies
+		document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;"; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
+
+		// Clear username and admin flag from localStorage
 		localStorage.removeItem("username");
+		document.cookie = "isAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;"; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
+
 		isLoggedIn.value = false;
 		loggedInUser.value = null;
+
 		checkLoginState();
 		setLoginStatus("");
 	};

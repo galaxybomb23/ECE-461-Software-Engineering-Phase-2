@@ -9,8 +9,12 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 	const { id } = ctx.params;
 
 	try {
-		// Retrieve token from localStorage
-		const authToken = localStorage.getItem("authToken");
+		// Retrieve the authToken from cookies in the request headers
+		const cookieHeader = req.headers.get("Cookie") || "";
+		const authToken = cookieHeader
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
 
 		// Check if the token exists
 		if (!authToken) {
@@ -23,7 +27,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				"X-Authorization": authToken, // Use the token from localStorage
+				"X-Authorization": authToken, // Use the token from cookies
 			},
 		});
 		if (!packageResponse.ok) throw new Error("Package data fetch failed");
@@ -34,7 +38,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				"X-Authorization": authToken, // Use the token from localStorage
+				"X-Authorization": authToken, // Use the token from cookies
 			},
 		});
 		if (!costResponse.ok) throw new Error("Cost data fetch failed");
@@ -45,15 +49,11 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				"X-Authorization": authToken, // Use the token from localStorage
+				"X-Authorization": authToken, // Use the token from cookies
 			},
 		});
 		if (!rateResponse.ok) throw new Error("Rating data fetch failed");
 		const rateData: PackageRating = await rateResponse.json();
-
-		console.debug("Package data:", packageData);
-		console.debug("Cost data:", costData);
-		console.debug("Rating data:", rateData);
 
 		return ctx.render({ packageData, costData, rateData });
 	} catch (error) {
