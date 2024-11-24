@@ -150,14 +150,16 @@ export async function deleteAccount(
 	}
 }
 
-export async function get_all_user_info(db = new DB(DATABASEFILE),autoCloseDB = true) {
-    try {
-        const query = db.query(`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group, is_admin, username FROM users`);
-        return query;
-    } finally {
-        // mem safety close
-        if (autoCloseDB) {
-            db.close(true);
-        }
-    }
+export async function get_all_user_info(db = new DB(DATABASEFILE), autoCloseDB = true) {
+	try {
+		const query = db.query(
+			`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group, is_admin, username FROM users`,
+		);
+		return query;
+	} finally {
+		// mem safety close
+		if (autoCloseDB) {
+			db.close(true);
+		}
+	}
 }
