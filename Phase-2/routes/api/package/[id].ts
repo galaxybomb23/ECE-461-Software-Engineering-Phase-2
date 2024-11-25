@@ -178,8 +178,7 @@ export async function updatePackageContent(
 					throw new Error("Package name does not match the proposed name");
 				}
 			}
-		}
-		else {
+		} else {
 			console.debug("Package not found");
 			return false;
 		}
