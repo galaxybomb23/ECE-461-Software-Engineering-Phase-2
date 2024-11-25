@@ -9,11 +9,21 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 		setShowModal(false);
 
 		try {
+			// Retrieve the token from cookies
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
+
+			if (!authToken) {
+				throw new Error("User is not logged in.");
+			}
+
 			const response = await fetch(`/api/package/${packageId}`, {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
-					"X-Authorization": `bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485`, // TODO: Update this token
+					"X-Authorization": authToken, // Use the token from cookies
 				},
 			});
 
@@ -28,7 +38,11 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 			}, 2000); // Redirect after showing the message
 		} catch (error) {
 			if (error instanceof Error) {
-				setFeedbackMessage(`Failed to delete package: ${error.message}`);
+				setFeedbackMessage(
+					error.message === "User is not logged in."
+						? "Failed to delete package: Not logged in. Please log in and try again."
+						: `Failed to delete package: ${error.message}`,
+				);
 			} else {
 				setFeedbackMessage("An unknown error occurred while deleting the package.");
 			}

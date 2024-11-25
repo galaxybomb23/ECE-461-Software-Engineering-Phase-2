@@ -28,6 +28,7 @@ import * as $DeleteButton from "./islands/DeleteButton.tsx";
 import * as $DownloadButton from "./islands/DownloadButton.tsx";
 import * as $GroupManagement from "./islands/GroupManagement.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
+import * as $Navbar from "./islands/Navbar.tsx";
 import * as $Pagination from "./islands/Pagination.tsx";
 import * as $PermissionManagement from "./islands/PermissionManagement.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
@@ -67,6 +68,7 @@ const manifest = {
 		"./islands/DownloadButton.tsx": $DownloadButton,
 		"./islands/GroupManagement.tsx": $GroupManagement,
 		"./islands/LoginForm.tsx": $LoginForm,
+		"./islands/Navbar.tsx": $Navbar,
 		"./islands/Pagination.tsx": $Pagination,
 		"./islands/PermissionManagement.tsx": $PermissionManagement,
 		"./islands/SearchBar.tsx": $SearchBar,
