@@ -99,7 +99,13 @@ export const handler: Handlers = {
 	},
 };
 
-export async function handleContent(content: string, url?: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function handleContent(
+	content: string,
+	url?: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+	old_version?: [string],
+) {
 	// Moved outside try block so we can cleanup in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
@@ -135,6 +141,20 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 				"package.ts: No repository URL found in package.json for " + packageJSON.metadata.Name +
 					", skipping phase 1",
 			);
+		}
+
+		// ensure not uploading prior patch versionm if old_version is provided
+		if (old_version) {
+			for (const version of old_version) {
+				const old_version_split = version.split(".");
+				const new_version_split = packageJSON.metadata.Version.split(".");
+				if (
+					old_version_split[0] === new_version_split[0] && old_version_split[1] === new_version_split[1] &&
+					parseInt(old_version_split[2]) > parseInt(new_version_split[2])
+				) {
+					throw new Error("Package version is lower than the current version");
+				}
+			}
 		}
 
 		// Metrics check, all metrics must be above 0.5 to ingest
@@ -192,7 +212,7 @@ export async function handleContent(content: string, url?: string, db = new DB(D
 
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
-export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string) {
 	try {
 		// Use these URLs fetch the .zip for a package
 		let response = await fetch(url + "/zipball/master");
@@ -214,7 +234,7 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 		);
 
-		const packageJSON = await handleContent(base64Content, url, db, false);
+		const packageJSON = await handleContent(base64Content, url, db, false); // we do NOT pass the version, since by URL we pull the latest version always
 		return packageJSON;
 	} finally {
 		if (autoCloseDB) db.close();
