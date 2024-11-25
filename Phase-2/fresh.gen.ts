@@ -18,6 +18,7 @@ import * as $api_packages from "./routes/api/packages.ts";
 import * as $api_reset from "./routes/api/reset.ts";
 import * as $api_tracks from "./routes/api/tracks.ts";
 import * as $api_users from "./routes/api/users.ts";
+import * as $api_users_username_ from "./routes/api/users/[username].ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
@@ -55,6 +56,7 @@ const manifest = {
 		"./routes/api/reset.ts": $api_reset,
 		"./routes/api/tracks.ts": $api_tracks,
 		"./routes/api/users.ts": $api_users,
+		"./routes/api/users/[username].ts": $api_users_username_,
 		"./routes/greet/[name].tsx": $greet_name_,
 		"./routes/index.tsx": $index,
 		"./routes/login.tsx": $login,
