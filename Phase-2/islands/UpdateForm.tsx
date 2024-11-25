@@ -43,13 +43,23 @@ export default function UpdateForm({ metadata }: UpdateFormProps) {
 
 		setUploadStatus("");
 
+		// Retrieve the auth token from cookies
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
+		if (!authToken) {
+			throw new Error("User is not logged in.");
+		}
+
 		if (!selectedFile) {
 			setUploadStatus("Please select a file.");
 			return;
 		}
 
 		if (!authToken) {
-			setUploadStatus("Please provide the authorization token.");
+			setUploadStatus("Please login to upload a package.");
 			return;
 		}
 
@@ -183,20 +193,6 @@ export default function UpdateForm({ metadata }: UpdateFormProps) {
 						/>
 						<span className="checkmark"></span>
 					</div>
-				</div>
-
-				{/* Authorization Token */}
-				<div>
-					<label htmlFor="auth-token" className="upload-label">
-						Authorization Token (X-Authorization):
-					</label>
-					<input
-						type="text"
-						id="auth-token"
-						value={authToken}
-						onChange={(e) => setAuthToken((e.target as HTMLInputElement).value)}
-						className="url-input"
-					/>
 				</div>
 
 				{/* Submit Button */}
