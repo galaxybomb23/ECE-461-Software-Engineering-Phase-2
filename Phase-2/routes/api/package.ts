@@ -108,7 +108,13 @@ export const handler: Handlers = {
 	},
 };
 
-export async function handleContent(content: string, url?: string, via_content: number = 1, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function handleContent(
+	content: string,
+	url?: string,
+	via_content: number = 1,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
 	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
@@ -279,9 +285,12 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
 			Object.keys(packageJSON.devDependencies || {}).length;
 
-		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<string, string>;
+		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
+			string,
+			string
+		>;
 		const deps = await computeDependencies(fullDependencies, db, false);
-		
+
 		return {
 			metadata: {
 				Name: packageJSON.name,
@@ -295,24 +304,27 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 				Dependencies: deps,
 			},
 		} as ExtendedPackage;
-	}
-	finally {
+	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
 
-export async function computeDependencies (fullDependencies: Record<string, string>, db = new DB(DATABASEFILE), autoCloseDB = true) {
+export async function computeDependencies(
+	fullDependencies: Record<string, string>,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
 	// we will now query by name and version to find IDs of dependencies/devDependencies
 	// build a string of id:cost, id:cost, id:cost
 	let costs = "";
-		
+
 	for (const [name, version] of Object.entries(fullDependencies)) {
 		const cleanedVersion = (version as string).replace(/^[^\d]*/, ""); // Cast to string and clean
 
 		let pkgs = await queryPackageById(undefined, name, cleanedVersion, db, false);
-		if (pkgs) { 
-			console.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
-			if (!Array.isArray(pkgs)) { pkgs = [pkgs]; }
+		if (pkgs) {
+			logger.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
+			if (!Array.isArray(pkgs)) pkgs = [pkgs];
 
 			for (const pkg of pkgs) {
 				// query db to get base64_content

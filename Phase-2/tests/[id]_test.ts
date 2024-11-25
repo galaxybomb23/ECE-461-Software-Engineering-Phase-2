@@ -17,7 +17,8 @@ Deno.test("PackagesTest", async (t) => {
 		const pkg = await queryPackageById(id, "", "", db, false);
 		assertNotEquals(pkg, null, "Package should not be null");
 
-		if (pkg) {
+		assertEquals(!Array.isArray(pkg), true, "Package should not be an array");
+		if (pkg && !Array.isArray(pkg)) {
 			assertEquals(pkg.metadata.Name, "sample-package-1", "Package name should be sample-package-1");
 			assertEquals(pkg.metadata.Version, "1.0.0", "Package version should be 1.0.0");
 			assertEquals(pkg.metadata.ID.toString(), "1", "Package ID should be 1");
@@ -55,7 +56,7 @@ Deno.test("PackagesTest", async (t) => {
 		const pkg = await queryPackageById(id, name, version, db, false);
 		assertNotEquals(pkg, null, "Package should not be null");
 
-		if (pkg) {
+		if (pkg && !Array.isArray(pkg)) {
 			assertEquals(pkg.metadata.Name, name, "Package name should be sample-package-1");
 			assertEquals(pkg.metadata.Version, version, "Package version should be 1.0.0");
 			assertEquals(pkg.metadata.ID.toString(), id, "Package ID should be 1");
@@ -69,7 +70,9 @@ Deno.test("PackagesTest", async (t) => {
 
 		const updatedPkg = await queryPackageById(id, name, version, db, false);
 		assertNotEquals(updatedPkg, null, "Package should not be null");
-		if (updatedPkg) {
+
+		assertEquals(!Array.isArray(updatedPkg), true, "Package should not be an array");
+		if (updatedPkg && !Array.isArray(updatedPkg)) {
 			assertEquals(updatedPkg.data.Content, newContent, "Package content should be updated");
 			assertEquals(updatedPkg.metadata.Version, version, "Package version should not be updated");
 			assertEquals(updatedPkg.metadata.Name, name, "Package name should not be updated");
@@ -112,7 +115,8 @@ Deno.test("PackagesTest", async (t) => {
 		const pkg = await queryPackageById(id, name, version, db, false);
 		assertNotEquals(pkg, null, "Package should not be null");
 
-		if (pkg) {
+		assertEquals(!Array.isArray(pkg), true, "Package should not be an array");
+		if (pkg && !Array.isArray(pkg)) {
 			assertEquals(pkg.metadata.Name, name, "Package name should be sample-package-1");
 			assertEquals(pkg.metadata.Version, version, "Package version should be 1.0.0");
 			assertEquals(pkg.metadata.ID.toString(), id, "Package ID should be 1");

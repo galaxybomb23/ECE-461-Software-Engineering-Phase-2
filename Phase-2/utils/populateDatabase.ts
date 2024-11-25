@@ -36,7 +36,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					correctness_latency: 11,
 					responsive_maintainer: 85,
 					responsive_maintainer_latency: 14,
-					dependency_cost: 15,
+					dependency_cost: "100000,",
 					uploaded_by_content: 0, // 1 for content, 0 for URL
 				},
 				{
@@ -60,7 +60,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					correctness_latency: 12,
 					responsive_maintainer: 92,
 					responsive_maintainer_latency: 13,
-					dependency_cost: 20,
+					dependency_cost: "200000,1:100000",
 					uploaded_by_content: 1, // 1 for content, 0 for URL
 				},
 			],
@@ -120,7 +120,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
             correctness_latency INTEGER,
             responsive_maintainer INTEGER,
             responsive_maintainer_latency INTEGER,
-			dependency_cost INTEGER,
+			dependency_cost STRING,
 			uploaded_by_content INTEGER
         )`,
 		);

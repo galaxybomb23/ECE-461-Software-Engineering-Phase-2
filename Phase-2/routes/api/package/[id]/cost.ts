@@ -59,36 +59,38 @@ export async function calcPackageCost(
 			logger.error(`Package with ID ${id} not found`);
 			return new Response(`Package with ID ${id} not found`, { status: 404 });
 		}
-		
-		const depencency_cost = qr[0] as string
 
-		// split with comma 
-		const dependency_cost = depencency_cost.split(',');
+		const depencency_cost = qr[0] as string;
+
+		// split with comma
+		const dependency_cost = depencency_cost.split(",");
 		const base_pkg_cost = parseInt(dependency_cost[0]);
 
 		// calculate total cost of all dependencies
 		let totalCost = base_pkg_cost;
 		for (let i = 0; i < dependency_cost.length; i++) {
 			if (dependency_cost[i] == "") continue;
-			const id = dependency_cost[i].split(':')[0];
-			const cost = dependency_cost[i].split(':')[1] ?? 0;
+			const id = dependency_cost[i].split(":")[0];
+			const cost = dependency_cost[i].split(":")[1] ?? 0;
 			totalCost += parseInt(cost);
 		}
-		const fullCost = 1024 * 1024; // 1MB
 
+		const fullCost = 1024 * 1024; // 1MB, since db holds size in B
 		if (dependency) {
 			let packageCost: PackageCost = {};
-
 
 			// calculate total and standalone cost for each dependency
 			for (let i = 0; i < dependency_cost.length; i++) {
 				if (dependency_cost[i] == "") continue;
 
 				// pkg_id is either the dependency's ID or current package's ID
-				let pkg_id = dependency_cost[i].split(':')[0];
-				let pkg_cost = parseInt(dependency_cost[i].split(':')[1] ?? 0);
+				let pkg_id = dependency_cost[i].split(":")[0];
+				let pkg_cost = parseInt(dependency_cost[i].split(":")[1] ?? 0);
 
-				if (i == 0) { pkg_id = id.toString(); pkg_cost = base_pkg_cost; }
+				if (i == 0) {
+					pkg_id = id.toString();
+					pkg_cost = base_pkg_cost;
+				}
 
 				// populate the packageCost object
 				packageCost = {
@@ -97,17 +99,16 @@ export async function calcPackageCost(
 						totalCost: +(totalCost / fullCost).toFixed(2),
 						standaloneCost: +(pkg_cost / fullCost).toFixed(2),
 					},
-				}
+				};
 				totalCost -= pkg_cost;
 			}
 			return new Response(JSON.stringify(packageCost), { status: 200 });
-		}
-		else {
+		} else {
 			const packageCost: PackageCost = {
 				[id]: {
 					totalCost: +(base_pkg_cost / fullCost).toFixed(2),
-				}
-			}
+				},
+			};
 			return new Response(JSON.stringify(packageCost), { status: 200 });
 		}
 	} catch (error) {
