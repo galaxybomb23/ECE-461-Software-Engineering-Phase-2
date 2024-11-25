@@ -35,7 +35,7 @@ export default function DeleteButton({ packageId }: { packageId: string }) {
 			setFeedbackMessage("Package deleted successfully.");
 			setTimeout(() => {
 				globalThis.location.href = "/";
-			}, 2000); // Redirect after showing the message
+			}, 3000); // Redirect after showing the message
 		} catch (error) {
 			if (error instanceof Error) {
 				setFeedbackMessage(

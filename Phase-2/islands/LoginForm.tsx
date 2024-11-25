@@ -1,21 +1,21 @@
 import { useEffect, useState } from "preact/hooks";
 import { isLoggedIn, loggedInUser } from "~/signals/auth.ts";
 import { APIBaseURL } from "~/types/index.ts";
+import Modal from "~/components/Modal.tsx";
 
 export default function LoginForm() {
 	const [username, setUsername] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [isAdmin, setIsAdmin] = useState<boolean>(false);
 	const [loginStatus, setLoginStatus] = useState<string>("");
+	const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+	const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
 	const checkLoginState = () => {
-		// Read cookies to check for the auth token
 		const authToken = document.cookie
 			.split("; ")
 			.find((row) => row.startsWith("authToken="))
 			?.split("=")[1];
-
-		// Retrieve the username from localStorage
 		const storedUsername = localStorage.getItem("username");
 
 		if (authToken) {
@@ -27,7 +27,6 @@ export default function LoginForm() {
 		}
 	};
 
-	// Check if the user is already logged in
 	useEffect(() => {
 		checkLoginState();
 	}, []);
@@ -70,14 +69,9 @@ export default function LoginForm() {
 
 			const data = await response.json();
 
-			// Store username in localStorage
 			localStorage.setItem("username", username);
-
-			// Store admin flag if applicable
-			document.cookie = `isAdmin=${isAdmin}; path=/;`; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
-
-			// Store token in cookies
-			document.cookie = `authToken=${data.token}; path=/;`; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
+			document.cookie = `isAdmin=${isAdmin}; path=/;`;
+			document.cookie = `authToken=${data.token}; path=/;`;
 
 			checkLoginState();
 			setLoginStatus("Login successful!");
@@ -88,18 +82,49 @@ export default function LoginForm() {
 	};
 
 	const handleLogout = () => {
-		// Clear the auth token from cookies
-		document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;"; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
-
-		// Clear username and admin flag from localStorage
+		document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 		localStorage.removeItem("username");
-		document.cookie = "isAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;"; // TODO: Add back "Secure" and "SameSite" flags when using HTTPS
+		document.cookie = "isAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
 		isLoggedIn.value = false;
 		loggedInUser.value = null;
 
 		checkLoginState();
 		setLoginStatus("");
+	};
+
+	const handleDeleteAccount = async () => {
+		setShowDeleteModal(false);
+
+		try {
+			if (!loggedInUser.value) {
+				throw new Error("No logged-in user to delete.");
+			}
+
+			const response = await fetch(`${APIBaseURL}/api/users/${loggedInUser.value}`, {
+				method: "DELETE",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(errorText || "Failed to delete account.");
+			}
+
+			setFeedbackMessage(`Account ${loggedInUser.value} deleted successfully.`);
+			setTimeout(() => {
+				setFeedbackMessage(null);
+			}, 3000);
+			handleLogout();
+		} catch (error) {
+			setFeedbackMessage(
+				error instanceof Error
+					? `Failed to delete account: ${error.message}`
+					: "An unknown error occurred while deleting the account."
+			);
+		}
 	};
 
 	if (isLoggedIn.value) {
@@ -110,7 +135,25 @@ export default function LoginForm() {
 					<button onClick={handleLogout} className="upload-button">
 						Log Out
 					</button>
+					<button onClick={() => setShowDeleteModal(true)} className="delete-button">
+						Delete Account
+					</button>
 				</div>
+
+				{/* Delete Account Modal */}
+				{showDeleteModal && (
+					<Modal
+						title="Confirm Account Deletion"
+						message="Are you sure you want to delete your account? This action cannot be undone."
+						onConfirm={handleDeleteAccount}
+						onCancel={() => setShowDeleteModal(false)}
+						confirmText="Delete"
+						cancelText="Cancel"
+					/>
+				)}
+
+				{/* Feedback Message */}
+				{feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
 			</div>
 		);
 	}

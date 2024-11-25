@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import Navbar from "./Navbar.tsx";
+import Navbar from "~/islands/Navbar.tsx";
+import Modal from "~/components/Modal.tsx";
 
 interface User {
 	username: string;
@@ -16,7 +17,20 @@ export default function Admin() {
 	const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 	const [users, setUsers] = useState<User[]>([]);
 	const [expandedUser, setExpandedUser] = useState<string | null>(null);
-	const [editUser, setEditUser] = useState<User | null>(null); // Track the user being edited
+	const [editUser, setEditUser] = useState<User | null>(null);
+	const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [userToDelete, setUserToDelete] = useState<string | null>(null);
+	const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+	const [newUser, setNewUser] = useState({
+		username: "",
+		password: "",
+		canSearch: false,
+		canDownload: false,
+		canUpload: false,
+		userGroup: "",
+		isAdmin: false,
+	});
 
 	const checkAdminAuthorization = () => {
 		const authToken = document.cookie
@@ -46,6 +60,30 @@ export default function Admin() {
 		}
 	};
 
+	const createUser = async () => {
+		try {
+			const response = await fetch(`/api/users`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(newUser),
+			});
+			if (!response.ok) throw new Error("Failed to create user.");
+			fetchUsers(); // Refresh user list
+			setShowCreateForm(false); // Close the create form
+			setNewUser({
+				username: "",
+				password: "",
+				canSearch: false,
+				canDownload: false,
+				canUpload: false,
+				userGroup: "",
+				isAdmin: false,
+			}); // Reset form fields
+		} catch (error) {
+			console.error("Error creating user:", error);
+		}
+	};
+
 	const updateUser = async (user: User) => {
 		try {
 			const response = await fetch(`/api/users/${user.username}`, {
@@ -61,11 +99,58 @@ export default function Admin() {
 		}
 	};
 
+	const handleEscKey = (event: KeyboardEvent) => {
+		if (event.key === "Escape") {
+			setEditUser(null);
+			setShowCreateForm(false);
+		}
+	};
+
+	const handleDeleteUser = async () => {
+		setShowDeleteModal(false); // Close modal
+
+		if (!userToDelete) return;
+
+		try {
+			const response = await fetch(`/api/users/${userToDelete}`, {
+				method: "DELETE",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(errorText || "Failed to delete user.");
+			}
+
+			setFeedbackMessage(`User ${userToDelete} deleted successfully.`);
+			setUserToDelete(null);
+			fetchUsers(); // Refresh user list
+			setTimeout(() => {
+				setFeedbackMessage(null);
+			}, 3000)
+		} catch (error) {
+			setFeedbackMessage(
+				error instanceof Error
+					? `Failed to delete user: ${error.message}`
+					: "An unknown error occurred while deleting the user."
+			);
+		}
+	};
+
 	useEffect(() => {
 		checkAdminAuthorization();
 		if (isAuthorized) {
 			fetchUsers();
 		}
+
+		// Add event listener for Esc key
+		document.addEventListener("keydown", handleEscKey);
+		return () => {
+			// Clean up event listener
+			document.removeEventListener("keydown", handleEscKey);
+		};
 	}, [isAuthorized]);
 
 	if (isAuthorized === null) {
@@ -96,6 +181,13 @@ export default function Admin() {
 			<Navbar />
 			<div className="admin-panel">
 				<h1 className="admin-title">Admin Panel</h1>
+				<button className="create-button" onClick={() => setShowCreateForm(true)}>
+					Create Account
+				</button>
+
+				{/* Feedback Message */}
+				{feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
+
 				<div className="user-list">
 					{users.map((user) => (
 						<div
@@ -122,6 +214,13 @@ export default function Admin() {
 										<strong>Upload:</strong> {user.canUpload ? "Yes" : "No"}
 									</li>
 								</ul>
+								<p>
+									<strong>Token Start Time:</strong>{" "}
+									{new Date(user.tokenStartTime * 1000).toLocaleString()}
+								</p>
+								<p>
+									<strong>API Interactions:</strong> {user.tokenApiInteractions}
+								</p>
 								<button
 									className="edit-button"
 									onClick={(e) => {
@@ -131,20 +230,127 @@ export default function Admin() {
 								>
 									Edit User
 								</button>
+								<button
+									className="delete-button"
+									onClick={() => {
+										setUserToDelete(user.username);
+										setShowDeleteModal(true);
+									}}
+								>
+									Delete User
+								</button>
 							</div>
 						</div>
 					))}
 				</div>
-				{editUser && (
+
+				{/* Delete Modal */}
+				{showDeleteModal && (
+					<Modal
+						title="Confirm Delete"
+						message={`Are you sure you want to delete user "${userToDelete}"? This action cannot be undone.`}
+						onConfirm={handleDeleteUser}
+						onCancel={() => setShowDeleteModal(false)}
+						confirmText="Delete"
+						cancelText="Cancel"
+					/>
+				)}
+
+				{showCreateForm && (
 					<>
-						{/* Overlay Background */}
 						<div
 							className="overlay-background"
-							onClick={() => setEditUser(null)} // Close form on background click
+							onClick={() => setShowCreateForm(false)}
 						>
 						</div>
+						<div className="edit-user-form-overlay">
+							<h2>Create New User</h2>
+							<label>
+								<span>Username:</span>
+								<input
+									type="text"
+									value={newUser.username}
+									onChange={(e) =>
+										setNewUser({ ...newUser, username: (e.target as HTMLInputElement).value })}
+								/>
+							</label>
+							<label>
+								<span>Password:</span>
+								<input
+									type="password"
+									value={newUser.password || ""}
+									onChange={(e) =>
+										setNewUser({ ...newUser, password: (e.target as HTMLInputElement).value })}
+								/>
+							</label>
+							<label>
+								<span>Group:</span>
+								<input
+									type="text"
+									value={newUser.userGroup}
+									onChange={(e) =>
+										setNewUser({ ...newUser, userGroup: (e.target as HTMLInputElement).value })}
+								/>
+							</label>
+							<label>
+								<span>Can Search:</span>
+								<input
+									type="checkbox"
+									checked={newUser.canSearch}
+									onChange={(e) =>
+										setNewUser({ ...newUser, canSearch: (e.target as HTMLInputElement).checked })}
+								/>
+							</label>
+							<label>
+								<span>Can Download:</span>
+								<input
+									type="checkbox"
+									checked={newUser.canDownload}
+									onChange={(e) =>
+										setNewUser({ ...newUser, canDownload: (e.target as HTMLInputElement).checked })}
+								/>
+							</label>
+							<label>
+								<span>Can Upload:</span>
+								<input
+									type="checkbox"
+									checked={newUser.canUpload}
+									onChange={(e) =>
+										setNewUser({ ...newUser, canUpload: (e.target as HTMLInputElement).checked })}
+								/>
+							</label>
+							<label>
+								<span>Admin:</span>
+								<input
+									type="checkbox"
+									checked={newUser.isAdmin}
+									onChange={(e) =>
+										setNewUser({ ...newUser, isAdmin: (e.target as HTMLInputElement).checked })}
+								/>
+							</label>
+							<button
+								className="save-button"
+								onClick={createUser}
+							>
+								Create Account
+							</button>
+							<button
+								className="cancel-button"
+								onClick={() => setShowCreateForm(false)}
+							>
+								Cancel
+							</button>
+						</div>
+					</>
+				)}
 
-						{/* Edit Form */}
+				{editUser && (
+					<>
+						<div
+							className="overlay-background"
+							onClick={() => setEditUser(null)}
+						>
+						</div>
 						<div className="edit-user-form-overlay">
 							<h2>Edit User: {editUser.username}</h2>
 							<label>
@@ -156,7 +362,6 @@ export default function Admin() {
 										setEditUser({ ...editUser, userGroup: (e.target as HTMLInputElement).value })}
 								/>
 							</label>
-
 							<label>
 								<span>Can Search:</span>
 								<input
@@ -196,8 +401,18 @@ export default function Admin() {
 										setEditUser({ ...editUser, isAdmin: (e.target as HTMLInputElement).checked })}
 								/>
 							</label>
-							<button onClick={() => updateUser(editUser)}>Save Changes</button>
-							<button onClick={() => setEditUser(null)}>Cancel</button>
+							<button
+								className="save-button"
+								onClick={() => updateUser(editUser)}
+							>
+								Save Changes
+							</button>
+							<button
+								className="cancel-button"
+								onClick={() => setEditUser(null)}
+							>
+								Cancel
+							</button>
 						</div>
 					</>
 				)}

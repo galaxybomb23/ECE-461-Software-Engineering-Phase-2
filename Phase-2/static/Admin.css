@@ -108,10 +108,25 @@
 	border-radius: 0.3rem;
 	cursor: pointer;
 	transition: background-color 0.2s ease;
+	margin-right: 1.5rem;
 }
 
 .edit-button:hover {
 	background-color: #06544f;
+}
+
+.user-details .delete-button {
+	background-color: #d9534f;
+	color: #fafafa;
+	padding: 0.5rem 1rem;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.user-details .delete-button:hover {
+	background-color: #c9302c;
 }
 
 .edit-user-form {
@@ -139,23 +154,9 @@
 }
 
 .edit-user-form input[type="text"],
+.edit-user-form input[type="password"],
 .edit-user-form input[type="checkbox"] {
 	margin-left: 1rem;
-}
-
-.edit-user-form button {
-	background-color: #4caf50;
-	color: #ffffff;
-	border: 1px solid #a5a5af8a;
-	padding: 0.5rem 1rem;
-	border-radius: 0.3rem;
-	margin-right: 1rem;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-
-.edit-user-form button:hover {
-	background-color: #45a049;
 }
 
 .edit-user-form-overlay {
@@ -189,23 +190,9 @@
 }
 
 .edit-user-form-overlay input[type="text"],
+.edit-user-form-overlay input[type="password"],
 .edit-user-form-overlay input[type="checkbox"] {
 	margin-left: 1rem;
-}
-
-.edit-user-form-overlay button {
-	background-color: #4caf50;
-	color: #ffffff;
-	border: 1px solid #a5a5af8a;
-	padding: 0.5rem 1rem;
-	border-radius: 0.3rem;
-	margin-right: 1rem;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-
-.edit-user-form-overlay button:hover {
-	background-color: #45a049;
 }
 
 .overlay-background {
@@ -218,7 +205,6 @@
 	z-index: 999;
 }
 
-/* Styled Input for User Group */
 .edit-user-form-overlay label {
 	display: flex;
 	flex-direction: column;
@@ -231,7 +217,8 @@
 	color: #afbbcc;
 }
 
-.edit-user-form-overlay input[type="text"] {
+.edit-user-form-overlay input[type="text"],
+.edit-user-form-overlay input[type="password"] {
 	width: 100%;
 	padding: 0.75rem;
 	font-size: 1rem;
@@ -243,7 +230,63 @@
 	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.edit-user-form-overlay input[type="text"]:focus {
+.edit-user-form-overlay input[type="text"]:focus,
+.edit-user-form-overlay input[type="password"]:focus {
 	border-color: #076861;
 	box-shadow: 0 0 0 3px rgba(7, 104, 97, 0.5);
+}
+
+.create-button {
+	display: block; /* Ensure it takes up its own line */
+	margin: 0 auto; /* Center align the button */
+	margin-bottom: 2rem; /* Add space below the button */
+	padding: 12px 24px;
+	background-color: #076861;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.create-button:hover {
+	background-color: #06544f;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button.save-button {
+	background-color: #076861;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 12px 24px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+	margin-right: 1.5rem;
+}
+
+button.save-button:hover {
+	background-color: #06544f;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button.cancel-button {
+	background-color: #d9534f;
+	color: #ffffff;
+	border: 1px solid #a5a5af8a;
+	border-radius: 0.3rem;
+	padding: 12px 24px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button.cancel-button:hover {
+	background-color: #c9302c;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
