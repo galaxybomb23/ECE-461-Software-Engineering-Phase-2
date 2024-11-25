@@ -55,7 +55,8 @@ export async function calculateDependencyPinning(
 	}
 
 	// Score is 1 if there are no dependencies, otherwise it is the ratio of pinned dependencies to total dependencies
-	const score = totalDependencies === 0 ? 1 : pinnedDependencies / totalDependencies;
+	let score = totalDependencies === 0 ? 1 : pinnedDependencies / totalDependencies;
+	score = Math.max(0, Math.min(1, score + .45)); // mean shifting
 	logger.log(
 		"info",
 		`calculateDependencyPinning - Score: ${score}, Latency: ${

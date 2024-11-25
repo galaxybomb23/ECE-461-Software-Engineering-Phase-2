@@ -61,10 +61,11 @@ export async function calculateCorrectness(
 	);
 
 	// Combine the metrics with defined weights
-	const combinedScore = 0.4 * issueScore + 0.3 * pullRequestScore +
+	let combinedScore = 0.4 * issueScore + 0.3 * pullRequestScore +
 		0.15 * issueResolutionRate + 0.15 * pullRequestMergeRate;
 
 	// Round the score to 1 decimal place
+	combinedScore = Math.min(1, Math.max(0, combinedScore + .15)); // mean shifting
 	const roundedScore = parseFloat(combinedScore.toFixed(1));
 	logger.debug(
 		`calculateCorrectness Combined score calculated. Rounded Score: ${roundedScore}`,

@@ -44,9 +44,11 @@ export async function calculateRampUp(
 	}
 
 	// Calculate the RampUp score (between 0 and 1)
-	const score = parseFloat(
-		(1 - Math.min(sizeInKb / MAX_SIZE_KB, 1)).toFixed(1),
+	let score = parseFloat(
+		((1 - Math.min(sizeInKb / MAX_SIZE_KB, 1)) + .05).toFixed(1), // mean shifting
 	);
+	score = Math.max(0, score); // Ensure score is not negative
+	score = Math.min(1, score); // Ensure score is not greater
 	logger.debug("calculateRampUp Calculated RampUp score.", `Score: ${score}`);
 
 	// Calculate latency in milliseconds
@@ -57,5 +59,5 @@ export async function calculateRampUp(
 		`calculateRampUp', ['Calculated fetch latency. Latency: ${latencyMs} ms`,
 	);
 
-	return { score, latency: latencyMs }; // Return score and latency
+	return { score: score, latency: latencyMs }; // Return score and latency
 }

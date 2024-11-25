@@ -83,8 +83,8 @@ export interface RepoMetrics {
 	ResponsiveMaintainer_Latency: number | null;
 	License: number | null;
 	License_Latency: number | null;
-	dependencyPinning: number | null;
-	dependencyPinning_Latency: number | null;
+	DependencyPinning: number | null;
+	DependencyPinning_Latency: number | null;
 	ReviewPercentage: number | null;
 	ReviewPercentage_Latency: number | null;
 }

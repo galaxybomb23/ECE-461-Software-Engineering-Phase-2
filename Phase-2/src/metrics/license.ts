@@ -70,7 +70,9 @@ export async function getLicenseScore(
 		throw error; // Re-throw the error after logging
 	} finally {
 		// Clean up the cloned repository to avoid clutter
-		fs.rmSync(repoDir, { recursive: true, force: true });
+		// fs.rmSync(repoDir, { recursive: true, force: true });
+		// console.log("Removing repoDir:" + repoDir);
+		Deno.removeSync(repoDir, { recursive: true });
 		logger.debug(
 			`getLicenseScore Temporary repository directory cleaned up.', Directory: ${repoDir}`,
 		);

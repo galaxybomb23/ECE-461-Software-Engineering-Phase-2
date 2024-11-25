@@ -48,6 +48,8 @@ export async function getBusFactor(
 	}
 
 	let bus_factor = 1 - (i / num_committers); // Calculate Bus Factor from Inverse
+	bus_factor = Math.max(0, bus_factor); // Ensure Bus Factor is not negative
+	bus_factor = Math.min(1, bus_factor + .05); // Ensure Bus Factor is not greater than 1
 	bus_factor = Math.round(bus_factor * 10) / 10; // Round to nearest tenth
 	logger.debug(
 		`getBusFactor Bus Factor calculated. Bus Factor: ${bus_factor}`,

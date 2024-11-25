@@ -43,7 +43,7 @@ export async function getMetrics(URL: string): Promise<string> {
 			score: responsiveMaintainerScore,
 			latency: responsiveMaintainerLatency,
 		},
-		{ score: dependencyPinningScore, latency: dependencyPinningLatency },
+		{ score: DependencyPinningScore, latency: DependencyPinningLatency },
 		{ score: reviewPercentageScore, latency: reviewPercentageLatency },
 	] = await Promise.all([
 		getBusFactor(URL),
@@ -66,8 +66,8 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.RampUp_Latency = rampUpLatency;
 	repo_data.ResponsiveMaintainer = responsiveMaintainerScore;
 	repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
-	repo_data.dependencyPinning = dependencyPinningScore;
-	repo_data.dependencyPinning_Latency = dependencyPinningLatency;
+	repo_data.DependencyPinning = DependencyPinningScore;
+	repo_data.DependencyPinning_Latency = DependencyPinningLatency;
 	repo_data.ReviewPercentage = reviewPercentageScore;
 	repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 

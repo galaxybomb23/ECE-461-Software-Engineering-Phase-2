@@ -42,7 +42,8 @@ export async function calculateResponsiveMaintainer(
 
 	// Calculate the ratio of open to closed issues
 	const ratio = closedIssuesCount > 0 ? openIssuesCount / closedIssuesCount : 0; // Avoid division by zero
-	const score = parseFloat((1 / (1 + ratio)).toFixed(2)); // Calculate score
+	let score = parseFloat((1 / (1 + ratio)).toFixed(2)); // Calculate score
+	score = Math.max(0, Math.min(1, score + .25)); // Ensure score is between 0 and 1
 	logger.debug(
 		`calculateResponsiveMaintainer Calculated Responsive Maintainer score. Score: ${score}`,
 	);
@@ -55,5 +56,5 @@ export async function calculateResponsiveMaintainer(
 		`calculateResponsiveMaintainer Calculated fetch latency. Latency: ${latencyMs} ms`,
 	);
 
-	return { score, latency: latencyMs }; // Return score and latency
+	return { score: score, latency: latencyMs }; // Return score and latency
 }
