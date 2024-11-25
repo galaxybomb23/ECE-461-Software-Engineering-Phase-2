@@ -34,7 +34,7 @@ export const handler: Handlers = {
 		}
 	},
 
-	// Handles PUT request to update a package
+	// Handles POST request to update a package
 	async POST(req, ctx) {
 		const body = await req.json();
 
@@ -179,8 +179,13 @@ export async function updatePackageContent(
 				}
 			}
 		}
-		return false;
+		else {
+			console.debug("Package not found");
+			return false;
+		}
+		return true;
 	} catch (error) {
+		console.error(error);
 		return false;
 	} finally {
 		if (autoCloseDB) db.close();
