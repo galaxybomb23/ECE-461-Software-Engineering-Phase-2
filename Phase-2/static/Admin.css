@@ -1,53 +1,101 @@
-.tab-container {
+/* Admin Panel Container */
+.admin-panel {
+	background-color: #0c0c0c;
+	color: #fafafa;
+	font-family: "Roboto", sans-serif;
+	min-height: 100vh;
 	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
-}
-
-.tab-button {
-	padding: 10px;
-	font-size: 1rem;
-	border: none;
-	border-radius: 5px;
+	flex-direction: column;
+	align-items: center;
+	padding: 2rem 2rem 0; /* Padding to match overall styling */
+	margin-top: 90px; /* Push content below the navbar height */
+	box-sizing: border-box;
+  }
+  
+  /* Admin Title */
+  .admin-title {
+	padding-top: 2rem;
+	text-align: center;
+	font-size: 3rem;
+	font-weight: bold;
+	color: #076861;
+  }
+  
+  /* User List Container */
+  .user-list {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+	max-width: 800px;
+	padding: 2rem;
+	box-sizing: border-box;
+  }
+  
+  /* User Card */
+  .user-card {
 	background-color: #2e2b298d;
-	color: white;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
+	padding: 1.5rem;
 	border: 1px solid #a5a5af8a;
-	border-radius: 0.3rem;
-}
-
-.tab-button.active {
-	background-color: #076861;
-}
-
-.tab-content {
-	padding: 20px;
-	background-color: #2e2b298d;
-	border-radius: 5px;
-}
-
-.debloat-container {
+	border-radius: 0.5rem;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	transition: transform 0.2s, box-shadow 0.2s;
+	cursor: pointer;
+  }
+  
+  .user-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* User Summary */
+  .user-summary {
+	font-size: 1.2rem;
+	color: #076861;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	gap: 10px;
-	width: 100%; /* Take up full horizontal space */
-	margin-bottom: 1rem;
-}
-
-.custom-checkbox {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	flex: 1; /* Allows each checkbox to take equal space */
-	justify-content: center; /* Centers each checkbox and label */
-	padding: 5px;
-}
-
-.permission-label {
+  }
+  
+  /* Expand Icon */
+  .user-summary .expand-icon {
+	font-size: 1.5rem;
+	color: #afbbcc;
+	transition: transform 0.2s;
+  }
+  
+  .user-card:hover .expand-icon {
+	transform: scale(1.2);
+  }
+  
+  /* User Details (Hidden by Default) */
+  .user-details {
+	margin-top: 1rem;
+	font-size: 1rem;
+	color: #afbbcc;
+	border-top: 1px solid #a5a5af8a;
+	padding-top: 1rem;
+	display: none;
+  }
+  
+  /* Show Details */
+  .user-card.expanded .user-details {
+	display: block;
+  }
+  
+  /* Permission List */
+  .permission-list {
+	list-style: none;
+	padding: 0;
+  }
+  
+  .permission-list li {
+	margin: 0.5rem 0;
+	font-size: 1rem;
+	color: #afbbcc;
+  }
+  
+  .permission-list strong {
 	color: #fafafa;
-	font-size: 16px;
-	display: inline-block;
-	margin-top: 40px;
-}
+  }
+  

@@ -1,103 +1,125 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import Navbar from "./Navbar.tsx";
-import UserManagement from "~/islands/UserManagement.tsx";
-import PermissionManagement from "~/islands/PermissionManagement.tsx";
-import GroupManagement from "~/islands/GroupManagement.tsx";
+
+interface User {
+  username: string;
+  isAdmin: boolean;
+  canSearch: boolean;
+  canDownload: boolean;
+  canUpload: boolean;
+  userGroup: string;
+  tokenStartTime: number;
+  tokenApiInteractions: number;
+}
 
 export default function Admin() {
-	const [selectedTab, setSelectedTab] = useState("user-management");
-	const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null); // Track authorization status
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
-	const checkAdminAuthorization = () => {
-		// Retrieve the authToken and isAdmin from cookies
-		const authToken = document.cookie
-			.split("; ")
-			.find((row) => row.startsWith("authToken="))
-			?.split("=")[1];
-		const isAdmin = document.cookie
-			.split("; ")
-			.find((row) => row.startsWith("isAdmin="))
-			?.split("=")[1];
+  const checkAdminAuthorization = () => {
+    const authToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("authToken="))
+      ?.split("=")[1];
+    const isAdmin = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("isAdmin="))
+      ?.split("=")[1];
 
-		// Check if the user is authorized as admin
-		if (authToken && isAdmin === "true") {
-			setIsAuthorized(true);
-		} else {
-			setIsAuthorized(false);
-		}
-	};
+    if (authToken && isAdmin === "true") {
+      setIsAuthorized(true);
+    } else {
+      setIsAuthorized(false);
+    }
+  };
 
-	useEffect(() => {
-		checkAdminAuthorization();
-	}, []);
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Failed to fetch users.");
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
-	// Show a loading message while checking authorization
-	if (isAuthorized === null) {
-		return (
-			<div>
-				<Navbar />
-				<div className="horizontal-container">
-					<div className="vertical-container">
-						<p>Loading...</p>
-					</div>
-				</div>
-			</div>
-		);
-	}
+  useEffect(() => {
+    checkAdminAuthorization();
+    if (isAuthorized) {
+      fetchUsers();
+    }
+  }, [isAuthorized]);
 
-	// If the user is not authorized, display an error message
-	if (isAuthorized === false) {
-		return (
-			<div>
-				<Navbar />
-				<div className="horizontal-container">
-					<div className="vertical-container">
-						<h1>Access Denied</h1>
-						<p>You do not have permission to access this page.</p>
-					</div>
-				</div>
-			</div>
-		);
-	}
+  if (isAuthorized === null) {
+    return (
+      <div>
+        <Navbar />
+        <div className="admin-panel">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-	// Render the admin panel if authorized
-	return (
-		<div>
-			<Navbar />
-			<div className="horizontal-container">
-				<div className="vertical-container">
-					<div className="title">Admin Panel</div>
+  if (isAuthorized === false) {
+    return (
+      <div>
+        <Navbar />
+        <div className="admin-panel">
+          <h1>Access Denied</h1>
+          <p>You do not have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
-					{/* Tabs for Admin Sections */}
-					<div className="custom-selector">
-						<button
-							className={`selector-option ${selectedTab === "user-management" ? "active" : ""}`}
-							onClick={() => setSelectedTab("user-management")}
-						>
-							User Management
-						</button>
-						<button
-							className={`selector-option ${selectedTab === "permission-management" ? "active" : ""}`}
-							onClick={() => setSelectedTab("permission-management")}
-						>
-							Permission Management
-						</button>
-						<button
-							className={`selector-option ${selectedTab === "group-management" ? "active" : ""}`}
-							onClick={() => setSelectedTab("group-management")}
-						>
-							Group Management
-						</button>
-					</div>
-
-					{/* Render the selected tab content */}
-					<div className="upload-form tab-content">
-						{selectedTab === "user-management" && <UserManagement />}
-						{selectedTab === "permission-management" && <PermissionManagement />}
-						{selectedTab === "group-management" && <GroupManagement />}
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  return (
+    <div>
+      <Navbar />
+      <div className="admin-panel">
+        <h1 className="admin-title">Admin Panel</h1>
+        <div className="user-list">
+          {users.map((user) => (
+            <div
+              className={`user-card ${expandedUser === user.username ? "expanded" : ""}`}
+              key={user.username}
+              onClick={() =>
+                setExpandedUser((prev) => (prev === user.username ? null : user.username))
+              }
+            >
+              <div className="user-summary">
+                <span>{user.username}</span>
+                <span className="expand-icon">{expandedUser === user.username ? "▲" : "▼"}</span>
+              </div>
+              <div className="user-details">
+                <p>
+                  <strong>Group:</strong> {user.userGroup}
+                </p>
+                <ul className="permission-list">
+                  <li>
+                    <strong>Search:</strong> {user.canSearch ? "Yes" : "No"}
+                  </li>
+                  <li>
+                    <strong>Download:</strong> {user.canDownload ? "Yes" : "No"}
+                  </li>
+                  <li>
+                    <strong>Upload:</strong> {user.canUpload ? "Yes" : "No"}
+                  </li>
+                </ul>
+                <p>
+                  <strong>Token Start Time:</strong>{" "}
+                  {new Date(user.tokenStartTime * 1000).toLocaleString()}
+                </p>
+                <p>
+                  <strong>API Interactions:</strong> {user.tokenApiInteractions}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
