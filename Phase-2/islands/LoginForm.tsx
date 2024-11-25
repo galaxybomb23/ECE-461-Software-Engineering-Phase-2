@@ -122,7 +122,7 @@ export default function LoginForm() {
 			setFeedbackMessage(
 				error instanceof Error
 					? `Failed to delete account: ${error.message}`
-					: "An unknown error occurred while deleting the account."
+					: "An unknown error occurred while deleting the account.",
 			);
 		}
 	};

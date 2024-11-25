@@ -129,12 +129,12 @@ export default function Admin() {
 			fetchUsers(); // Refresh user list
 			setTimeout(() => {
 				setFeedbackMessage(null);
-			}, 3000)
+			}, 3000);
 		} catch (error) {
 			setFeedbackMessage(
 				error instanceof Error
 					? `Failed to delete user: ${error.message}`
-					: "An unknown error occurred while deleting the user."
+					: "An unknown error occurred while deleting the user.",
 			);
 		}
 	};
