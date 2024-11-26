@@ -40,6 +40,16 @@ export default function UploadForm() {
 		// Clear the status message each time the upload begins
 		setUploadStatus("");
 
+		// Retrieve the auth token from cookies
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
+		if (!authToken) {
+			throw new Error("User is not logged in.");
+		}
+
 		if (selectedOption === "file" && !selectedFile) {
 			setUploadStatus("Please select a file.");
 			return;
@@ -51,7 +61,7 @@ export default function UploadForm() {
 		}
 
 		if (!authToken) {
-			setUploadStatus("Please provide the authorization token.");
+			setUploadStatus("Please log in to upload packages.");
 			return;
 		}
 
@@ -179,19 +189,6 @@ export default function UploadForm() {
 						/>
 						<span className="checkmark"></span>
 					</div>
-				</div>
-
-				<div>
-					<label htmlFor="auth-token" className="upload-label">
-						Authorization Token (X-Authorization):
-					</label>
-					<input
-						type="text"
-						id="auth-token"
-						value={authToken}
-						onChange={(e) => setAuthToken((e.target as HTMLInputElement).value)}
-						className="url-input"
-					/>
 				</div>
 
 				<button type="submit" className="upload-button" disabled={isLoading}>

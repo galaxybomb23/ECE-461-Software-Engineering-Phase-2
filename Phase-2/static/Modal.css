@@ -196,6 +196,7 @@
 	transition: background-color 0.2s ease, box-shadow 0.2s ease;
 	width: 150px; /* Make buttons uniform width */
 	text-align: center;
+	width: 100%;
 }
 
 .delete-button:hover {
