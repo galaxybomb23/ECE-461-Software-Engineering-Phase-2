@@ -15,15 +15,15 @@ export const handler: Handlers = {
 		const id = parseInt(ctx.params.id);
 
 		// Extract and validate the 'X-Authentication' token
-		// const authToken = req.headers.get("X-Authorization") ?? "";
-		// if (!authToken) {
-		// 	logger.info("Invalid request: missing authentication token");
-		// 	return new Response("Invalid request: missing authentication token", { status: 403 });
-		// }
-		// if (!getUserAuthInfo(authToken).is_token_valid) {
-		// 	logger.info("Unauthorized request: invalid token");
-		// 	return new Response("Unauthorized request: invalid token", { status: 403 });
-		// }
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.info("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.info("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
 
 		// Extract query parameter (offset for pagination)
 		const url = new URL(req.url);

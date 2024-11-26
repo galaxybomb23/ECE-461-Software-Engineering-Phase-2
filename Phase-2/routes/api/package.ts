@@ -1,7 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
-import type { PackageMetadata } from "~/types/index.ts";
-import { ExtendedPackage, Package, PackageData } from "../../types/index.ts";
+import { ExtendedPackage, Package, PackageData, PackageMetadata } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
@@ -18,15 +17,15 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 
 			// Extract and validate the 'X-Authentication' token
-			// const authToken = req.headers.get("X-Authorization") ?? "";
-			// if (!authToken) {
-			// 	logger.info("Invalid request: missing authentication token");
-			// 	return new Response("Invalid request: missing authentication token", { status: 403 });
-			// }
-			// if (!getUserAuthInfo(authToken).is_token_valid) {
-			// 	logger.info("Unauthorized request: invalid token");
-			// 	return new Response("Unauthorized request: invalid token", { status: 403 });
-			// }
+			const authToken = req.headers.get("X-Authorization") ?? "";
+			if (!authToken) {
+				logger.info("Invalid request: missing authentication token");
+				return new Response("Invalid request: missing authentication token", { status: 403 });
+			}
+			if (!getUserAuthInfo(authToken).is_token_valid) {
+				logger.info("Unauthorized request: invalid token");
+				return new Response("Unauthorized request: invalid token", { status: 403 });
+			}
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
