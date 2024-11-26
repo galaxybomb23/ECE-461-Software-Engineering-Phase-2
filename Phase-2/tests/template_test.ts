@@ -14,7 +14,7 @@ import { assertEquals } from "jsr:@std/assert";
 //
 
 // test suite
-Deno.test("EndpointTest", async (t) => {
+Deno.test("EndpointTest...", async (t) => {
 	await t.step("EndpointTest - Function Test Name", async () => {
 		// pre test setup
 		testLogger.info(`Test: individualTestName`);

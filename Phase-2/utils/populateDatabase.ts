@@ -11,7 +11,10 @@ import { getUnixTimeInSeconds } from "./userManagement.ts";
  * @throws {Error} If there's an issue with database operations.
  * NOTE: this function does not Close the Database connection.
  */
-export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = true): Promise<void> {
+export async function populateDatabase(
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+): Promise<void> {
 	try {
 		const dbentries = {
 			packages: [
@@ -20,6 +23,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					url: "https://example.com/sample-package-1",
 					version: "1.0.0",
 					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
+					readme: "This is a sample package for testing purposes.",
 					license_score: 80,
 					license_latency: 10,
 					netscore: 75,
@@ -44,6 +48,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 					url: "https://example.com/sample-package-2",
 					version: "2.1.3",
 					base64_content: "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...",
+					readme: "This is another sample package for testing purposes.",
 					license_score: 95,
 					license_latency: 11,
 					netscore: 88,
@@ -104,6 +109,7 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
             url TEXT NOT NULL,
             version TEXT,
 			base64_content TEXT,
+			readme TEXT,
             license_score INTEGER, 
             license_latency INTEGER,
             netscore INTEGER, 
@@ -128,13 +134,14 @@ export async function populateDatabase(db = new DB(DATABASEFILE), autoCloseDB = 
 		// insert the packages into the database
 		for (const entry of dbentries.packages) {
 			await db.query(
-				`INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, license_latency, netscore, netscore_latency, dependency_pinning_score, dependency_pinning_latency, rampup_score, rampup_latency, review_percentage_score, review_percentage_latency, bus_factor, bus_factor_latency, correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency, dependency_cost, uploaded_by_content)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT OR IGNORE INTO packages (name, url, version, base64_content, readme, license_score, license_latency, netscore, netscore_latency, dependency_pinning_score, dependency_pinning_latency, rampup_score, rampup_latency, review_percentage_score, review_percentage_latency, bus_factor, bus_factor_latency, correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency, dependency_cost, uploaded_by_content)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?)`,
 				[
 					entry.name,
 					entry.url,
 					entry.version,
 					entry.base64_content,
+					entry.readme,
 					entry.license_score,
 					entry.license_latency,
 					entry.netscore,

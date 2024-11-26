@@ -1,15 +1,23 @@
 import { useState } from "preact/hooks";
-import { Package } from "~/types/index.ts";
+import { APIBaseURL } from "~/types/index.ts";
 
-export default function UpdateForm() {
+interface UpdateFormProps {
+	metadata: {
+		Name: string;
+		Version: string;
+		ID: string;
+	};
+}
+
+export default function UpdateForm({ metadata }: UpdateFormProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [uploadStatus, setUploadStatus] = useState<string>("");
 	const [authToken, setAuthToken] = useState<string>("");
-	const [packageName, setPackageName] = useState<string>("");
-	const [packageVersion, setPackageVersion] = useState<string>("");
-	const [packageID, setPackageID] = useState<string>("");
-
 	const [debloat, setDebloat] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+
+	// Pre-fill metadata fields from props
+	const { Name: packageName, Version: packageVersion, ID: packageID } = metadata;
 
 	// Handle file input change
 	const handleFileChange = (event: Event) => {
@@ -29,9 +37,21 @@ export default function UpdateForm() {
 		});
 	};
 
-	// Handle form submission for updating package
+	// Handle form submission for updating the package
 	const handleUpdate = async (event: Event) => {
 		event.preventDefault();
+
+		setUploadStatus("");
+
+		// Retrieve the auth token from cookies
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
+		if (!authToken) {
+			throw new Error("User is not logged in.");
+		}
 
 		if (!selectedFile) {
 			setUploadStatus("Please select a file.");
@@ -39,19 +59,16 @@ export default function UpdateForm() {
 		}
 
 		if (!authToken) {
-			setUploadStatus("Please provide the authorization token.");
+			setUploadStatus("Please login to upload a package.");
 			return;
 		}
 
-		if (!packageName || !packageVersion || !packageID) {
-			setUploadStatus("Please provide package name, version, and ID.");
-			return;
-		}
+		setIsLoading(true); // Start loading indicator
 
 		try {
 			const base64File = await convertFileToBase64(selectedFile);
 
-			const payload: Package = {
+			const payload = {
 				metadata: {
 					Name: packageName,
 					Version: packageVersion,
@@ -68,40 +85,32 @@ export default function UpdateForm() {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = `/package/${packageID}`; // Assuming this is the path to update
-			const method = "PUT";
+			const endpoint = `${APIBaseURL}/api/package/${packageID}`;
 
-			// Log the full request details
-			console.log("Request Type:", method);
-			console.log("Endpoint:", endpoint);
-			console.log("Headers:", headers);
-			console.log("Payload:", payload);
-
-			// Send the update request
 			const response = await fetch(endpoint, {
-				method: method,
+				method: "PUT",
 				headers: headers,
 				body: JSON.stringify(payload),
 			});
 
 			if (!response.ok) {
-				throw new Error("Update failed");
+				const errorText = await response.text();
+				throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
 			}
 
-			const result = await response.json();
-			setUploadStatus(
-				`Update successful: Package ID ${result.metadata.ID}`,
-			);
+			setUploadStatus(`Update successful`);
 		} catch (error) {
-			console.error("Error updating:", error);
-			setUploadStatus("Error updating.");
+			console.error("Error updating package:", error);
+			setUploadStatus(`Error updating package: ${(error as Error).message}`);
+		} finally {
+			setIsLoading(false); // Stop loading indicator
 		}
 	};
 
 	return (
 		<div className="center-wrapper">
-			<form onSubmit={handleUpdate} className="upload-form">
-				{/* Fields for package name, version, and ID */}
+			<form onSubmit={handleUpdate} className="upload-form update-form">
+				{/* Metadata Fields */}
 				<div>
 					<label htmlFor="package-name" className="upload-label">
 						Package Name:
@@ -110,7 +119,7 @@ export default function UpdateForm() {
 						type="text"
 						id="package-name"
 						value={packageName}
-						onChange={(e) => setPackageName((e.target as HTMLInputElement).value)}
+						readOnly
 						className="url-input"
 					/>
 				</div>
@@ -122,7 +131,7 @@ export default function UpdateForm() {
 						type="text"
 						id="package-version"
 						value={packageVersion}
-						onChange={(e) => setPackageVersion((e.target as HTMLInputElement).value)}
+						readOnly
 						className="url-input"
 					/>
 				</div>
@@ -134,12 +143,12 @@ export default function UpdateForm() {
 						type="text"
 						id="package-id"
 						value={packageID}
-						onChange={(e) => setPackageID((e.target as HTMLInputElement).value)}
+						readOnly
 						className="url-input"
 					/>
 				</div>
 
-				{/* File upload only */}
+				{/* File upload */}
 				<div className="file-input-row">
 					<label htmlFor="file" className="upload-label">
 						Select a package:
@@ -166,6 +175,7 @@ export default function UpdateForm() {
 					</div>
 				)}
 
+				{/* Debloat Checkbox */}
 				<div className="debloat-container">
 					<label htmlFor="debloat" className="upload-label">
 						Debloat:
@@ -185,23 +195,13 @@ export default function UpdateForm() {
 					</div>
 				</div>
 
-				<div>
-					<label htmlFor="auth-token" className="upload-label">
-						Authorization Token (X-Authorization):
-					</label>
-					<input
-						type="text"
-						id="auth-token"
-						value={authToken}
-						onChange={(e) => setAuthToken((e.target as HTMLInputElement).value)}
-						className="url-input"
-					/>
-				</div>
-
-				<button type="submit" className="upload-button">
-					Update Package
+				{/* Submit Button */}
+				<button type="submit" className="upload-button" disabled={isLoading}>
+					{isLoading ? "Updating..." : "Update Package"}
 				</button>
 
+				{/* Status Message */}
+				{isLoading && <p>Loading, please wait...</p>}
 				{uploadStatus && <p>{uploadStatus}</p>}
 			</form>
 		</div>

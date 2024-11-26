@@ -1,4 +1,4 @@
-export const APIBaseURL = "http://localhost:8001";
+export const APIBaseURL = "http://localhost:8000";
 
 export interface Package {
 	metadata: PackageMetadata;
@@ -91,7 +91,7 @@ export interface User {
 
 // <--- for use in /package/byRegx
 export interface regexRequest {
-	regex: string;
+	RegEx: string;
 }
 export interface AuthenticationRequest {
 	User: User;

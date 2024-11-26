@@ -17,6 +17,8 @@ import * as $api_package_byRegEx from "./routes/api/package/byRegEx.ts";
 import * as $api_packages from "./routes/api/packages.ts";
 import * as $api_reset from "./routes/api/reset.ts";
 import * as $api_tracks from "./routes/api/tracks.ts";
+import * as $api_users from "./routes/api/users.ts";
+import * as $api_users_username_ from "./routes/api/users/[username].ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
@@ -24,12 +26,13 @@ import * as $package_id_ from "./routes/package/[id].tsx";
 import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
 import * as $Admin from "./islands/Admin.tsx";
+import * as $DeleteButton from "./islands/DeleteButton.tsx";
 import * as $DownloadButton from "./islands/DownloadButton.tsx";
-import * as $GroupManagement from "./islands/GroupManagement.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
+import * as $Navbar from "./islands/Navbar.tsx";
 import * as $Pagination from "./islands/Pagination.tsx";
-import * as $PermissionManagement from "./islands/PermissionManagement.tsx";
 import * as $SearchBar from "./islands/SearchBar.tsx";
+import * as $UpdateButton from "./islands/UpdateButton.tsx";
 import * as $UpdateForm from "./islands/UpdateForm.tsx";
 import * as $UploadForm from "./islands/UploadForm.tsx";
 import * as $UserManagement from "./islands/UserManagement.tsx";
@@ -52,6 +55,8 @@ const manifest = {
 		"./routes/api/packages.ts": $api_packages,
 		"./routes/api/reset.ts": $api_reset,
 		"./routes/api/tracks.ts": $api_tracks,
+		"./routes/api/users.ts": $api_users,
+		"./routes/api/users/[username].ts": $api_users_username_,
 		"./routes/greet/[name].tsx": $greet_name_,
 		"./routes/index.tsx": $index,
 		"./routes/login.tsx": $login,
@@ -61,12 +66,13 @@ const manifest = {
 	},
 	islands: {
 		"./islands/Admin.tsx": $Admin,
+		"./islands/DeleteButton.tsx": $DeleteButton,
 		"./islands/DownloadButton.tsx": $DownloadButton,
-		"./islands/GroupManagement.tsx": $GroupManagement,
 		"./islands/LoginForm.tsx": $LoginForm,
+		"./islands/Navbar.tsx": $Navbar,
 		"./islands/Pagination.tsx": $Pagination,
-		"./islands/PermissionManagement.tsx": $PermissionManagement,
 		"./islands/SearchBar.tsx": $SearchBar,
+		"./islands/UpdateButton.tsx": $UpdateButton,
 		"./islands/UpdateForm.tsx": $UpdateForm,
 		"./islands/UploadForm.tsx": $UploadForm,
 		"./islands/UserManagement.tsx": $UserManagement,

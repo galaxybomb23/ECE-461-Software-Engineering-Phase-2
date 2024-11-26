@@ -18,7 +18,8 @@ export async function getLicenseScore(
 	gitURL = URL.replace(/^git\+/, "")
 		.replace(/^ssh:\/\/git@github.com/, "https://github.com")
 		.replace(/\.git$/, "")
-		.replace(/^git:\/\//, "https://");
+		.replace(/^git:\/\//, "https://")
+		.replace(/^http:\/\//, "https://");
 	const repoName = gitURL.split("/").pop();
 	const repoDir = `./temp-${repoName}`; // Directory to clone the repo into
 

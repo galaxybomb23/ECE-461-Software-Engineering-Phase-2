@@ -1,6 +1,5 @@
 import UploadForm from "~/islands/UploadForm.tsx";
-import UpdateForm from "~/islands/UpdateForm.tsx";
-import Navbar from "~/components/Navbar.tsx";
+import Navbar from "~/islands/Navbar.tsx";
 
 export default function Upload() {
 	return (
@@ -12,12 +11,6 @@ export default function Upload() {
 					{/*Upload Form */}
 					<div className="title">Upload a package</div>
 					<UploadForm />
-				</div>
-
-				<div className="vertical-container">
-					{/*Update Form */}
-					<div className="title">Update a package</div>
-					<UpdateForm />
 				</div>
 			</div>
 		</div>
