@@ -8,6 +8,7 @@ import { logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 
 // uploading functionality
 import { handleContent, handleURL } from "~/routes/api/package.ts";
@@ -16,6 +17,17 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		const { id } = ctx.params;
+
+		// Extract and validate the 'X-Authentication' token
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.info("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.info("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
 
 		try {
 			const pkg = await queryPackageById(id);
@@ -166,7 +178,7 @@ export async function updatePackageContent(
 		if (await queryPackageById(id, name, undefined, db, false)) {
 			let packageJSON: Package | null = null;
 			if (content) {
-				packageJSON = await handleContent(content, undefined, db, false, version);
+				packageJSON = await handleContent(content, undefined, 1, db, false, version);
 			}
 			if (URL) {
 				packageJSON = await handleURL(URL, db, false, undefined);
@@ -179,12 +191,12 @@ export async function updatePackageContent(
 				}
 			}
 		} else {
-			console.debug("Package not found");
+			logger.debug("Package not found");
 			return false;
 		}
 		return true;
 	} catch (error) {
-		console.error(error);
+		logger.error(error);
 		return false;
 	} finally {
 		if (autoCloseDB) db.close();

@@ -21,7 +21,7 @@ export interface PackageData {
 // Used in package.ts for returning cost
 export interface ExtendedPackage extends Package {
 	data: PackageData & {
-		Dependencies: number;
+		Dependencies: string;
 	};
 }
 
