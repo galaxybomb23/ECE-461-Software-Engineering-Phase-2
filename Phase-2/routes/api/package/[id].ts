@@ -178,7 +178,7 @@ export async function updatePackageContent(
 		if (await queryPackageById(id, name, undefined, db, false)) {
 			let packageJSON: Package | null = null;
 			if (content) {
-				packageJSON = await handleContent(content, undefined, db, false, version);
+				packageJSON = await handleContent(content, undefined, 1, db, false, version);
 			}
 			if (URL) {
 				packageJSON = await handleURL(URL, db, false, undefined);
@@ -191,12 +191,12 @@ export async function updatePackageContent(
 				}
 			}
 		} else {
-			console.debug("Package not found");
+			logger.debug("Package not found");
 			return false;
 		}
 		return true;
 	} catch (error) {
-		console.error(error);
+		logger.error(error);
 		return false;
 	} finally {
 		if (autoCloseDB) db.close();

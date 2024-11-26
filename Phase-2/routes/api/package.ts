@@ -20,15 +20,15 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 
 			// Extract and validate the 'X-Authentication' token
-			// const authToken = req.headers.get("X-Authorization") ?? "";
-			// if (!authToken) {
-			// 	logger.info("Invalid request: missing authentication token");
-			// 	return new Response("Invalid request: missing authentication token", { status: 403 });
-			// }
-			// if (!getUserAuthInfo(authToken).is_token_valid) {
-			// 	logger.info("Unauthorized request: invalid token");
-			// 	return new Response("Unauthorized request: invalid token", { status: 403 });
-			// }
+			const authToken = req.headers.get("X-Authorization") ?? "";
+			if (!authToken) {
+				logger.info("Invalid request: missing authentication token");
+				return new Response("Invalid request: missing authentication token", { status: 403 });
+			}
+			if (!getUserAuthInfo(authToken).is_token_valid) {
+				logger.info("Unauthorized request: invalid token");
+				return new Response("Unauthorized request: invalid token", { status: 403 });
+			}
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
@@ -175,7 +175,7 @@ export async function handleContent(
 
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
 			if (
-				1 || (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
+				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 					metrics.RampUp > 0.5 &&
 					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
 					metrics.ReviewPercentage > 0.5)

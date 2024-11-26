@@ -43,8 +43,6 @@ export const handler: Handlers = {
 
 export async function calcPackageCost(
 	id: number,
-	// TODO: `dependency` is unused currently since no way to retrieve dependencies.
-	// Current approach just uses total NUMBER of dependencies..
 	dependency: boolean,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
