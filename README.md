@@ -10,7 +10,7 @@ Here's the table rewritten as a markdown checklist:
 - [ ] **Debloat Options for Upload and Update**
   - Remove unnecessary bloat from a package using tree-shaking and/or minification.
 
-- [ ] **Rate Packages/New Modules**
+- [x] **Rate Packages/New Modules**
   - The system should compute a rating based on code from phase 1 as well as 2 new metrics:
     - Fraction of dependencies pinned to at least a specific major+minor version, e.g., version 2.3.X of the dependency.
     - Fraction of project code introduced through pull requests with a code review.
@@ -27,9 +27,12 @@ Here's the table rewritten as a markdown checklist:
   - Search for packages through package name and README.
   - Search and fetch packages matching Regex
 
-- [ ] **Size Cost Calculation**
+- [x] **Size Cost Calculation**
   - Compute the size of a package:
     - Both directly and through its dependencies.
+
+- [x] **Ratings Fetching**
+  - Fetch the ratings (metrics) for a package.
 
 - [x] **Reset to Default**
   - Include an option to reset the system to its default state.
