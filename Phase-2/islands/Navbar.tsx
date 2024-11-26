@@ -2,11 +2,9 @@ import { signal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { SearchBar } from "~/islands/SearchBar.tsx";
 import { isLoggedIn } from "~/signals/auth.ts";
-import type { Package } from "~/types/index.ts";
 
 export default function Navbar() {
 	const searchQuery = signal("");
-	const searchResults = signal<Package[]>([]);
 
 	const checkLoginState = () => {
 		// Retrieve the auth token from cookies
@@ -42,7 +40,7 @@ export default function Navbar() {
 			<a href="/">
 				<img src="/logo.png" alt="Logo" />
 			</a>
-			<SearchBar search={searchQuery} searchResults={searchResults} />
+			<SearchBar search={searchQuery}/>
 			<ul>
 				<li>
 					<a href="/">Home</a>
