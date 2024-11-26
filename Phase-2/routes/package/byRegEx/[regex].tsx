@@ -34,7 +34,6 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 			body: requestBody,
 		});
 
-
 		if (!response.ok) {
 			// Read the error message from the response body
 			const errorText = await response.text();
@@ -53,10 +52,8 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 
 		const packages: PackageMetadata[] = await response.json();
 
-
 		return ctx.render({ packages, errorMessage: null });
 	} catch (error) {
-
 		return ctx.render({
 			errorMessage: "An unexpected error occurred. Please try again later.",
 			packages: [],
