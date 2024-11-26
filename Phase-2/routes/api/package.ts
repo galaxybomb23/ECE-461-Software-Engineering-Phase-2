@@ -1,12 +1,13 @@
 import { Handlers } from "$fresh/server.ts";
 import { logger } from "../../src/logFile.ts";
-import type { PackageMetadata } from "~/types/index.ts";
-import { Package, PackageData } from "../../types/index.ts";
+import { ExtendedPackage, Package, PackageData, PackageMetadata } from "../../types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
+import { queryPackageById } from "~/routes/api/package/[id].ts";
 import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
 
@@ -17,6 +18,17 @@ export const handler: Handlers = {
 
 		try {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
+
+			// Extract and validate the 'X-Authentication' token
+			const authToken = req.headers.get("X-Authorization") ?? "";
+			if (!authToken) {
+				logger.info("Invalid request: missing authentication token");
+				return new Response("Invalid request: missing authentication token", { status: 403 });
+			}
+			if (!getUserAuthInfo(authToken).is_token_valid) {
+				logger.info("Unauthorized request: invalid token");
+				return new Response("Unauthorized request: invalid token", { status: 403 });
+			}
 
 			if (packageData.URL && packageData.Content) {
 				logger.debug("package.ts: Invalid package data received - status 400");
@@ -102,18 +114,18 @@ export const handler: Handlers = {
 export async function handleContent(
 	content: string,
 	url?: string,
+	via_content: number = 1,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	old_version?: [string],
 ) {
-	// Moved outside try block so we can cleanup in the finally block
+	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
 	const decodedContent = atob(content);
 
 	const tempFilePath = "./temp/pkg_" + suffix + ".zip";
 	const unzipPath = "./temp/pkg_unzip_" + suffix;
-
 	try {
 		await Deno.mkdir("./temp", { recursive: true });
 		await Deno.mkdir(unzipPath, { recursive: true });
@@ -130,7 +142,7 @@ export async function handleContent(
 		}
 
 		// parse and verify package.json
-		const packageJSON = await parsePackageJSON(unzipPath);
+		const packageJSON = await parsePackageJSON(unzipPath, db, false);
 		let metrics = null;
 		if (url != "No repository URL" && url) packageJSON.data.URL = url; // If URL is provided, use it
 		if (packageJSON.data.URL) {
@@ -160,6 +172,7 @@ export async function handleContent(
 		// Metrics check, all metrics must be above 0.5 to ingest
 		if (metrics) {
 			metrics = JSON.parse(metrics);
+
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
 			if (
 				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
@@ -172,15 +185,39 @@ export async function handleContent(
 					tempFilePath,
 					packageJSON,
 					metrics.BusFactor,
+					metrics.BusFactor_Latency,
 					metrics.Correctness,
+					metrics.Correctness_Latency,
 					metrics.License,
+					metrics.License_Latency,
 					metrics.RampUp,
+					metrics.RampUp_Latency,
 					metrics.ResponsiveMaintainer,
+					metrics.ResponsiveMaintainer_Latency,
 					metrics.dependencyPinning,
+					metrics.dependencyPinning_Latency,
 					metrics.ReviewPercentage,
+					metrics.ReviewPercentage_Latency,
 					metrics.NetScore,
+					metrics.NetScore_Latency,
 					db,
-					true,
+					false,
+				);
+
+				// Now we add the dependency cost
+				// prepend length of base64_content to dependency_cost
+				const program_length = content.length;
+				const cost = program_length + "," + packageJSON.data.Dependencies;
+
+				await db.query(
+					"UPDATE packages SET dependency_cost = ? WHERE name = ? AND version = ?",
+					[cost, packageJSON.metadata.Name, packageJSON.metadata.Version],
+				);
+
+				// Add uploaded by content or URL flag
+				await db.query(
+					"UPDATE packages SET uploaded_by_content = ? WHERE name = ? AND version = ?",
+					[via_content, packageJSON.metadata.Name, packageJSON.metadata.Version],
 				);
 			} else {
 				logger.debug(
@@ -234,47 +271,95 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 		);
 
-		const packageJSON = await handleContent(base64Content, url, db, false); // we do NOT pass the version, since by URL we pull the latest version always
+		const packageJSON = await handleContent(base64Content, url, 0, db, false); // we do NOT pass the version, since by URL we pull the latest version always
 		return packageJSON;
 	} finally {
 		if (autoCloseDB) db.close();
 	}
 }
 
-export async function parsePackageJSON(filePath: string) {
-	const dirEntries = Deno.readDir(filePath);
-	let packageFolder: Deno.DirEntry | null = null;
+export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	try {
+		const dirEntries = Deno.readDir(filePath);
+		let packageFolder: Deno.DirEntry | null = null;
 
-	for await (const entry of dirEntries) {
-		if (entry.isDirectory) {
-			packageFolder = entry;
-			break;
+		for await (const entry of dirEntries) {
+			if (entry.isDirectory) {
+				packageFolder = entry;
+				break;
+			}
+		}
+
+		logger.debug("package.ts: Reading package.json");
+		const rootPath = `${filePath}/package.json`;
+		const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
+
+		const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		if (!packageJSONPath) {
+			logger.debug("package.ts: package.json not found - status 400");
+			throw new Error("package.json not found");
+		}
+		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
+
+		// Find number of dependencies. Required for some retrieving cost of packages later
+		const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
+			Object.keys(packageJSON.devDependencies || {}).length;
+
+		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
+			string,
+			string
+		>;
+		const deps = await computeDependencies(fullDependencies, db, false);
+
+		return {
+			metadata: {
+				Name: packageJSON.name,
+				Version: packageJSON.version,
+				ID: packageJSON.name + "@" + packageJSON.version,
+			},
+			data: {
+				Content: "",
+				// url can be repository.url or repository or url
+				URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
+				Dependencies: deps,
+			},
+		} as ExtendedPackage;
+	} finally {
+		if (autoCloseDB) db.close();
+	}
+}
+
+export async function computeDependencies(
+	fullDependencies: Record<string, string>,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+) {
+	// we will now query by name and version to find IDs of dependencies/devDependencies
+	// build a string of id:cost, id:cost, id:cost
+	let costs = "";
+
+	for (const [name, version] of Object.entries(fullDependencies)) {
+		const cleanedVersion = (version as string).replace(/^[^\d]*/, ""); // Cast to string and clean
+
+		let pkgs = await queryPackageById(undefined, name, cleanedVersion, db, false);
+		if (pkgs) {
+			logger.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
+			if (!Array.isArray(pkgs)) pkgs = [pkgs];
+
+			for (const pkg of pkgs) {
+				// query db to get base64_content
+				const base64_content = await db.query(
+					"SELECT base64_content FROM packages WHERE id = ?",
+					[pkg.metadata.ID],
+				) as string[][];
+
+				// get length of base64_content and add to costs
+				const program_length = base64_content[0][0].length;
+				costs += pkg.metadata.ID + ":" + program_length + ",";
+			}
 		}
 	}
-
-	logger.debug("package.ts: Reading package.json");
-	const rootPath = `${filePath}/package.json`;
-	const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
-
-	const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
-	if (!packageJSONPath) {
-		logger.debug("package.ts: package.json not found - status 400");
-		throw new Error("package.json not found");
-	}
-	const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
-
-	return {
-		metadata: {
-			Name: packageJSON.name,
-			Version: packageJSON.version,
-			ID: packageJSON.name + "@" + packageJSON.version,
-		},
-		data: {
-			Content: "",
-			// url can be repository.url or repository or url
-			URL: packageJSON.repository?.url || packageJSON.repository || packageJSON.url || "No repository URL",
-		},
-	} as Package;
+	return costs; // either empty string or id:cost, id:cost, id:cost,
 }
 
 export async function unzipFile(zipFilePath: string, outputDir: string) {
@@ -318,13 +403,21 @@ export async function uploadZipToSQLite(
 	tempFilePath: string,
 	packageJSON: Package,
 	busFactor: number,
+	busFactorLatency: number,
 	correctness: number,
+	correctnessLatency: number,
 	license: number,
+	licenseLatency: number,
 	rampUp: number,
+	rampUpLatency: number,
 	responsiveMaintainer: number,
+	responsiveMaintainerLatency: number,
 	dependencyPinning: number,
+	dependencyPinningLatency: number,
 	reviewPercentage: number,
+	reviewPercentageLatency: number,
 	netscore: number,
+	netscoreLatency: number,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
@@ -354,20 +447,35 @@ export async function uploadZipToSQLite(
 
 		// Insert the package into the database
 		await db.query(
-			"INSERT OR IGNORE INTO packages (name, url, version, base64_content, license_score, netscore, dependency_pinning_score, rampup_score, review_percentage_score, bus_factor, correctness, responsive_maintainer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			`INSERT OR IGNORE INTO packages (
+			name, url, version, base64_content, 
+			license_score, license_latency, netscore, netscore_latency, 
+			dependency_pinning_score, dependency_pinning_latency, 
+			rampup_score, rampup_latency, review_percentage_score, 
+			review_percentage_latency, bus_factor, bus_factor_latency, 
+			correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				packageJSON.metadata.Name,
 				packageJSON.data.URL,
 				packageJSON.metadata.Version,
 				zipBase64,
 				license,
+				licenseLatency,
 				netscore,
+				netscoreLatency,
 				dependencyPinning,
+				dependencyPinningLatency,
 				rampUp,
+				rampUpLatency,
 				reviewPercentage,
+				reviewPercentageLatency,
 				busFactor,
+				busFactorLatency,
 				correctness,
+				correctnessLatency,
 				responsiveMaintainer,
+				responsiveMaintainerLatency,
 			],
 		);
 	} finally {

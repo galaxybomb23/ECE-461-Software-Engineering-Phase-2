@@ -51,22 +51,22 @@ export async function calcPackageRating(id: number, db = new DB(DATABASEFILE), a
 		// since the order of the columns in the database might change. However query
 		// returns an array, and DatabasePackageRow cannot be directly assigned as.
 		const rating: PackageRating = {
-			BusFactor: pkg[15] as number,
-			BusFactorLatency: pkg[16] as number,
-			Correctness: pkg[17] as number,
-			CorrectnessLatency: pkg[18] as number,
-			RampUp: pkg[11] as number,
-			RampUpLatency: pkg[12] as number,
-			ResponsiveMaintainer: pkg[19] as number,
-			ResponsiveMaintainerLatency: pkg[20] as number,
-			LicenseScore: pkg[5] as number,
-			LicenseScoreLatency: pkg[6] as number,
-			GoodPinningPractice: pkg[9] as number,
-			GoodPinningPracticeLatency: pkg[10] as number,
-			PullRequest: pkg[13] as number,
-			PullRequestLatency: pkg[14] as number,
-			NetScore: pkg[7] as number,
-			NetScoreLatency: pkg[8] as number,
+			BusFactor: pkg[16] as number,
+			BusFactorLatency: pkg[17] as number,
+			Correctness: pkg[18] as number,
+			CorrectnessLatency: pkg[19] as number,
+			RampUp: pkg[12] as number,
+			RampUpLatency: pkg[13] as number,
+			ResponsiveMaintainer: pkg[20] as number,
+			ResponsiveMaintainerLatency: pkg[21] as number,
+			LicenseScore: pkg[6] as number,
+			LicenseScoreLatency: pkg[7] as number,
+			GoodPinningPractice: pkg[10] as number,
+			GoodPinningPracticeLatency: pkg[11] as number,
+			PullRequest: pkg[14] as number,
+			PullRequestLatency: pkg[15] as number,
+			NetScore: pkg[8] as number,
+			NetScoreLatency: pkg[9] as number,
 		};
 
 		return new Response(JSON.stringify(rating), {

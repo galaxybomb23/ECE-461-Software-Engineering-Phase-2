@@ -47,66 +47,71 @@ export async function calcPackageCost(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<Response> {
-	// Placeholder for the cost calculation logic
-	// check if package exists
 	try {
-		const pkgRow: Row[] = await db.query("SELECT * FROM packages WHERE id = ?", [id]);
-		if (pkgRow.length === 0) {
-			return new Response("Package not found", { status: 404 });
+		const qr = await db.query(
+			"SELECT dependency_cost FROM packages WHERE id = ?",
+			[id],
+		)[0] as Row;
+
+		if (qr === undefined) {
+			logger.error(`Package with ID ${id} not found`);
+			return new Response(`Package with ID ${id} not found`, { status: 404 });
 		}
 
-		// // get dependencies NOTE THIS IS PLACEHOLDER CODE
-		// let dependencies: PackageCost[] = [];
-		// let dependencyIDs = await db.query("SELECT dependency_ids FROM dependencies WHERE package_id = ?", [id]);
-		// let allDependencyIDs = new Set();
-		// let newDependencyIDs = new Set(dependencyIDs.map(dep => dep.id));
+		const depencency_cost = qr[0] as string;
 
-		// // get all dependencies recursively
+		// split with comma
+		const dependency_cost = depencency_cost.split(",");
+		const base_pkg_cost = parseInt(dependency_cost[0]);
 
-		// while (newDependencyIDs.size > 0) {
-		// 	for (let depID of newDependencyIDs) {
-		// 		let depPackageCost: PackageCost = { standaloneCost: 0, totalCost: 0 };
-		// 		let depcost = await db.query("SELECT S FROM packages WHERE id = ?", [depID]);
-		// 		if (depcost.length === 0) {
-		// 			return new Response("Dependency not found", { status: 400 });
-		// 		}
-		// 		depPackageCost.standaloneCost = depcost[0].S;
-		// 		depPackageCost.totalCost = depcost[0].S; // Assuming totalCost is the same as standaloneCost for simplicity
-		// 		depPackageCost.id = depID;
-		// 		dependencies.push(depPackageCost);
+		// calculate total cost of all dependencies
+		let totalCost = base_pkg_cost;
+		for (let i = 0; i < dependency_cost.length; i++) {
+			if (dependency_cost[i] == "") continue;
+			const id = dependency_cost[i].split(":")[0];
+			const cost = dependency_cost[i].split(":")[1] ?? 0;
+			totalCost += parseInt(cost);
+		}
 
-		// 		let subDependencyIDs = await db.query("SELECT dependency_ids FROM dependencies WHERE package_id = ?", [depID]);
-		// 		subDependencyIDs.forEach(subDep => {
-		// 			if (!allDependencyIDs.has(subDep.id)) {
-		// 				newDependencyIDs.add(subDep.id);
-		// 			}
-		// 		});
-		// 	}
-		// 	allDependencyIDs = new Set([...allDependencyIDs, ...newDependencyIDs]);
-		// 	newDependencyIDs = new Set();
-		// }
+		const fullCost = 1024 * 1024; // 1MB, since db holds size in B
+		if (dependency) {
+			let packageCost: PackageCost = {};
 
-		// // sum standalone costs of dependencies and update total cost for this package
-		// let packageCost: PackageCost = { standaloneCost: 0, totalCost: 0 };
-		// dependencies.forEach(dep => {
-		// 	packageCost.totalCost += dep.standaloneCost;
-		// });
+			// calculate total and standalone cost for each dependency
+			for (let i = 0; i < dependency_cost.length; i++) {
+				if (dependency_cost[i] == "") continue;
 
-		// // cache the total cost for this package
-		// await db.query("UPDATE packages SET S = ? WHERE id = ?", [packageCost.totalCost, id]);
+				// pkg_id is either the dependency's ID or current package's ID
+				let pkg_id = dependency_cost[i].split(":")[0];
+				let pkg_cost = parseInt(dependency_cost[i].split(":")[1] ?? 0);
 
-		// // construct the response
-		// // IDRK what to do here
-		const packageCost: PackageCost = {
-			"2345235235": {
-				standaloneCost: 10,
-				totalCost: 90,
-			},
-		};
-		return new Response(JSON.stringify(packageCost), { status: 200 });
+				if (i == 0) {
+					pkg_id = id.toString();
+					pkg_cost = base_pkg_cost;
+				}
+
+				// populate the packageCost object
+				packageCost = {
+					...packageCost,
+					[pkg_id]: {
+						totalCost: +(totalCost / fullCost).toFixed(2),
+						standaloneCost: +(pkg_cost / fullCost).toFixed(2),
+					},
+				};
+				totalCost -= pkg_cost;
+			}
+			return new Response(JSON.stringify(packageCost), { status: 200 });
+		} else {
+			const packageCost: PackageCost = {
+				[id]: {
+					totalCost: +(base_pkg_cost / fullCost).toFixed(2),
+				},
+			};
+			return new Response(JSON.stringify(packageCost), { status: 200 });
+		}
 	} catch (error) {
 		logger.error(`Error calculating package cost: ${error}`);
-		return new Response("Error calculating package cost", { status: 500 });
+		return new Response("Error calculating package cost: " + error, { status: 500 });
 	} finally {
 		if (autoCloseDB) db.close();
 	}
