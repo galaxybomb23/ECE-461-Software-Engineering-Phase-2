@@ -6,7 +6,6 @@ export default function UploadForm() {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [inputUrl, setInputUrl] = useState<string>("");
 	const [uploadStatus, setUploadStatus] = useState<string>("");
-	const [authToken, setAuthToken] = useState<string>("");
 	const [debloat, setDebloat] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
 

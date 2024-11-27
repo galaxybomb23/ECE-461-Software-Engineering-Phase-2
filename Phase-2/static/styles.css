@@ -10,7 +10,6 @@ body {
 }
 
 .title {
-	padding-top: 2rem;
 	text-align: center;
 	font-size: 3rem;
 	font-weight: bold;
@@ -35,7 +34,5 @@ body {
 	justify-content: space-around;
 	flex: 1;
 	align-items: center;
-	height: 100%;
-	gap: 2rem;
-	padding: 2rem;
+	margin-top: 5rem;
 }

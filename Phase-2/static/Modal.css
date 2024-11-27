@@ -165,7 +165,7 @@
 
 /* Update Button */
 .update-button {
-	background-color: #4caf50;
+	background-color: #076861;
 	color: #ffffff;
 	border: 1px solid #a5a5af8a;
 	border-radius: 0.3rem;
@@ -174,12 +174,12 @@
 	font-weight: bold;
 	cursor: pointer;
 	transition: background-color 0.2s ease, box-shadow 0.2s ease;
-	width: 150px; /* Make buttons uniform width */
+	width: 100%; /* Make buttons uniform width */
 	text-align: center;
 }
 
 .update-button:hover {
-	background-color: #45a049;
+	background-color: #06544f;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
