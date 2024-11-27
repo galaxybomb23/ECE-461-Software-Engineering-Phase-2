@@ -30,7 +30,6 @@ if (!token) {
 
 let passcnt = 0;
 // loop through each url and get the metrics
-Deno.writeFileSync(LOGFILE, encoder.encode("Metrics Averages\n"));
 for (const url of urls.split("\n")) {
     // console.log(url);
     const metrics = await getMetrics(url);
@@ -40,7 +39,7 @@ for (const url of urls.split("\n")) {
     license.push(json.License);
     rampUp.push(json.RampUp);
     responsiveMaintainer.push(json.ResponsiveMaintainer);
-    dependencyPinning.push(json.dependencyPinning);
+    dependencyPinning.push(json.DependencyPinning);
     reviewPercentage.push(json.ReviewPercentage);
     netScore.push(json.NetScore);
 

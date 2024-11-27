@@ -46,8 +46,8 @@ export function initJSON(): RepoMetrics {
 		ResponsiveMaintainer_Latency: null,
 		License: null,
 		License_Latency: null,
-		dependencyPinning: null,
-		dependencyPinning_Latency: null,
+		DependencyPinning: null,
+		DependencyPinning_Latency: null,
 		ReviewPercentage: null,
 		ReviewPercentage_Latency: null,
 	};

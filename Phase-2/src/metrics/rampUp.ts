@@ -16,7 +16,7 @@ export async function calculateRampUp(
 ): Promise<MetricsResult> {
 	// Start latency tracking
 	const latency_start = getTimestampWithThreeDecimalPlaces();
-	const MAX_SIZE_KB = 50000; // Arbitrary maximum repository size in KB (50MB)
+	const MAX_SIZE_KB = 150000; // Arbitrary maximum repository size in KB (50MB)
 
 	// Construct GitHub API URL for repository information
 	const apiLink = getGitHubAPILink(repoURL);

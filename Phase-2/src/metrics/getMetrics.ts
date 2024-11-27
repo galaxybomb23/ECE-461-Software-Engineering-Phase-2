@@ -77,7 +77,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorScore,
 		responsiveMaintainerScore,
 		licenseScore,
-		dependencyPinningScore,
+		DependencyPinningScore,
 		reviewPercentageScore,
 	);
 
@@ -87,7 +87,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorLatency,
 		responsiveMaintainerLatency,
 		licenseLatency,
-		dependencyPinningLatency,
+		DependencyPinningLatency,
 		reviewPercentageLatency,
 	);
 

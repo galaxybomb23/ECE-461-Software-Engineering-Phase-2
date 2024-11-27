@@ -20,9 +20,9 @@ export async function getLicenseScore(
 		.replace(/\.git$/, "")
 		.replace(/^git:\/\//, "https://")
 		.replace(/^http:\/\//, "https://");
-	const repoName = gitURL.split("/").pop();
-	const repoDir = `./temp-${repoName}`; // Directory to clone the repo into
-
+	const repoName = gitURL.split("/").pop()?.replace(/[^a-zA-Z0-9-_]/g, "_"); //sanitize the repo name
+	const repoDir = `temp-${repoName}`; // Directory to clone the repo into
+	Deno.mkdirSync(repoDir, { recursive: true }); // use sys to make directory so works on all platforms
 	try {
 		// Clone the repository
 		await git.clone({
