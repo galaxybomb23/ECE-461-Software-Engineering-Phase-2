@@ -152,7 +152,7 @@ export default function UploadForm() {
 		<div className="center-wrapper">
 			<div className="horizontal-container">
 				<div className="vertical-container">
-					<div className="title">Upload a package</div>
+					<div className="admin-title">Upload a package</div>
 					<form onSubmit={handleUpload} className="upload-form">
 						{/* Custom Option Selector */}
 						<div className="custom-selector">

@@ -160,53 +160,61 @@ export default function LoginForm() {
 
 	return (
 		<div className="center-wrapper">
-			<form onSubmit={handleLogin} className="upload-form">
-				<h2 className="title">{isAdmin ? "Admin Login" : "User Login"}</h2>
+			<div className="vertical-container">
+				<h2 className="admin-title">{isAdmin ? "Admin Login" : "User Login"}</h2>
+				<form onSubmit={handleLogin} className="upload-form">
+					<div className="url-input-row">
+						<label htmlFor="username" className="upload-label">
+							Username:
+						</label>
+						<input
+							type="text"
+							id="username"
+							value={username}
+							onChange={(e) => setUsername((e.target as HTMLInputElement).value)}
+							className="url-input"
+						/>
+					</div>
 
-				<div className="url-input-row">
-					<label htmlFor="username" className="upload-label">
-						Username:
-					</label>
-					<input
-						type="text"
-						id="username"
-						value={username}
-						onChange={(e) => setUsername((e.target as HTMLInputElement).value)}
-						className="url-input"
-					/>
-				</div>
+					<div className="url-input-row">
+						<label htmlFor="password" className="upload-label">
+							Password:
+						</label>
+						<input
+							type="password"
+							id="password"
+							value={password}
+							onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
+							className="url-input"
+						/>
+					</div>
 
-				<div className="url-input-row">
-					<label htmlFor="password" className="upload-label">
-						Password:
-					</label>
-					<input
-						type="password"
-						id="password"
-						value={password}
-						onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
-						className="url-input"
-					/>
-				</div>
+					<div className="debloat-container">
+						<label htmlFor="admin-toggle" className="upload-label">
+							Admin login:
+						</label>
+						<div
+							className={`custom-checkbox ${isAdmin ? "checked" : ""}`}
+							onClick={() => setIsAdmin(!isAdmin)}
+						>
+							<input
+								type="checkbox"
+								id="admin-toggle"
+								checked={isAdmin}
+								onChange={(e) => setIsAdmin((e.target as HTMLInputElement).checked)}
+								className="hidden-checkbox"
+							/>
+							<span className="checkmark"></span>
+						</div>
+					</div>
 
-				<div className="url-input-row">
-					<label htmlFor="admin-toggle" className="upload-label">
-						Admin Login:
-					</label>
-					<input
-						type="checkbox"
-						id="admin-toggle"
-						checked={isAdmin}
-						onChange={(e) => setIsAdmin((e.target as HTMLInputElement).checked)}
-					/>
-				</div>
+					<button type="submit" className="upload-button">
+						Log In
+					</button>
 
-				<button type="submit" className="upload-button">
-					Log In
-				</button>
-
-				{loginStatus && <p>{loginStatus}</p>}
-			</form>
+					{loginStatus && <p>{loginStatus}</p>}
+				</form>
+			</div>
 		</div>
 	);
 }

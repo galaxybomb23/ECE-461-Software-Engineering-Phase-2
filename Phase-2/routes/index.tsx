@@ -32,7 +32,7 @@ export default function Home({ data }: { data: { packages: PackageMetadata[] } }
 			<Navbar />
 			<div className="horizontal-container">
 				<div className="vertical-container">
-					<div className="title">Home</div>
+					<div className="admin-title">Home</div>
 					<Pagination packages={packages} />
 				</div>
 			</div>
