@@ -40,7 +40,7 @@ export default function Navbar() {
 			<a href="/">
 				<img src="/logo.png" alt="Logo" />
 			</a>
-			<SearchBar search={searchQuery}/>
+			<SearchBar search={searchQuery} />
 			<ul>
 				<li>
 					<a href="/">Home</a>
