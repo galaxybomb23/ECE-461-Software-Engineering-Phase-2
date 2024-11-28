@@ -1,5 +1,3 @@
-import { useEffect } from "preact/hooks";
-
 export default function DownloadButton({ base64Content, fileName }: { base64Content: string; fileName: string }) {
 	const handleDownload = () => {
 		if (base64Content) {

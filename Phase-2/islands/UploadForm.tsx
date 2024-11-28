@@ -1,14 +1,27 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { APIBaseURL } from "~/types/index.ts";
 
 export default function UploadForm() {
+	const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 	const [selectedOption, setSelectedOption] = useState<"file" | "url">("file");
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [inputUrl, setInputUrl] = useState<string>("");
 	const [uploadStatus, setUploadStatus] = useState<string>("");
-	const [authToken, setAuthToken] = useState<string>("");
 	const [debloat, setDebloat] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
+
+	const checkAuthorization = () => {
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
+		if (authToken) {
+			setIsAuthorized(true);
+		} else {
+			setIsAuthorized(false);
+		}
+	};
 
 	// Handle file input change
 	const handleFileChange = (event: Event) => {
@@ -110,94 +123,124 @@ export default function UploadForm() {
 		}
 	};
 
+	useEffect(() => {
+		checkAuthorization();
+	}, [isAuthorized]);
+
+	if (isAuthorized === null) {
+		return (
+			<div>
+				<div className="admin-panel">
+					<p>Loading...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (isAuthorized === false) {
+		return (
+			<div>
+				<div className="admin-panel">
+					<h1 className="admin-title">Access Denied</h1>
+					<p>You do not have permission to access this page.</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="center-wrapper">
-			<form onSubmit={handleUpload} className="upload-form">
-				{/* Custom Option Selector */}
-				<div className="custom-selector">
-					<div
-						className={`selector-option ${selectedOption === "file" ? "active" : ""}`}
-						onClick={() => setSelectedOption("file")}
-					>
-						Upload File
-					</div>
-					<div
-						className={`selector-option ${selectedOption === "url" ? "active" : ""}`}
-						onClick={() => setSelectedOption("url")}
-					>
-						Enter URL
-					</div>
-				</div>
-
-				{selectedOption === "file"
-					? (
-						<div className="file-input-row">
-							<label htmlFor="file" className="upload-label">
-								Select a package:
-							</label>
-							<input
-								type="file"
-								id="file"
-								accept=".zip"
-								onChange={handleFileChange}
-							/>
-							<label htmlFor="file" className="upload-input">
-								Select File
-							</label>
+			<div className="horizontal-container">
+				<div className="vertical-container">
+					<div className="admin-title">Upload a package</div>
+					<form onSubmit={handleUpload} className="upload-form">
+						{/* Custom Option Selector */}
+						<div className="custom-selector">
+							<div
+								className={`selector-option ${selectedOption === "file" ? "active" : ""}`}
+								onClick={() => setSelectedOption("file")}
+							>
+								Upload File
+							</div>
+							<div
+								className={`selector-option ${selectedOption === "url" ? "active" : ""}`}
+								onClick={() => setSelectedOption("url")}
+							>
+								Enter URL
+							</div>
 						</div>
-					)
-					: (
-						<div className="url-input-row">
-							<label htmlFor="url" className="upload-label">
-								Enter package URL:
+
+						{selectedOption === "file"
+							? (
+								<div className="file-input-row">
+									<label htmlFor="file" className="upload-label">
+										Select a package:
+									</label>
+									<input
+										type="file"
+										id="file"
+										accept=".zip"
+										onChange={handleFileChange}
+									/>
+									<label htmlFor="file" className="upload-input">
+										Select File
+									</label>
+								</div>
+							)
+							: (
+								<div className="url-input-row">
+									<label htmlFor="url" className="upload-label">
+										Enter package URL:
+									</label>
+									<input
+										type="text"
+										id="url"
+										value={inputUrl}
+										onChange={handleUrlChange}
+										className="url-input"
+									/>
+								</div>
+							)}
+
+						{selectedFile && selectedOption === "file" && (
+							<div className="file-info">
+								<p>
+									<strong>File Name:</strong> {selectedFile.name}
+								</p>
+								<p>
+									<strong>File Size:</strong> {(selectedFile.size / 1000000).toFixed(2)} MB
+								</p>
+							</div>
+						)}
+
+						<div className="debloat-container">
+							<label htmlFor="debloat" className="upload-label">
+								Debloat:
 							</label>
-							<input
-								type="text"
-								id="url"
-								value={inputUrl}
-								onChange={handleUrlChange}
-								className="url-input"
-							/>
+							<div
+								className={`custom-checkbox ${debloat ? "checked" : ""}`}
+								onClick={() => setDebloat(!debloat)}
+							>
+								<input
+									type="checkbox"
+									id="debloat"
+									checked={debloat}
+									onChange={() => setDebloat(!debloat)}
+									className="hidden-checkbox"
+								/>
+								<span className="checkmark"></span>
+							</div>
 						</div>
-					)}
 
-				{selectedFile && selectedOption === "file" && (
-					<div className="file-info">
-						<p>
-							<strong>File Name:</strong> {selectedFile.name}
-						</p>
-						<p>
-							<strong>File Size:</strong> {(selectedFile.size / 1000000).toFixed(2)} MB
-						</p>
-					</div>
-				)}
+						<button type="submit" className="upload-button" disabled={isLoading}>
+							{isLoading ? "Uploading..." : "Upload Package"}
+						</button>
 
-				<div className="debloat-container">
-					<label htmlFor="debloat" className="upload-label">
-						Debloat:
-					</label>
-					<div
-						className={`custom-checkbox ${debloat ? "checked" : ""}`}
-						onClick={() => setDebloat(!debloat)}
-					>
-						<input
-							type="checkbox"
-							id="debloat"
-							checked={debloat}
-							onChange={() => setDebloat(!debloat)}
-							className="hidden-checkbox"
-						/>
-						<span className="checkmark"></span>
-					</div>
+						{isLoading && <p>Loading, please wait...</p>} {/* Loading indicator */}
+						{uploadStatus && <p>{uploadStatus}</p>}
+					</form>
 				</div>
-
-				<button type="submit" className="upload-button" disabled={isLoading}>
-					{isLoading ? "Uploading..." : "Upload Package"}
-				</button>
-
-				{isLoading && <p>Loading, please wait...</p>} {/* Loading indicator */}
-				{uploadStatus && <p>{uploadStatus}</p>}
-			</form>
+			</div>
 		</div>
 	);
 }
