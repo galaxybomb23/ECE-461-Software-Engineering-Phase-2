@@ -12,10 +12,6 @@ import { handler } from "~/routes/api/package/byRegEx.ts"; // Update with the ac
 import { populateDatabase } from "~/utils/populateDatabase.ts"; // Update with the actual path to your populateDatabase file
 import type { FreshContext } from "$fresh/src/server/types.ts";
 import { PackageMetadata, regexRequest } from "~/types/index.ts";
-import { asset } from "$fresh/runtime.ts";
-import { reset } from "$std/fmt/colors.ts";
-
-//
 
 // test suite
 Deno.test("PackagesByRegexTest...", async (t) => {

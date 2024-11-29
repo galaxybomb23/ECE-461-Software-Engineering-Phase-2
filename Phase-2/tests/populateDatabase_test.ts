@@ -1,7 +1,7 @@
 import { populateDatabase } from "../utils/populateDatabase.ts";
 import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, setup, testLogger } from "./testSuite.ts";
+import { cleanup, testLogger } from "./testSuite.ts";
 
 const TESTNAME = "PopulateDatabaseTest...";
 

@@ -2,7 +2,7 @@
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
-import { PackageQuery, packagesRequest } from "~/types/index.ts";
+import { packagesRequest } from "~/types/index.ts";
 
 //import function
 import { listPackages } from "~/routes/api/packages.ts";

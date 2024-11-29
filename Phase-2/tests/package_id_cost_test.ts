@@ -4,12 +4,12 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
 
 //import the function to be tested
-import { calcPackageCost } from "~/routes/api/package/%5Bid%5D/cost.ts";
+// import { calcPackageCost } from "~/routes/api/package/%5Bid%5D/cost.ts";
 
 // import handler
-import { handler } from "~/routes/api/package/[id]/cost.ts"; // Update with the actual path to your handler file
+// import { handler } from "~/routes/api/package/[id]/cost.ts"; // Update with the actual path to your handler file
 import { populateDatabase } from "~/utils/populateDatabase.ts"; // Update with the actual path to your populateDatabase file
-import type { FreshContext } from "$fresh/src/server/types.ts";
+// import type { FreshContext } from "$fresh/src/server/types.ts";
 
 //
 
@@ -28,7 +28,7 @@ Deno.test("packageIdCostTest", async (t) => {
 	});
 
 	await populateDatabase(); // populate the database if needed
-	let mockContext: FreshContext;
+	// let mockContext: FreshContext;
 
 	// <--- Handler Test --->
 	// await t.step("EndpointTest - Handler: yetImplimented", async () => {

@@ -1,14 +1,14 @@
-import { handleContent, handleURL, parsePackageJSON, uploadZipToSQLite } from "../routes/api/package.ts";
+import { handleContent, handleURL } from "../routes/api/package.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 
 // enum of name to idx in db
-const IDX = 0;
-const NAME = 1;
-const URL = 2;
-const VERSION = 3;
-const BASE64_CONTENT = 4;
+// const IDX = 0;
+// const NAME = 1;
+// const URL = 2;
+// const VERSION = 3;
+// const BASE64_CONTENT = 4;
 
 // function to assert function throws error async
 async function assertThrowsAsyncWithMessage(

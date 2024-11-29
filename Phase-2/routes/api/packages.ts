@@ -34,11 +34,13 @@ import { getUserAuthInfo } from "~/utils/validation.ts";
 export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
+		logger.info("--> /packages: POST");
+		logger.debug(`Request: ${JSON.stringify(req)}`);
 		let body;
 		try {
 			body = await req.json();
 		} catch (error) {
-			logger.info("Invalid JSON format in request body");
+			logger.info("Invalid JSON format in request body: " + error);
 			return new Response("Invalid JSON format in request body", {
 				status: 400,
 			});
@@ -96,7 +98,9 @@ export const handler: Handlers = {
 		};
 
 		// Implement package listing logic
-		return await listPackages(packagesRequest);
+		const response = await listPackages(packagesRequest);
+		logger.debug(`Response: ${JSON.stringify(response)}\n`);
+		return response;
 	},
 };
 
@@ -116,8 +120,8 @@ export async function listPackages(
 	req: packagesRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-	returnAll = false,
 ): Promise<Response> {
+	logger.silly(`listPackages(${JSON.stringify(req)})`);
 	try {
 		// database open
 		logger.debug(
@@ -211,6 +215,7 @@ export async function listPackages(
  */
 // Helper function to map Row to PackageMetadata
 function mapRowToPackage(row: Row): PackageMetadata {
+	// logger.silly(`mapRowToPackage(${JSON.stringify(row)})`); // Uncomment bc it's not needed
 	return {
 		ID: row[0] as string, // Adjust indices based on your table schema
 		Name: row[1] as string,

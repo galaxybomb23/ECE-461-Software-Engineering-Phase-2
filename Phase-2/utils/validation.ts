@@ -17,6 +17,7 @@ export function getUserAuthInfo(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): userAuthInfo {
+	logger.silly(`getUserAuthInfo(${token})`);
 	try {
 		if (token === "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485") {
 			// have to add for the default admin user as tests rely on it

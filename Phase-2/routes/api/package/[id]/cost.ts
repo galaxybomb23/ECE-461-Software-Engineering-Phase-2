@@ -2,7 +2,7 @@
 // Description: Get the cost of a package (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { type Package, PackageCost } from "~/types/index.ts";
+import { PackageCost } from "~/types/index.ts";
 import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB, Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
@@ -11,6 +11,9 @@ import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 export const handler: Handlers = {
 	// Handles GET request to retrieve package cost
 	async GET(req, ctx) {
+		logger.info(`--> /package/{id}/cost: GET`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		// Extract the package ID from the request parameters
 		const id = parseInt(ctx.params.id);
 
@@ -30,7 +33,9 @@ export const handler: Handlers = {
 		const dependency: boolean = url.searchParams.get("dependency") === "true";
 
 		// Validate the package ID
-		return calcPackageCost(id, dependency);
+		const ret = await calcPackageCost(id, dependency);
+		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		return ret;
 	},
 };
 
@@ -47,6 +52,7 @@ export async function calcPackageCost(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<Response> {
+	logger.silly(`calcPackageCost(${id},${dependency} )`);
 	try {
 		const qr = await db.query(
 			"SELECT dependency_cost FROM packages WHERE id = ?",
@@ -68,7 +74,7 @@ export async function calcPackageCost(
 		let totalCost = base_pkg_cost;
 		for (let i = 0; i < dependency_cost.length; i++) {
 			if (dependency_cost[i] == "") continue;
-			const id = dependency_cost[i].split(":")[0];
+			// const id = dependency_cost[i].split(":")[0];
 			const cost = dependency_cost[i].split(":")[1] ?? 0;
 			totalCost += parseInt(cost);
 		}

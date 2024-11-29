@@ -1,4 +1,5 @@
 import { FreshContext } from "$fresh/server.ts";
+import { logger } from "~/src/logFile.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -22,6 +23,8 @@ const JOKES = [
  * @returns A Response object containing a random joke.
  */
 export const handler = (_req: Request, _ctx: FreshContext): Response => {
+	logger.info("--> /api/joke: GET");
+	logger.silly("We got a jokster on our hands 🤡");
 	const randomIndex = Math.floor(Math.random() * JOKES.length);
 	const body = JOKES[randomIndex];
 	return new Response(body);

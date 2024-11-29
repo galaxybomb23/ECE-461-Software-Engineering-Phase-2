@@ -22,7 +22,8 @@ import { adminCreateAccount } from "~/utils/userManagement.ts";
 export const handler: Handlers = {
 	// Handles DELETE request to reset the database
 	async DELETE(req) {
-		logger.info("Reset request received");
+		logger.info("--> /reset: DELETE");
+		logger.debug(`Request: ${JSON.stringify(req)}`);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
@@ -47,7 +48,9 @@ export const handler: Handlers = {
 			return new Response("Unauthorized access", { status: 401 });
 		}
 
-		return resetDatabase();
+		const ret = await resetDatabase();
+		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		return ret;
 	},
 };
 
@@ -66,6 +69,7 @@ export async function resetDatabase(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<Response> {
+	logger.silly("resetDatabase()");
 	try {
 		// database open
 		// delete all packages

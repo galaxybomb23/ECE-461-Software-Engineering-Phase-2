@@ -2,8 +2,8 @@
 // Description: Authenticate this user -- get an access token. (NON-BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { AuthenticationRequest, AuthenticationToken } from "../../types/index.ts";
-import { login, LoginResponse } from "~/utils/userManagement.ts";
+import { AuthenticationRequest } from "../../types/index.ts";
+import { login } from "~/utils/userManagement.ts";
 import { logger } from "../../src/logFile.ts";
 
 export const handler: Handlers = {
@@ -28,6 +28,8 @@ export const handler: Handlers = {
 	 * - 500: Internal server error during the authentication process.
 	 */
 	async PUT(req) {
+		logger.info("--> /authenticate: PUT");
+		logger.debug(`Request: ${JSON.stringify(req)}`);
 		let name, is_admin, password;
 
 		try {
@@ -45,7 +47,8 @@ export const handler: Handlers = {
 			}
 		} catch (error) {
 			// Log the error for debugging purposes
-			logger.debug(`${error}`);
+			logger.info("Invalid request: missing or improperly formed fields in the authentication request");
+			logger.debug(`Error: ${error}`);
 
 			// Return a response indicating that there are missing or improperly formed fields
 			return new Response(
@@ -72,14 +75,14 @@ export const handler: Handlers = {
 				});
 			} else {
 				// Log the unsuccessful login attempt
-				logger.info(`${name} login was unsuccessful`);
+				logger.info(`Login failed for user: ${name}`);
 
 				// Return a response indicating invalid user or password
 				return new Response("The user or password is invalid.", { status: 401 });
 			}
 		} catch (error) {
 			// Log the error for debugging purposes
-			logger.error(error);
+			logger.error(`Error during authentication: ${error}`);
 
 			// Return a response indicating an internal server error
 			return new Response(`Internal Exception: ${error}`, { status: 500 });

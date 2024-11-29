@@ -2,9 +2,10 @@
 
 import dev from "$fresh/dev.ts";
 import config from "./fresh.config.ts";
-import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
+// import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import "$std/dotenv/load.ts";
-import { populateDatabase } from "~/utils/populateDatabase.ts";
+// import { populateDatabase } from "~/utils/populateDatabase.ts";
 
 // await populateDatabase();
+logger.info("Starting dev server...");
 await dev(import.meta.url, "./main.ts", config);

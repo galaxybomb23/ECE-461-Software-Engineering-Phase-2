@@ -23,6 +23,7 @@ export async function login(
 	db: DB = new DB(DATABASEFILE),
 	autoCloseDB: boolean = true,
 ): Promise<LoginResponse> {
+	logger.silly(`login(${username}, ${password}, ${is_admin})`);
 	try {
 		type resultRow = [string, string, number, boolean];
 
@@ -82,6 +83,9 @@ export async function adminCreateAccount(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<boolean> {
+	logger.silly(
+		`adminCreateAccount(${username}, ${password}, ${can_search}, ${can_download}, ${can_upload}, ${user_group}, ${is_admin})`,
+	);
 	try {
 		// make sure username doesn't exist - if it does return false
 		const result = await db.query(`SELECT id FROM users WHERE username = ?`, [
@@ -139,6 +143,7 @@ export async function deleteAccount(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<boolean> {
+	logger.silly(`deleteAccount(${username})`);
 	try {
 		await db.query(`DELETE FROM users WHERE username = ?`, [username]);
 		return db.changes > 0; // if the username existed then the amount of lines changed should be more than zero.
@@ -151,8 +156,9 @@ export async function deleteAccount(
 }
 
 export async function get_all_user_info(db = new DB(DATABASEFILE), autoCloseDB = true) {
+	logger.silly(`get_all_user_info()`);
 	try {
-		const query = db.query(
+		const query = await db.query(
 			`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group, is_admin, username FROM users`,
 		);
 		return query;

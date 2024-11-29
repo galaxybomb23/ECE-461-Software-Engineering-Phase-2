@@ -13,7 +13,8 @@ import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/cod
 
 export const handler: Handlers = {
 	async POST(req) {
-		logger.info("package.ts: Received package upload request");
+		logger.info("--> /package: POST");
+		logger.debug("Request: " + JSON.stringify(req));
 		const db = new DB(DATABASEFILE);
 
 		try {
@@ -119,6 +120,7 @@ export async function handleContent(
 	autoCloseDB = true,
 	old_version?: [string],
 ) {
+	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
 	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
@@ -250,6 +252,7 @@ export async function handleContent(
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
 export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string) {
+	logger.silly(`handleURL(${url},..., ${old_version})`);
 	try {
 		// Use these URLs fetch the .zip for a package
 		let response = await fetch(url + "/zipball/master");
@@ -279,6 +282,7 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 }
 
 export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	logger.silly(`parsePackageJSON(${filePath})`);
 	try {
 		const dirEntries = Deno.readDir(filePath);
 		let packageFolder: Deno.DirEntry | null = null;
@@ -302,8 +306,8 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
 		// Find number of dependencies. Required for some retrieving cost of packages later
-		const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
-			Object.keys(packageJSON.devDependencies || {}).length;
+		// const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
+		// 	Object.keys(packageJSON.devDependencies || {}).length;
 
 		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
 			string,
@@ -334,35 +338,41 @@ export async function computeDependencies(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
-	// we will now query by name and version to find IDs of dependencies/devDependencies
-	// build a string of id:cost, id:cost, id:cost
-	let costs = "";
+	logger.silly(`computeDependencies(${fullDependencies})`);
+	try {
+		// we will now query by name and version to find IDs of dependencies/devDependencies
+		// build a string of id:cost, id:cost, id:cost
+		let costs = "";
 
-	for (const [name, version] of Object.entries(fullDependencies)) {
-		const cleanedVersion = (version as string).replace(/^[^\d]*/, ""); // Cast to string and clean
+		for (const [name, version] of Object.entries(fullDependencies)) {
+			const cleanedVersion = (version as string).replace(/^[^\d]*/, ""); // Cast to string and clean
 
-		let pkgs = await queryPackageById(undefined, name, cleanedVersion, db, false);
-		if (pkgs) {
-			logger.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
-			if (!Array.isArray(pkgs)) pkgs = [pkgs];
+			let pkgs = await queryPackageById(undefined, name, cleanedVersion, db, false);
+			if (pkgs) {
+				logger.debug("package.ts: Found package with name: " + name + " and version: " + cleanedVersion);
+				if (!Array.isArray(pkgs)) pkgs = [pkgs];
 
-			for (const pkg of pkgs) {
-				// query db to get base64_content
-				const base64_content = await db.query(
-					"SELECT base64_content FROM packages WHERE id = ?",
-					[pkg.metadata.ID],
-				) as string[][];
+				for (const pkg of pkgs) {
+					// query db to get base64_content
+					const base64_content = await db.query(
+						"SELECT base64_content FROM packages WHERE id = ?",
+						[pkg.metadata.ID],
+					) as string[][];
 
-				// get length of base64_content and add to costs
-				const program_length = base64_content[0][0].length;
-				costs += pkg.metadata.ID + ":" + program_length + ",";
+					// get length of base64_content and add to costs
+					const program_length = base64_content[0][0].length;
+					costs += pkg.metadata.ID + ":" + program_length + ",";
+				}
 			}
 		}
+		return costs; // either empty string or id:cost, id:cost, id:cost,
+	} finally {
+		if (autoCloseDB) db.close(true);
 	}
-	return costs; // either empty string or id:cost, id:cost, id:cost,
 }
 
 export async function unzipFile(zipFilePath: string, outputDir: string) {
+	logger.silly(`unzipFile(${zipFilePath}, ${outputDir})`);
 	// Ensure the output directory exists
 	await ensureDir(outputDir);
 
@@ -421,6 +431,9 @@ export async function uploadZipToSQLite(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(
+		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${dependencyPinning}, ${dependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
+	);
 	try {
 		const zipData = await Deno.readFile(tempFilePath);
 		const zipBase64 = btoa(new Uint8Array(zipData).reduce((data, byte) => data + String.fromCharCode(byte), ""));
@@ -485,6 +498,7 @@ export async function uploadZipToSQLite(
 
 // Checks if the package is a zip bomb
 async function pleaseDontZipBombMe(tempFilePath: string, maxDecompressedSize: number) {
+	logger.silly(`pleaseDontZipBombMe(${tempFilePath}, ${maxDecompressedSize})`);
 	const file = await Deno.readFile(tempFilePath);
 	const blob = new Blob([file]);
 	const zipReader = new ZipReader(new BlobReader(blob));

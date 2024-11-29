@@ -1,8 +1,11 @@
 import { Handlers } from "$fresh/server.ts";
 import { adminCreateAccount, get_all_user_info } from "~/utils/userManagement.ts";
+import { logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	async GET(_, ctx) {
+		logger.info(`--> /users: GET`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		try {
 			// Use 'await' to resolve the Promise
 			const users = await get_all_user_info();
@@ -21,12 +24,16 @@ export const handler: Handlers = {
 			}
 			return new Response(JSON.stringify(userList), { status: 200 });
 		} catch (error) {
-			console.error("Error fetching user info:", error);
+			logger.error("Error fetching user info:", error);
 			return new Response("Internal Server Error", { status: 500 });
 		}
 	},
 	async POST(req, _ctx) {
+		logger.info(`--> /users: POST`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(_ctx)}`);
 		try {
+			let ret;
 			// Parse the request body
 			const body = await req.json();
 			const { username, password, canSearch, canDownload, canUpload, userGroup, isAdmin } = body;
@@ -51,17 +58,19 @@ export const handler: Handlers = {
 			);
 
 			if (!success) {
-				return new Response(
+				ret = new Response(
 					JSON.stringify({ error: "User creation failed. The username may already exist." }),
 					{ status: 400, headers: { "Content-Type": "application/json" } },
 				);
+			} else {
+				// Respond with success
+				ret = new Response(
+					JSON.stringify({ message: "User created successfully." }),
+					{ status: 201, headers: { "Content-Type": "application/json" } },
+				);
 			}
-
-			// Respond with success
-			return new Response(
-				JSON.stringify({ message: "User created successfully." }),
-				{ status: 201, headers: { "Content-Type": "application/json" } },
-			);
+			logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+			return ret;
 		} catch (error) {
 			console.error("Error creating user:", error);
 			return new Response(

@@ -2,7 +2,6 @@ import { assertNotEquals } from "$std/assert/assert_not_equals.ts";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
-import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 // Import functions to be tested
 import { deletePackage, queryPackageById, updatePackageContent } from "~/routes/api/package/[id].ts";
@@ -108,7 +107,6 @@ Deno.test("PackageIdTest...", async (t) => {
 		const id = "100";
 		const name = "non-existing-package";
 		const version = "1.0.0";
-		const content = "UEsDBBQAAAAIAK2YbU7bQwAAAEwAA...";
 		const pkg = await queryPackageById(id, name, version, db, false);
 		assertEquals(pkg, null, "Package should be null");
 

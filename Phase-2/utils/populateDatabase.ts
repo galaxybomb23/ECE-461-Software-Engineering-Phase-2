@@ -15,6 +15,7 @@ export async function populateDatabase(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): Promise<void> {
+	logger.silly("populateDatabase()");
 	try {
 		const dbentries = {
 			packages: [
