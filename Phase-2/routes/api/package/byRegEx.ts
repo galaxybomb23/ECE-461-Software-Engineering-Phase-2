@@ -63,7 +63,7 @@ export function getPackagesByRegEx(
 	body: regexRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-): Promise<Response> {
+): Response {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
 	try {
 		// add regex function to sqlite
