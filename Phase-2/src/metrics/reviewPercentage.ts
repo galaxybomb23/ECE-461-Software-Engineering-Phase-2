@@ -15,7 +15,7 @@ export async function getReviewPercentage(
 
 	try {
 		// Fetch pull requests from the repository
-		const pullRequestAPI = `${getGitHubAPILink(URL)}/pulls?state=closed`;
+		const pullRequestAPI = `${getGitHubAPILink(URL)}/pulls?state=closed&per_page=15`;
 		const pullRequests: PullRequest[] = await fetchJsonFromApi(
 			pullRequestAPI,
 		) as PullRequest[];
