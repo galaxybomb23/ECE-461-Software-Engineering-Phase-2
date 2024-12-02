@@ -30,7 +30,7 @@ export const handler: Handlers = {
 			}
 
 			const ret = await calcPackageRating(id);
-			logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+			logger.debug(`Response: ${await ret.clone().text()}\n`);
 			return ret;
 		} catch (error) {
 			logger.error(`GET /package/{id}/rate: Error - ${error}`);

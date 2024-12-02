@@ -35,7 +35,7 @@ export const handler: Handlers = {
 
 		try {
 			const pkg = await queryPackageById(id);
-			logger.debug(`Response: ${JSON.stringify(pkg)}\n`);
+			logger.debug(`Package(s): ${await pkg}\n`);
 
 			if (pkg) {
 				return new Response(JSON.stringify(pkg), { status: 200 });

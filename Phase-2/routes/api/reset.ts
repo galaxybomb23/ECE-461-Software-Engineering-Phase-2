@@ -49,7 +49,7 @@ export const handler: Handlers = {
 		}
 
 		const ret = await resetDatabase();
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };

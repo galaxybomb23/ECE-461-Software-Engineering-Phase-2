@@ -22,6 +22,7 @@ export const handler: Handlers = {
 					tokenApiInteractions: user[4],
 				});
 			}
+			logger.debug(`Response: ${JSON.stringify(userList)}\n`);
 			return new Response(JSON.stringify(userList), { status: 200 });
 		} catch (error) {
 			logger.error("Error fetching user info:", error);
