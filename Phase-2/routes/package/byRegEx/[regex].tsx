@@ -2,6 +2,7 @@ import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/islands/Navbar.tsx";
 import Pagination from "~/islands/Pagination.tsx";
 import { APIBaseURL, PackageMetadata } from "~/types/index.ts";
+import { logger } from "~/src/logFile.ts";
 
 export const handler = async (_req: Request, ctx: FreshContext) => {
 	const { regex } = ctx.params;
@@ -37,6 +38,7 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 		if (!response.ok) {
 			// Read the error message from the response body
 			const errorText = await response.text();
+			logger.error(`Error fetching search results: ${errorText}`);
 
 			let customMessage = "An error occurred while fetching search results. Please try again later.";
 			if (response.status === 403) {
@@ -54,6 +56,7 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 
 		return ctx.render({ packages, errorMessage: null });
 	} catch (error) {
+		logger.error(`Error fetching search results: ${error}`);
 		return ctx.render({
 			errorMessage: "An unexpected error occurred. Please try again later.",
 			packages: [],

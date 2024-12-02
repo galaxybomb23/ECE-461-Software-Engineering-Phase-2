@@ -1,5 +1,3 @@
-import { JSX } from "preact";
-
 export default function Modal({
 	title,
 	message,

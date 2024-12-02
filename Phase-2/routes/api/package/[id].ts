@@ -16,6 +16,10 @@ import { handleContent, handleURL } from "~/routes/api/package.ts";
 export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
+		logger.info(`--> /package/{id}: GET`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+
 		const { id } = ctx.params;
 
 		// Extract and validate the 'X-Authentication' token
@@ -31,6 +35,7 @@ export const handler: Handlers = {
 
 		try {
 			const pkg = await queryPackageById(id);
+			logger.debug(`Response: ${JSON.stringify(pkg)}\n`);
 
 			if (pkg) {
 				return new Response(JSON.stringify(pkg), { status: 200 });
@@ -48,6 +53,9 @@ export const handler: Handlers = {
 
 	// Handles POST request to update a package
 	async POST(req, ctx) {
+		logger.info(`--> /package/{id}: POST`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		const body = await req.json();
 
 		try {
@@ -123,6 +131,9 @@ export const handler: Handlers = {
 
 	// Handles DELETE request to delete a package
 	async DELETE(req, ctx) {
+		logger.info(`--> /package/{id}: DELETE`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		const { id } = ctx.params;
 
 		try {

@@ -1,4 +1,4 @@
-import { setup, testLogger } from "./testSuite.ts";
+import { testLogger } from "./testSuite.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.105.0/testing/asserts.ts";
 import { handler } from "~/routes/api/authenticate.ts";
 import { resetDatabase } from "~/routes/api/reset.ts";

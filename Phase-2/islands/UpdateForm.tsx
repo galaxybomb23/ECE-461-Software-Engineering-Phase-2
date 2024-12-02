@@ -12,7 +12,7 @@ interface UpdateFormProps {
 export default function UpdateForm({ metadata }: UpdateFormProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [uploadStatus, setUploadStatus] = useState<string>("");
-	const [authToken, setAuthToken] = useState<string>("");
+	// const [authToken, setAuthToken] = useState<string>("");
 	const [debloat, setDebloat] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 

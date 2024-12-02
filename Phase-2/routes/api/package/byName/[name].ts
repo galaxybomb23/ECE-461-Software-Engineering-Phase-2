@@ -5,12 +5,15 @@ import { Handlers } from "$fresh/server.ts";
 import { PackageHistoryEntry } from "~/types/index.ts";
 import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
-import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
-import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+// import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
+// import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve package history by name
 	async GET(req, ctx) {
+		logger.info(`--> /package/byName/{name}: GET`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		const { name } = ctx.params;
 
 		// check name
@@ -31,7 +34,9 @@ export const handler: Handlers = {
 		// check permissions??
 
 		// handle error codes 200, 404 in function
-		return await getPackageHistory(name);
+		const ret = await getPackageHistory(name);
+		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		return ret;
 	},
 };
 
@@ -40,11 +45,13 @@ export const handler: Handlers = {
  * @param {string} name - The package name to retrieve the history for.
  * @returns {Response} The response containing the package history.
  */
-export async function getPackageHistory(
+export function getPackageHistory(
 	name: string,
-	db = new DB(DATABASEFILE),
-	autoCloseDB = true,
-): Promise<Response> {
+	// db = new DB(DATABASEFILE),
+	// autoCloseDB = true,
+): Response {
+	logger.silly(`getPackageHistory(${name})`);
+	logger.warn("This function is a placeholder and does not actually retrieve package history.");
 	// handle if package not found
 
 	// Placeholder for the history logic

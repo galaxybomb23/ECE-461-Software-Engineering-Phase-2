@@ -6,11 +6,11 @@ export default function UserManagement() {
 	const [group, setGroup] = useState("default");
 	const [message, setMessage] = useState("");
 
-	const handleRegisterUser = async () => {
+	const handleRegisterUser = () => {
 		setMessage(`User ${username} registered successfully!`);
 	};
 
-	const handleDeleteUser = async () => {
+	const handleDeleteUser = () => {
 		setMessage(`User ${username} deleted successfully!`);
 	};
 

@@ -1,7 +1,6 @@
 import { DB, Row } from "https://deno.land/x/sqlite/mod.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
-import { login, LoginResponse } from "~/utils/userManagement.ts";
 
 // Test Handler
 import { handler } from "~/routes/api/reset.ts";

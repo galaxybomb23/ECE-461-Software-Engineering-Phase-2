@@ -31,7 +31,7 @@ export const handler: Handlers = {
 		try {
 			body = (await req.json()) as regexRequest;
 		} catch (error) {
-			logger.info("Invalid JSON format in request body");
+			logger.info("Invalid JSON format in request body: " + error);
 			return new Response("Invalid JSON format in request body", {
 				status: 400,
 			});
@@ -48,7 +48,9 @@ export const handler: Handlers = {
 		}
 
 		// handle error codes 200, 404 in function
-		return await getPackagesByRegEx(body);
+		const ret = await getPackagesByRegEx(body);
+		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		return ret;
 	},
 };
 
@@ -57,11 +59,12 @@ export const handler: Handlers = {
  * @param {PackageRegex} body - The request body containing the regular expression.
  * @returns {Response} The response containing the packages that match the regular expression.
  */
-export async function getPackagesByRegEx(
+export function getPackagesByRegEx(
 	body: regexRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-): Promise<Response> {
+): Response {
+	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
 	try {
 		// add regex function to sqlite
 		db.createFunction(
@@ -102,6 +105,7 @@ export async function getPackagesByRegEx(
 }
 
 function isValidRegex(pattern: string): boolean {
+	logger.silly(`isValidRegex(${pattern})`);
 	try {
 		new RegExp(pattern);
 		return true; // Regex is valid

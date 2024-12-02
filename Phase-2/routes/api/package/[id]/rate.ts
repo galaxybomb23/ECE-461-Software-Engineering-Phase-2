@@ -2,7 +2,7 @@
 // Description: Get ratings for this package. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { type DatabasePackageRow, PackageRating } from "~/types/index.ts";
+import { PackageRating } from "~/types/index.ts";
 import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
@@ -11,6 +11,9 @@ import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 export const handler: Handlers = {
 	// Handles GET request to retrieve package rating
 	async GET(req, ctx) {
+		logger.info(`--> /package/{id}/rate: GET`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
 		try {
 			// Extract the package ID from the request parameters
 			const id = parseInt(ctx.params.id);
@@ -26,7 +29,9 @@ export const handler: Handlers = {
 				return new Response("Unauthorized request: invalid token", { status: 403 });
 			}
 
-			return calcPackageRating(id);
+			const ret = await calcPackageRating(id);
+			logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+			return ret;
 		} catch (error) {
 			logger.error(`GET /package/{id}/rate: Error - ${error}`);
 			return new Response("Invalid package ID or other error:", { status: 400 });
@@ -40,6 +45,7 @@ export const handler: Handlers = {
  * @returns {Response} The response containing the package rating.
  */
 export async function calcPackageRating(id: number, db = new DB(DATABASEFILE), autoCloseDB = true): Promise<Response> {
+	logger.silly(`calcPackageRating(${id})`);
 	try {
 		const pkg = await queryPackageById(id.toString(), db, false);
 
@@ -85,6 +91,7 @@ export async function queryPackageById(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(`queryPackageById(${id})`);
 	try {
 		const query = "SELECT * FROM packages WHERE ID = ?";
 		const queryParams = [id];

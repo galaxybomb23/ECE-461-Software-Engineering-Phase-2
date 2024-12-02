@@ -6,8 +6,10 @@ import { logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve planned tracks
-	async GET(req) {
+	GET(req) {
 		// Implement tracks retrieval logic here
+		logger.info(`--> /tracks: GET`);
+		logger.debug(`Request: ${JSON.stringify(req)}`);
 		try {
 			const tracks = {
 				plannedTracks: [
@@ -17,10 +19,12 @@ export const handler: Handlers = {
 					"Access control track",
 				],
 			};
-			return new Response(JSON.stringify(tracks), {
+			const ret = new Response(JSON.stringify(tracks), {
 				headers: { "Content-Type": "application/json" },
 				status: 200,
 			});
+			logger.debug(`Response: ${JSON.stringify(tracks)}\n`);
+			return ret;
 		} catch (error) { // Error handling
 			logger.error(`Error in getting planned tracks: ${error}`);
 			return new Response("Error in getting planned tracks", { status: 500 });

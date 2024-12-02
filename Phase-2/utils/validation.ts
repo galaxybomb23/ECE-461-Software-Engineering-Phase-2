@@ -1,6 +1,7 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { getUnixTimeInSeconds } from "~/utils/userManagement.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
+import { logger } from "~/src/logFile.ts";
 
 export interface userAuthInfo {
 	can_search: boolean;
@@ -17,6 +18,7 @@ export function getUserAuthInfo(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ): userAuthInfo {
+	logger.silly(`getUserAuthInfo(${token})`);
 	try {
 		if (token === "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485") {
 			// have to add for the default admin user as tests rely on it
