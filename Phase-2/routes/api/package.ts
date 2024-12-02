@@ -225,7 +225,7 @@ export async function handleContent(
 			} else {
 				logger.debug(
 					"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-						"] failed metric check - status 400",
+						"] failed metric check - status 424",
 				);
 
 				throw new Error("Package is not uploaded due to the disqualified rating");
@@ -234,7 +234,7 @@ export async function handleContent(
 		else {
 			logger.debug(
 				"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-					"] failed metric check - status 400",
+					"] failed metric check - status 424",
 			);
 
 			throw new Error("Package is not uploaded due to the disqualified rating");
