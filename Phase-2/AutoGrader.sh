@@ -79,7 +79,7 @@ case "$1" in
     last_run
     ;;
   *)
-    echo "Usage: $0 {register|schedule <group_number>|monitor|best|last}"
+    echo "Usage: $0 {register|schedule|monitor|best|last}"
     exit 1
     ;;
 esac
