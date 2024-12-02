@@ -23,16 +23,19 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 		}
 
 		// Prepare the fetch request
-		const requestBody = JSON.stringify({ RegEx: decodeURIComponent(regex) });
-		const fetchUrl = `${APIBaseURL}/api/package/byRegEx`;
+		const body = {
+			RegEx: regex,
+		};
+		const endpoint = APIBaseURL + "/api/package/byRegEx";
+		const headers = {
+			"Content-Type": "application/json",
+			"X-Authorization": authToken,
+		};
 
-		const response = await fetch(fetchUrl, {
+		const response = await fetch(endpoint, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Authorization": authToken,
-			},
-			body: requestBody,
+			headers: headers,
+			body: JSON.stringify(body),
 		});
 
 		if (!response.ok) {
