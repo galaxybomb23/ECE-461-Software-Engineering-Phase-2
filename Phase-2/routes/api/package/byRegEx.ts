@@ -10,17 +10,17 @@ import { PackageMetadata, regexRequest } from "~/types/index.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
-		logger.info("Request to /packages/byRegEx");
+		logger.info("Request to /package/byRegEx");
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", {
 				status: 403,
 			});
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", {
 				status: 403,
 			});
@@ -31,19 +31,19 @@ export const handler: Handlers = {
 		try {
 			body = (await req.json()) as regexRequest;
 		} catch (error) {
-			logger.info("Invalid JSON format in request body: " + error);
+			logger.warn("Invalid JSON format in request body: " + error);
 			return new Response("Invalid JSON format in request body", {
 				status: 400,
 			});
 		}
 		logger.debug("Request body: " + JSON.stringify(body));
 		if (!body.RegEx) {
-			logger.info(`Invalid request: missing regex`);
+			logger.warn(`Invalid request: missing regex`);
 			return new Response("Invalid request: missing regex", { status: 400 });
 		}
 
 		if (!isValidRegex(body.RegEx)) {
-			logger.info("Invalid request: invalid regex");
+			logger.warn("Invalid request: invalid regex");
 			return new Response("Invalid request: invalid regex", { status: 400 });
 		}
 		// handle error codes 200, 404 in function

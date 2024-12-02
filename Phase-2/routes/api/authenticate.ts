@@ -47,8 +47,8 @@ export const handler: Handlers = {
 			}
 		} catch (error) {
 			// Log the error for debugging purposes
-			logger.info("Invalid request: missing or improperly formed fields in the authentication request");
-			logger.debug(`Error: ${error}`);
+			logger.debug("Invalid request: missing or improperly formed fields in the authentication request");
+			logger.error(`Error: ${error}`);
 
 			// Return a response indicating that there are missing or improperly formed fields
 			return new Response(
@@ -75,7 +75,7 @@ export const handler: Handlers = {
 				});
 			} else {
 				// Log the unsuccessful login attempt
-				logger.info(`Login failed for user: ${name}`);
+				logger.warn(`Login failed for user: ${name}`);
 
 				// Return a response indicating invalid user or password
 				return new Response("The user or password is invalid.", { status: 401 });

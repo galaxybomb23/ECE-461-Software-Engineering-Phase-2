@@ -18,17 +18,17 @@ export const handler: Handlers = {
 
 		// check name
 		if (!name) {
-			logger.info("Invalid request: missing package name");
+			logger.warn("Invalid request: missing package name");
 			return new Response("Invalid request: missing package name", { status: 400 });
 		}
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 		// check permissions??

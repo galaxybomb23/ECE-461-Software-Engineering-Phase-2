@@ -27,7 +27,7 @@ export const handler: Handlers = {
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.debug("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", {
 				status: 403,
 			});
@@ -35,7 +35,7 @@ export const handler: Handlers = {
 		const userAuthInfo: userAuthInfo = getUserAuthInfo(authToken);
 		// Check the validity of the authentication token
 		if (!userAuthInfo.is_token_valid) {
-			logger.debug("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			logger.debug(`Token: ${authToken}`);
 			return new Response("Unauthorized request: invalid token", {
 				status: 403,

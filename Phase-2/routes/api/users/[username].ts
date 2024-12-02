@@ -41,7 +41,7 @@ export const handler: Handlers = {
 		const { username } = ctx.params;
 
 		if (!username) {
-			logger.info("Invalid request: missing username");
+			logger.warn("Invalid request: missing username");
 			return new Response("Username is required.", { status: 400 });
 		}
 
