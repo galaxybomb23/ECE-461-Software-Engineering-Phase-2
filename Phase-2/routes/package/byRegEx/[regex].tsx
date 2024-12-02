@@ -30,7 +30,7 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"X-Authorization": authToken, // Pass the token here
+				"X-Authorization": authToken,
 			},
 			body: requestBody,
 		});
