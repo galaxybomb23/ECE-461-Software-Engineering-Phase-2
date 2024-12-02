@@ -10,7 +10,8 @@ import { PackageMetadata, regexRequest } from "~/types/index.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
-		logger.info("Request to /package/byRegEx");
+		logger.info("--> /package/byRegEx: POST");
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {

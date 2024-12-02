@@ -23,8 +23,8 @@ export const handler: Handlers = {
 	// Handles DELETE request to reset the database
 	async DELETE(req) {
 		logger.info("--> /reset: DELETE");
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		// Extract and validate the 'X-Authentication' token
+
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");

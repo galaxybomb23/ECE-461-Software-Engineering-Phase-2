@@ -9,7 +9,7 @@ export const handler: Handlers = {
 	GET(req) {
 		// Implement tracks retrieval logic here
 		logger.info(`--> /tracks: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		try {
 			const tracks = {
 				plannedTracks: [

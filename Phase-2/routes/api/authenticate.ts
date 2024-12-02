@@ -29,7 +29,8 @@ export const handler: Handlers = {
 	 */
 	async PUT(req) {
 		logger.info("--> /authenticate: PUT");
-		logger.debug(`Request: ${JSON.stringify(req)}`);
+
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		let name, is_admin, password;
 
 		try {

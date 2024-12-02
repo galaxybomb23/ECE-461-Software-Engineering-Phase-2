@@ -7,8 +7,8 @@ import { logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async PUT(req, ctx) {
 		logger.info(`--> /users/{username}: PUT`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		try {
 			const username = ctx.params.username;
 			const body = await req.json();

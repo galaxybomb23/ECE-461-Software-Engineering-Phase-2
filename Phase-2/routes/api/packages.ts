@@ -35,7 +35,7 @@ export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
 		logger.info("--> /packages: POST");
-		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		let body;
 		try {
 			body = await req.json();
@@ -72,7 +72,7 @@ export const handler: Handlers = {
 
 		// Validate PackageQuery fields
 		if (typeof requestBody.Version !== "string") {
-			logger.warn("Invalid request: 'Version' must be a string");
+			logger.warn(`Invalid request: 'Version' must be a string not ${typeof requestBody.Version}`);
 			return new Response("Invalid request: 'Version' must be a string", {
 				status: 400,
 			});

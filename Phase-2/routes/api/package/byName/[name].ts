@@ -12,8 +12,8 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package history by name
 	async GET(req, ctx) {
 		logger.info(`--> /package/byName/{name}: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		const { name } = ctx.params;
 
 		// check name

@@ -12,8 +12,8 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package cost
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}/cost: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		// Extract the package ID from the request parameters
 		const id = parseInt(ctx.params.id);
 

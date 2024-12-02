@@ -14,7 +14,8 @@ import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/cod
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package: POST");
-		logger.debug("Request: " + JSON.stringify(req));
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+
 		const db = new DB(DATABASEFILE);
 
 		try {
