@@ -70,7 +70,7 @@ export function getPackagesByRegEx(
 		db.createFunction(
 			(pattern: string, value: string): boolean => {
 				try {
-					const regex = new RegExp(pattern);
+					const regex = new RegExp(pattern, "i");
 					return regex.test(value);
 				} catch {
 					return false; // Return false for invalid regex patterns
