@@ -35,7 +35,7 @@ export const handler: Handlers = {
 
 		// handle error codes 200, 404 in function
 		const ret = await getPackageHistory(name);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };

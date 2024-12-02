@@ -34,7 +34,7 @@ export const handler: Handlers = {
 
 		// Validate the package ID
 		const ret = await calcPackageCost(id, dependency);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };

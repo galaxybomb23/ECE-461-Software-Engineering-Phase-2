@@ -46,10 +46,9 @@ export const handler: Handlers = {
 			logger.info("Invalid request: invalid regex");
 			return new Response("Invalid request: invalid regex", { status: 400 });
 		}
-
 		// handle error codes 200, 404 in function
-		const ret = await getPackagesByRegEx(body);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		const ret: Response = getPackagesByRegEx(body);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };
@@ -96,6 +95,10 @@ export function getPackagesByRegEx(
 			return new Response("No packages found", { status: 404 });
 		}
 
+		logger.debug(`Found ${packages.length} packages matching the regex`);
+		for (const pkg of packages) {
+			logger.debug(`	Package: ${JSON.stringify(pkg)}`);
+		}
 		return new Response(JSON.stringify(packages), { status: 200 });
 	} finally {
 		if (autoCloseDB) {
