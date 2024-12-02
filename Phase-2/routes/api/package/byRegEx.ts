@@ -10,17 +10,18 @@ import { PackageMetadata, regexRequest } from "~/types/index.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
-		logger.info("Request to /packages/byRegEx");
+		logger.info("--> /package/byRegEx: POST");
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", {
 				status: 403,
 			});
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", {
 				status: 403,
 			});
@@ -31,25 +32,24 @@ export const handler: Handlers = {
 		try {
 			body = (await req.json()) as regexRequest;
 		} catch (error) {
-			logger.info("Invalid JSON format in request body: " + error);
+			logger.warn("Invalid JSON format in request body: " + error);
 			return new Response("Invalid JSON format in request body", {
 				status: 400,
 			});
 		}
 		logger.debug("Request body: " + JSON.stringify(body));
 		if (!body.RegEx) {
-			logger.info(`Invalid request: missing regex`);
+			logger.warn(`Invalid request: missing regex`);
 			return new Response("Invalid request: missing regex", { status: 400 });
 		}
 
 		if (!isValidRegex(body.RegEx)) {
-			logger.info("Invalid request: invalid regex");
+			logger.warn("Invalid request: invalid regex");
 			return new Response("Invalid request: invalid regex", { status: 400 });
 		}
-
 		// handle error codes 200, 404 in function
-		const ret = await getPackagesByRegEx(body);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		const ret: Response = getPackagesByRegEx(body);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };
@@ -70,7 +70,7 @@ export function getPackagesByRegEx(
 		db.createFunction(
 			(pattern: string, value: string): boolean => {
 				try {
-					const regex = new RegExp(pattern);
+					const regex = new RegExp(pattern, "i");
 					return regex.test(value);
 				} catch {
 					return false; // Return false for invalid regex patterns
@@ -96,6 +96,10 @@ export function getPackagesByRegEx(
 			return new Response("No packages found", { status: 404 });
 		}
 
+		logger.debug(`Found ${packages.length} packages matching the regex`);
+		for (const pkg of packages) {
+			logger.debug(`	Package: ${JSON.stringify(pkg)}`);
+		}
 		return new Response(JSON.stringify(packages), { status: 200 });
 	} finally {
 		if (autoCloseDB) {

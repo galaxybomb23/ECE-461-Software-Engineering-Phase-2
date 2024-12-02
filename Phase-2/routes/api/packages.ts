@@ -35,12 +35,12 @@ export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
 		logger.info("--> /packages: POST");
-		logger.debug(`Request: ${JSON.stringify(req)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		let body;
 		try {
 			body = await req.json();
 		} catch (error) {
-			logger.info("Invalid JSON format in request body: " + error);
+			logger.warn("Invalid JSON format in request body: " + error);
 			return new Response("Invalid JSON format in request body", {
 				status: 400,
 			});
@@ -48,7 +48,7 @@ export const handler: Handlers = {
 
 		// Ensure the body is an array with at least one item
 		if (!Array.isArray(body) || body.length === 0) {
-			logger.info("Request body must be a non-empty array");
+			logger.warn("Request body must be a non-empty array");
 			return new Response("Request body must be a non-empty array", {
 				status: 400,
 			});
@@ -59,7 +59,7 @@ export const handler: Handlers = {
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", {
 				status: 400,
 			});
@@ -72,13 +72,13 @@ export const handler: Handlers = {
 
 		// Validate PackageQuery fields
 		if (typeof requestBody.Version !== "string") {
-			logger.info("Invalid request: 'Version' must be a string");
+			logger.warn(`Invalid request: 'Version' must be a string not ${typeof requestBody.Version}`);
 			return new Response("Invalid request: 'Version' must be a string", {
 				status: 400,
 			});
 		}
 		if (typeof requestBody.Name !== "string") {
-			logger.info("Invalid request: 'Name' must be a string");
+			logger.warn("Invalid request: 'Name' must be a string");
 			return new Response("Invalid request: 'Name' must be a string", {
 				status: 400,
 			});
@@ -86,7 +86,7 @@ export const handler: Handlers = {
 
 		// Check the validity of the authentication token
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized access", { status: 403 });
 		}
 

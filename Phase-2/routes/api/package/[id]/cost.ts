@@ -12,19 +12,19 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package cost
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}/cost: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		// Extract the package ID from the request parameters
 		const id = parseInt(ctx.params.id);
 
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 
@@ -34,7 +34,7 @@ export const handler: Handlers = {
 
 		// Validate the package ID
 		const ret = await calcPackageCost(id, dependency);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };

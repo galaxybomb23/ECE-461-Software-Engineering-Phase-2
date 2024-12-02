@@ -23,11 +23,11 @@ export const handler: Handlers = {
 	// Handles DELETE request to reset the database
 	async DELETE(req) {
 		logger.info("--> /reset: DELETE");
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		// Extract and validate the 'X-Authentication' token
+
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.debug("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", {
 				status: 403,
 			});
@@ -35,7 +35,7 @@ export const handler: Handlers = {
 		const userAuthInfo: userAuthInfo = getUserAuthInfo(authToken);
 		// Check the validity of the authentication token
 		if (!userAuthInfo.is_token_valid) {
-			logger.debug("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			logger.debug(`Token: ${authToken}`);
 			return new Response("Unauthorized request: invalid token", {
 				status: 403,
@@ -49,7 +49,7 @@ export const handler: Handlers = {
 		}
 
 		const ret = await resetDatabase();
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };

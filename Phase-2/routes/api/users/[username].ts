@@ -7,8 +7,8 @@ import { logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async PUT(req, ctx) {
 		logger.info(`--> /users/{username}: PUT`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		try {
 			const username = ctx.params.username;
 			const body = await req.json();
@@ -41,7 +41,7 @@ export const handler: Handlers = {
 		const { username } = ctx.params;
 
 		if (!username) {
-			logger.info("Invalid request: missing username");
+			logger.warn("Invalid request: missing username");
 			return new Response("Username is required.", { status: 400 });
 		}
 

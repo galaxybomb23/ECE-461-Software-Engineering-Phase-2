@@ -12,30 +12,30 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package history by name
 	async GET(req, ctx) {
 		logger.info(`--> /package/byName/{name}: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		const { name } = ctx.params;
 
 		// check name
 		if (!name) {
-			logger.info("Invalid request: missing package name");
+			logger.warn("Invalid request: missing package name");
 			return new Response("Invalid request: missing package name", { status: 400 });
 		}
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 		// check permissions??
 
 		// handle error codes 200, 404 in function
 		const ret = await getPackageHistory(name);
-		logger.debug(`Response: ${JSON.stringify(ret)}\n`);
+		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
 };
