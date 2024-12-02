@@ -35,6 +35,6 @@ export const logger: Logger = createLogger({
 	),
 	transports: [
 		new transports.File({ filename: logFilePath, options: { flags: "a" } }),
-		new transports.File({ filename: "server-all.log", level: "silly", options: { flags: "a" } }),
+		new transports.File({ filename: "logs/server-all.log", level: "silly", options: { flags: "a" } }),
 	],
 });
