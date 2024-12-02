@@ -17,19 +17,19 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}: GET`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const { id } = ctx.params;
 
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
-			logger.info("Invalid request: missing authentication token");
+			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
 		if (!getUserAuthInfo(authToken).is_token_valid) {
-			logger.info("Unauthorized request: invalid token");
+			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 

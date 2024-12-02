@@ -1,6 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "../../src/logFile.ts";
-import { ExtendedPackage, Package, PackageData, PackageMetadata } from "../../types/index.ts";
+import { logger } from "~/src/logFile.ts";
+import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
 import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
@@ -14,7 +14,8 @@ import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/cod
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package: POST");
-		logger.debug("Request: " + JSON.stringify(req));
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+
 		const db = new DB(DATABASEFILE);
 
 		try {
@@ -23,16 +24,16 @@ export const handler: Handlers = {
 			// Extract and validate the 'X-Authentication' token
 			const authToken = req.headers.get("X-Authorization") ?? "";
 			if (!authToken) {
-				logger.info("Invalid request: missing authentication token");
+				logger.warn("Invalid request: missing authentication token");
 				return new Response("Invalid request: missing authentication token", { status: 403 });
 			}
 			if (!getUserAuthInfo(authToken).is_token_valid) {
-				logger.info("Unauthorized request: invalid token");
+				logger.warn("Unauthorized request: invalid token");
 				return new Response("Unauthorized request: invalid token", { status: 403 });
 			}
 
 			if (packageData.URL && packageData.Content) {
-				logger.debug("package.ts: Invalid package data received - status 400");
+				logger.warn("package.ts: Invalid package data received - status 400");
 				return new Response(
 					"There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)",
 					{ status: 400 },
@@ -56,7 +57,7 @@ export const handler: Handlers = {
 				packageJSON = await handleContent(packageData.Content);
 				logger.info("package.ts: Successfully handled content.");
 			} else {
-				logger.debug("package.ts: Invalid package data received - status 400");
+				logger.warn("package.ts: Invalid package data received - status 400");
 				return new Response("Invalid package data", { status: 400 });
 			}
 
@@ -87,7 +88,7 @@ export const handler: Handlers = {
 			// Handle HTTP errors. each function may throw an error, and the handler will catch it
 			// This is done instead of each function returning a Response object which couples them to the server and complicates return types
 		} catch (error) {
-			logger.debug("package.ts: Failed to add package - Error: " + (error as Error).message);
+			logger.error("package.ts: Failed to add package - Error: " + (error as Error).message);
 
 			if ((error as Error).message.includes("Package already exists in database")) {
 				return new Response("Package already exists in database", { status: 409 });

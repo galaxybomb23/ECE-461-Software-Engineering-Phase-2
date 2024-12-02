@@ -5,7 +5,7 @@ import { logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async GET(_, ctx) {
 		logger.info(`--> /users: GET`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		try {
 			// Use 'await' to resolve the Promise
 			const users = await get_all_user_info();
@@ -31,8 +31,8 @@ export const handler: Handlers = {
 	},
 	async POST(req, _ctx) {
 		logger.info(`--> /users: POST`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(_ctx)}`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
 		try {
 			let ret;
 			// Parse the request body
