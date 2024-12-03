@@ -57,7 +57,7 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
-			const response = await fetch(`${APIBaseURL}api/users`, {
+			const response = await fetch(`${APIBaseURL}users`, {
 				headers: {
 					"Content-Type": "application/json",
 					"X-authorization": authToken || "",
@@ -78,7 +78,7 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
-			const response = await fetch(`${APIBaseURL}api/users`, {
+			const response = await fetch(`${APIBaseURL}users`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -110,7 +110,7 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
-			const response = await fetch(`${APIBaseURL}api/users/${user.username}`, {
+			const response = await fetch(`${APIBaseURL}users/${user.username}`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
@@ -144,7 +144,7 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
-			const response = await fetch(`${APIBaseURL}api/users/${userToDelete}`, {
+			const response = await fetch(`${APIBaseURL}users/${userToDelete}`, {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
