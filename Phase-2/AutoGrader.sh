@@ -26,7 +26,7 @@ else
   exit 1
 fi
 
-if [[ -z "$GITHUB_TOKEN" ]]; then
+if [[ -z "$AUTOGRADER_TOKEN" ]]; then
   echo "GITHUB_TOKEN is not set in the .env file."
   exit 1
 fi
@@ -40,7 +40,7 @@ register() {
     "group": '"$GROUP_NUMBER"',
     "github": "'"$GITHUB_URL"'",
     "names": '"$TEAM_NAMES"',
-    "gh_token": "'"$GITHUB_TOKEN"'",
+    "gh_token": "'"$AUTOGRADER_TOKEN"'",
     "endpoint": "'"$API_ENDPOINT"'",
     "fe_endpoint": "'"$FE_ENDPOINT"'"
   }'
@@ -56,7 +56,7 @@ register() {
 schedule() {
   DATA='{
     "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${GITHUB_TOKEN}"'"
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
   echo "Request data: $DATA"
@@ -70,7 +70,7 @@ schedule() {
 monitor_runs() {
   DATA='{
     "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${GITHUB_TOKEN}"'"
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
   echo "Request data: $DATA"
@@ -84,28 +84,28 @@ monitor_runs() {
 best_run() {
   DATA='{
     "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${GITHUB_TOKEN}"'"
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
   echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/best_run" \
   --header 'Content-Type: application/json' \
-  --data "$DATA"
+  --data "$DATA" | python3 -m json.tool
 }
 
 # Function to get the latest run score
 last_run() {
   DATA='{
     "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${GITHUB_TOKEN}"'"
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
   echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/last_run" \
   --header 'Content-Type: application/json' \
-  --data "$DATA"
+  --data "$DATA" | python3 -m json.tool
 }
 
 # Function to download a log file
@@ -119,7 +119,7 @@ download_log() {
 
   DATA='{
     "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${GITHUB_TOKEN}"'",
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'",
     "log": "'"$log_path"'"
   }'
 

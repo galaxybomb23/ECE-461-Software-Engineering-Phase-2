@@ -73,7 +73,7 @@ export async function populateDatabase(
 			users: [
 				{
 					username: "ece30861defaultadminuser",
-					hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa", // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
+					hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa", // password is "correcthorsebatterystaple123(!__+@**(A'"`;DROP TABLE packages;"
 					can_search: true,
 					can_download: true,
 					can_upload: true,
