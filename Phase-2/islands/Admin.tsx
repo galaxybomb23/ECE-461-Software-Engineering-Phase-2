@@ -65,7 +65,7 @@ export default function Admin() {
 			const response = await fetch(`${APIBaseURL}users`, {
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken,
+					"X-Authorization": authToken,
 				},
 			});
 			if (!response.ok) throw new Error("Failed to fetch users.");
@@ -92,7 +92,7 @@ export default function Admin() {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken,
+					"X-Authorization": authToken,
 				},
 				body: JSON.stringify(newUser),
 			});
@@ -130,7 +130,7 @@ export default function Admin() {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken,
+					"X-Authorization": authToken,
 				},
 				body: JSON.stringify(user),
 			});
@@ -169,7 +169,7 @@ export default function Admin() {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken,
+					"X-Authorization": authToken,
 				},
 			});
 
