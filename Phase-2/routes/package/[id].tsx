@@ -23,18 +23,19 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		}
 
 		// Fetch package data
-		const packageResponse = await fetch(`${APIBaseURL}/api/package/${id}`, {
+		const packageResponse = await fetch(`${APIBaseURL}package/${id}`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
 				"X-Authorization": authToken, // Use the token from cookies
 			},
 		});
+
 		if (!packageResponse.ok) throw new Error("Package data fetch failed");
 		const packageData: Package = await packageResponse.json();
 
 		// Fetch cost data
-		const costResponse = await fetch(`${APIBaseURL}/api/package/${id}/cost`, {
+		const costResponse = await fetch(`${APIBaseURL}package/${id}/cost?dependency=true`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -45,7 +46,7 @@ export const handler = async (req: Request, ctx: FreshContext) => {
 		const costData: PackageCost = await costResponse.json();
 
 		// Fetch rating data
-		const rateResponse = await fetch(`${APIBaseURL}/api/package/${id}/rate`, {
+		const rateResponse = await fetch(`${APIBaseURL}package/${id}/rate`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
