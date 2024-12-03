@@ -17,7 +17,7 @@ export const handler: Handlers = {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
-		
+
 		try {
 			// Use 'await' to resolve the Promise
 			const users = await get_all_user_info();
