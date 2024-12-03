@@ -1,7 +1,22 @@
 #!/bin/bash
 
-# Define the base URL for the API
+# Base URL for the API
 BASE_URL="http://dl-berlin.ecn.purdue.edu:8000"
+
+# Hardcoded values for the script
+GROUP_NUMBER=2
+GITHUB_URL="https://github.com/galaxybomb23/ECE-461-Software-Engineering-Phase-2"
+TEAM_NAMES='["Eiljah Jorgensen", "Cooper Rockwell", "Tom Odonnel", "Rushil Shaw"]'
+API_ENDPOINT="http://54.224.103.25/api"
+FE_ENDPOINT="http://54.224.103.25"
+
+# echo setup
+# echo "BASE_URL: $BASE_URL"
+# echo "GROUP_NUMBER: $GROUP_NUMBER"
+# echo "GITHUB_URL: $GITHUB_URL"
+# echo "TEAM_NAMES: $TEAM_NAMES"
+# echo "API_ENDPOINT: $API_ENDPOINT"
+# echo "FE_ENDPOINT: $FE_ENDPOINT"
 
 # Load environment variables from .env file
 if [ -f .env ]; then
@@ -15,50 +30,104 @@ if [[ -z "$GITHUB_TOKEN" ]]; then
   echo "GITHUB_TOKEN is not set in the .env file."
   exit 1
 fi
+# echo "${GITHUB_TOKEN}"
 
 # Function to register
 register() {
+  echo "Registering ..."
+  
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "github": "'"$GITHUB_URL"'",
+    "names": '"$TEAM_NAMES"',
+    "gh_token": "'"$GITHUB_TOKEN"'",
+    "endpoint": "'"$API_ENDPOINT"'",
+    "fe_endpoint": "'"$FE_ENDPOINT"'"
+  }'
+  
+  echo "Request data: $DATA"
+  
   curl --location "$BASE_URL/register" \
   --header 'Content-Type: application/json' \
-  --data '{
-    "group": 1,
-    "github": "https://github.com/galaxybomb23/ECE-461-Software-Engineering-Phase-2",
-    "names": [
-        "Elijah Jorgensen", "Cooper Rockwell", "Tom Odonnel", "Rushil Shaw"
-    ],
-    "gh_token": "'"${GITHUB_TOKEN}"'",
-    "endpoint": "http://54.224.103.25/api",
-    "fe_endpoint": "http://54.224.103.25/"
-  }'
+  --data "$DATA"
 }
 
 # Function to schedule a run
 schedule() {
-  echo "Scheduling run for group 1..."
-  curl --location "$BASE_URL/schedule" \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "group": "1",
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
     "gh_token": "'"${GITHUB_TOKEN}"'"
   }'
+  
+  echo "Request data: $DATA"
+  
+  curl --location "$BASE_URL/schedule" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
 }
 
 # Function to monitor all runs
 monitor_runs() {
-  curl --location "$BASE_URL/run/all" \
-  --header 'Content-Type: application/json'
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "gh_token": "'"${GITHUB_TOKEN}"'"
+  }'
+  
+  echo "Request data: $DATA"
+
+  curl --location --request GET "$BASE_URL/run/all" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
 }
 
 # Function to get the best run score
 best_run() {
-  curl --location "$BASE_URL/best_run" \
-  --header 'Content-Type: application/json'
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "gh_token": "'"${GITHUB_TOKEN}"'"
+  }'
+  
+  echo "Request data: $DATA"
+
+  curl --location --request GET "$BASE_URL/best_run" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
 }
 
 # Function to get the latest run score
 last_run() {
-  curl --location "$BASE_URL/last_run" \
-  --header 'Content-Type: application/json'
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "gh_token": "'"${GITHUB_TOKEN}"'"
+  }'
+  
+  echo "Request data: $DATA"
+
+  curl --location --request GET "$BASE_URL/last_run" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
+}
+
+# Function to download a log file
+download_log() {
+  local log_path="$1"
+  if [[ -z "$log_path" ]]; then
+    echo "Error: Log path is required for the download_log command."
+    echo "Usage: $0 download_log <log_path>"
+    exit 1
+  fi
+
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "gh_token": "'"${GITHUB_TOKEN}"'",
+    "log": "'"$log_path"'"
+  }'
+
+  echo "Request data: $DATA"
+
+  curl --location --request GET "$BASE_URL/log/download" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
 }
 
 # Parse flags and execute corresponding function
@@ -67,7 +136,7 @@ case "$1" in
     register
     ;;
   "schedule")
-    schedule 
+    schedule
     ;;
   "monitor")
     monitor_runs
@@ -78,8 +147,11 @@ case "$1" in
   "last")
     last_run
     ;;
+  "download_log")
+    download_log "$2"
+    ;;
   *)
-    echo "Usage: $0 {register|schedule|monitor|best|last}"
+    echo "Usage: $0 {register|schedule|monitor|best|last|download_log}"
     exit 1
     ;;
 esac

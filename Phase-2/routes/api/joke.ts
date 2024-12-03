@@ -121,7 +121,7 @@ const JOKES = [
 export const handler = (_req: Request, _ctx: FreshContext): Response => {
 	logger.info("--> /api/joke: GET");
 	logger.silly("We got a jokster on our hands 🤡");
-	const randomIndex = Math.floor(Math.random() * JOKES.length);
-	const body = JOKES[randomIndex];
+
+	const body = JOKES[Math.floor(Math.random() * JOKES.length)];
 	return new Response(body);
 };
