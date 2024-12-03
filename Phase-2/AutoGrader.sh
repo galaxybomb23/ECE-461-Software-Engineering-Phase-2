@@ -45,7 +45,7 @@ register() {
     "fe_endpoint": "'"$FE_ENDPOINT"'"
   }'
   
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
   
   curl --location "$BASE_URL/register" \
   --header 'Content-Type: application/json' \
@@ -59,7 +59,7 @@ schedule() {
     "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
   
   curl --location "$BASE_URL/schedule" \
   --header 'Content-Type: application/json' \
@@ -73,7 +73,7 @@ monitor_runs() {
     "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/run/all" \
   --header 'Content-Type: application/json' \
@@ -87,7 +87,7 @@ best_run() {
     "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/best_run" \
   --header 'Content-Type: application/json' \
@@ -101,7 +101,7 @@ last_run() {
     "gh_token": "'"${AUTOGRADER_TOKEN}"'"
   }'
   
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/last_run" \
   --header 'Content-Type: application/json' \
@@ -123,7 +123,7 @@ download_log() {
     "log": "'"$log_path"'"
   }'
 
-  echo "Request data: $DATA"
+  # echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/log/download" \
   --header 'Content-Type: application/json' \
