@@ -2,6 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { deleteAccount } from "~/utils/userManagement.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 import { logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
@@ -14,6 +15,10 @@ export const handler: Handlers = {
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 
 		try {
@@ -51,7 +56,11 @@ export const handler: Handlers = {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
-		
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
+
 		const { username } = ctx.params;
 
 		if (!username) {

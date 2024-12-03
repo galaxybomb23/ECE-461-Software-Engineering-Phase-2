@@ -1,4 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 import { adminCreateAccount, get_all_user_info } from "~/utils/userManagement.ts";
 import { logger } from "~/src/logFile.ts";
 
@@ -11,6 +12,10 @@ export const handler: Handlers = {
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
 		
 		try {
