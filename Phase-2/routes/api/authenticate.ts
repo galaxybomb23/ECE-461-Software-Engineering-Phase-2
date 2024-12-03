@@ -70,7 +70,7 @@ export const handler: Handlers = {
 				logger.info(`${name} login was successful`);
 
 				// Return a success response with the authentication token
-				return new Response(`"\\"${token}\\"`, {
+				return new Response(`"${token}"`, {
 					headers: { "Content-Type": "application/json" },
 					status: 200,
 				});
