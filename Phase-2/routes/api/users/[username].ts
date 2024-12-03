@@ -9,6 +9,13 @@ export const handler: Handlers = {
 		logger.info(`--> /users/{username}: PUT`);
 		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.warn("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+
 		try {
 			const username = ctx.params.username;
 			const body = await req.json();
@@ -38,6 +45,13 @@ export const handler: Handlers = {
 		logger.info(`--> /users/{username}: DELETE`);
 		logger.debug(`Request: ${JSON.stringify(req)}`);
 		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.warn("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		
 		const { username } = ctx.params;
 
 		if (!username) {
