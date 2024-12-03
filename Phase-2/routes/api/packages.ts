@@ -99,7 +99,7 @@ export const handler: Handlers = {
 
 		// Implement package listing logic
 		const response = await listPackages(packagesRequest);
-		logger.debug(`Response: ${JSON.stringify(response)}\n`);
+		logger.verbose(`Response: ${await response.clone().text()}\n`);
 		return response;
 	},
 };
