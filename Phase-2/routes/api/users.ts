@@ -6,6 +6,7 @@ import { logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
+		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";

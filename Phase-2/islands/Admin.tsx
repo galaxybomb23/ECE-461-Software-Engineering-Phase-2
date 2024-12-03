@@ -56,11 +56,16 @@ export default function Admin() {
 				.split("; ")
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
+			
+			if (!authToken) {
+				setIsAuthorized(false);
+				return;
+			}
 
 			const response = await fetch(`${APIBaseURL}users`, {
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken || "",
+					"X-authorization": authToken,
 				},
 			});
 			if (!response.ok) throw new Error("Failed to fetch users.");
@@ -78,14 +83,20 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
+			if (!authToken) {
+				setIsAuthorized(false);
+				return;
+			}
+
 			const response = await fetch(`${APIBaseURL}users`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken || "",
+					"X-authorization": authToken,
 				},
 				body: JSON.stringify(newUser),
 			});
+
 			if (!response.ok) throw new Error("Failed to create user.");
 			fetchUsers(); // Refresh user list
 			setShowCreateForm(false); // Close the create form
@@ -110,11 +121,16 @@ export default function Admin() {
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
 
+			if (!authToken) {
+				setIsAuthorized(false);
+				return;
+			}
+
 			const response = await fetch(`${APIBaseURL}users/${user.username}`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken || "",
+					"X-authorization": authToken,
 				},
 				body: JSON.stringify(user),
 			});
@@ -143,12 +159,17 @@ export default function Admin() {
 				.split("; ")
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
+			
+			if (!authToken) {
+				setIsAuthorized(false);
+				return;
+			}
 
 			const response = await fetch(`${APIBaseURL}users/${userToDelete}`, {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
-					"X-authorization": authToken || "",
+					"X-authorization": authToken,
 				},
 			});
 
