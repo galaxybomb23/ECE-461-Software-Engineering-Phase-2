@@ -67,11 +67,11 @@ export default function LoginForm() {
 				return;
 			}
 
-			const data = await response.json();
+			const data = await response.text();
 
 			localStorage.setItem("username", username);
 			document.cookie = `isAdmin=${isAdmin}; path=/;`;
-			document.cookie = `authToken=${data.token}; path=/;`;
+			document.cookie = `authToken=${data}; path=/;`;
 
 			checkLoginState();
 			setLoginStatus("Login successful!");
