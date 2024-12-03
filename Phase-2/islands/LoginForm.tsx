@@ -50,7 +50,7 @@ export default function LoginForm() {
 				},
 			};
 
-			const response = await fetch(`${APIBaseURL}/api/authenticate`, {
+			const response = await fetch(`${APIBaseURL}authenticate`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
@@ -101,7 +101,7 @@ export default function LoginForm() {
 				throw new Error("No logged-in user to delete.");
 			}
 
-			const response = await fetch(`${APIBaseURL}/api/users/${loggedInUser.value}`, {
+			const response = await fetch(`${APIBaseURL}users/${loggedInUser.value}`, {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",

@@ -1,19 +1,24 @@
 import { FreshContext } from "$fresh/server.ts";
 import Navbar from "~/islands/Navbar.tsx";
 import Pagination from "~/islands/Pagination.tsx";
-import { PackageMetadata, packagesRequest } from "~/types/index.ts";
-import { listPackages } from "~/routes/api/packages.ts";
+import { APIBaseURL, PackageMetadata } from "~/types/index.ts";
 
 export const handler = async (_req: Request, _ctx: FreshContext) => {
-	const request: packagesRequest = {
-		offset: 1,
-		authToken: "",
-		requestBody: {
-			Version: "Bounded range (0.0.0-99999.9.9)",
-			Name: "*",
+	const body = [{
+		Version: "Bounded range (0.0.0-99999.9.9)",
+		Name: "*", // wildcard search
+	}];
+
+	const endpoint = `${APIBaseURL}packages`;
+	const packages: Response = await fetch(endpoint, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Authorization": "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485", // system token
+			offset: 1,
 		},
-	};
-	const packages: Response = await listPackages(request, undefined, undefined, true);
+		body: JSON.stringify(body),
+	});
 
 	if (packages.status !== 200) {
 		return _ctx.render({ packages: [] });

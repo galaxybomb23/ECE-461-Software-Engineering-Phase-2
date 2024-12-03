@@ -1,11 +1,23 @@
 import { Handlers } from "$fresh/server.ts";
+import { getUserAuthInfo } from "~/utils/validation.ts";
 import { adminCreateAccount, get_all_user_info } from "~/utils/userManagement.ts";
 import { logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
-	async GET(_, ctx) {
+	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.warn("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
+
 		try {
 			// Use 'await' to resolve the Promise
 			const users = await get_all_user_info();

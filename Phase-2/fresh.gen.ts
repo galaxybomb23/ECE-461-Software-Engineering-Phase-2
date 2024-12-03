@@ -23,7 +23,6 @@ import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
 import * as $package_id_ from "./routes/package/[id].tsx";
 import * as $package_byRegEx_regex_ from "./routes/package/byRegEx/[regex].tsx";
-import * as $search_results from "./routes/search-results.tsx";
 import * as $upload from "./routes/upload.tsx";
 import * as $Admin from "./islands/Admin.tsx";
 import * as $DeleteButton from "./islands/DeleteButton.tsx";
@@ -61,7 +60,6 @@ const manifest = {
 		"./routes/login.tsx": $login,
 		"./routes/package/[id].tsx": $package_id_,
 		"./routes/package/byRegEx/[regex].tsx": $package_byRegEx_regex_,
-		"./routes/search-results.tsx": $search_results,
 		"./routes/upload.tsx": $upload,
 	},
 	islands: {

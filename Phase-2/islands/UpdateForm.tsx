@@ -12,7 +12,6 @@ interface UpdateFormProps {
 export default function UpdateForm({ metadata }: UpdateFormProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [uploadStatus, setUploadStatus] = useState<string>("");
-	// const [authToken, setAuthToken] = useState<string>("");
 	const [debloat, setDebloat] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -85,10 +84,10 @@ export default function UpdateForm({ metadata }: UpdateFormProps) {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = `${APIBaseURL}/api/package/${packageID}`;
+			const endpoint = `${APIBaseURL}package/${packageID}`;
 
 			const response = await fetch(endpoint, {
-				method: "PUT",
+				method: "POST",
 				headers: headers,
 				body: JSON.stringify(payload),
 			});
