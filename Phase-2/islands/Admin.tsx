@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import Navbar from "~/islands/Navbar.tsx";
 import Modal from "~/components/Modal.tsx";
+import { APIBaseURL } from "~/types/index.ts";
 
 interface User {
 	username: string;
@@ -51,7 +52,17 @@ export default function Admin() {
 
 	const fetchUsers = async () => {
 		try {
-			const response = await fetch("/api/users");
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
+
+			const response = await fetch(`${APIBaseURL}api/users`, {
+				headers: {
+					"Content-Type": "application/json",
+					"X-authorization": authToken || "",
+				},
+			});
 			if (!response.ok) throw new Error("Failed to fetch users.");
 			const data = await response.json();
 			setUsers(data);
@@ -62,9 +73,17 @@ export default function Admin() {
 
 	const createUser = async () => {
 		try {
-			const response = await fetch(`/api/users`, {
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
+
+			const response = await fetch(`${APIBaseURL}api/users`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					"X-authorization": authToken || "",
+				},
 				body: JSON.stringify(newUser),
 			});
 			if (!response.ok) throw new Error("Failed to create user.");
@@ -86,9 +105,17 @@ export default function Admin() {
 
 	const updateUser = async (user: User) => {
 		try {
-			const response = await fetch(`/api/users/${user.username}`, {
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
+
+			const response = await fetch(`${APIBaseURL}api/users/${user.username}`, {
 				method: "PUT",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					"X-authorization": authToken || "",
+				},
 				body: JSON.stringify(user),
 			});
 			if (!response.ok) throw new Error("Failed to update user.");
@@ -112,10 +139,16 @@ export default function Admin() {
 		if (!userToDelete) return;
 
 		try {
-			const response = await fetch(`/api/users/${userToDelete}`, {
+			const authToken = document.cookie
+				.split("; ")
+				.find((row) => row.startsWith("authToken="))
+				?.split("=")[1];
+
+			const response = await fetch(`${APIBaseURL}api/users/${userToDelete}`, {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
+					"X-authorization": authToken || "",
 				},
 			});
 
