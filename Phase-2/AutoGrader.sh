@@ -147,7 +147,7 @@ case "$1" in
   "last")
     last_run
     ;;
-  "download_log")
+  "logs")
     download_log "$2"
     ;;
   *)
