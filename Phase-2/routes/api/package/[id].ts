@@ -1,6 +1,6 @@
 // API Endpoints:
 // GET /package/{id} - Retrieve a package (BASELINE)
-// PUT /package/{id} - Update a package (BASELINE)
+// POST /package/{id} - Update a package (BASELINE)
 // DELETE /package/{id} - Delete a package (NON-BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
@@ -94,17 +94,17 @@ export const handler: Handlers = {
 
 			if (success) {
 				logger.info(
-					`PUT /package/{id}: Package updated - ID: ${body.metadata.ID}, URL: ${
+					`POST /package/{id}: Package updated - ID: ${body.metadata.ID}, URL: ${
 						body.data.URL || "unchanged"
 					} and Content: ${body.data.Content || "unchanged"}`,
 				);
 				return new Response("Package updated", { status: 200 });
 			} else {
-				logger.error(`PUT /package/{id}: Package not updated`);
+				logger.error(`POST /package/{id}: Package not updated`);
 				return new Response("Package not updated", { status: 400 });
 			}
 		} catch (error) {
-			logger.error(`PUT /package/{id}: Error - ${error}`);
+			logger.error(`POST /package/{id}: Error - ${error}`);
 			if ((error as Error).message.includes("Package already exists in database")) {
 				return new Response("Package already exists in database", { status: 409 });
 			} else if ((error as Error).message.includes("Package is not uploaded due to the disqualified rating")) {

@@ -26,7 +26,7 @@ export const handler = async (_req: Request, ctx: FreshContext) => {
 		const body = {
 			RegEx: regex,
 		};
-		const endpoint = APIBaseURL + "/api/package/byRegEx";
+		const endpoint = APIBaseURL + "package/byRegEx";
 		const headers = {
 			"Content-Type": "application/json",
 			"X-Authorization": authToken,

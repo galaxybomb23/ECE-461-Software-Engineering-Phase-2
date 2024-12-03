@@ -101,7 +101,7 @@ export default function UploadForm() {
 				"X-Authorization": authToken,
 			};
 
-			const endpoint = APIBaseURL + "/api/package";
+			const endpoint = APIBaseURL + "package";
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: headers,

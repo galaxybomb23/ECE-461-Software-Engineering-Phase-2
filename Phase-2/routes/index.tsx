@@ -9,7 +9,7 @@ export const handler = async (_req: Request, _ctx: FreshContext) => {
 		Name: "*", // wildcard search
 	}];
 
-	const endpoint = `${APIBaseURL}/api/packages`;
+	const endpoint = `${APIBaseURL}packages`;
 	const packages: Response = await fetch(endpoint, {
 		method: "POST",
 		headers: {
