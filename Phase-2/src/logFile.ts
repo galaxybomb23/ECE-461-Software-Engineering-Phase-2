@@ -41,5 +41,5 @@ export const logger: Logger = createLogger({
 
 export async function displayRequest(req: Request): Promise<void> {
 	const reqet = await req.clone().json();
-	logger.verbose(Deno.inspect(reqet));
+	logger.verbose(`Request:\n ${Deno.inspect(reqet)}`);
 }
