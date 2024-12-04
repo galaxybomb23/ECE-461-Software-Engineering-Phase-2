@@ -68,6 +68,7 @@ schedule() {
 
 # Function to monitor all runs
 monitor_runs() {
+  echo "Monitor list ..."
   DATA='{
     "group": '"$GROUP_NUMBER"',
     "gh_token": "'"${AUTOGRADER_TOKEN}"'"

@@ -73,15 +73,15 @@ export async function populateDatabase(
 			users: [
 				{
 					username: "ece30861defaultadminuser",
-					hashed_password: "ac3ac1aee0350beb389a0b7d1e817e3a6a9029375b849171b5a3508713894a95", // password is "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;"
+					hashed_password: "6af977a963ed05684b582b87299dad067dd2783557a9ebcd6bc209b8229a6eaa", // password is "correcthorsebatterystaple123(!__+@**(A'"`;DROP TABLE packages;"
 					can_search: true,
 					can_download: true,
 					can_upload: true,
 					user_group: "admin",
 					token_start_time: getUnixTimeInSeconds(),
 					token_api_interactions: 0,
-					password_salt: "5021b3d0f23fef95",
-					password_rounds: 4788,
+					password_salt: "f5429e4041729b8a",
+					password_rounds: 5227,
 					is_admin: true,
 					token: "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485",
 				},
