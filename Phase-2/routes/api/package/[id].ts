@@ -4,7 +4,7 @@
 // DELETE /package/{id} - Delete a package (NON-BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { logger, displayRequest } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
@@ -17,7 +17,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}: GET`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const { id } = ctx.params;

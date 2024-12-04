@@ -2,7 +2,7 @@
 // Description: Get the packages from the registry that match the given regular expression. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
@@ -11,7 +11,7 @@ import { PackageMetadata, regexRequest } from "~/types/index.ts";
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package/byRegEx: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {

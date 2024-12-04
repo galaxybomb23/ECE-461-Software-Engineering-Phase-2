@@ -4,7 +4,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest } from "../../types/index.ts";
 import { login } from "~/utils/userManagement.ts";
-import { logger } from "../../src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	/**
@@ -30,7 +30,7 @@ export const handler: Handlers = {
 	async PUT(req) {
 		logger.info("--> /authenticate: PUT");
 
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		let name, is_admin, password;
 
 		try {

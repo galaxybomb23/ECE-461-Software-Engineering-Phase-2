@@ -1,12 +1,12 @@
 import { Handlers } from "$fresh/server.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { adminCreateAccount, get_all_user_info } from "~/utils/userManagement.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
@@ -44,7 +44,7 @@ export const handler: Handlers = {
 	},
 	async POST(req, _ctx) {
 		logger.info(`--> /users: POST`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
 		try {
 			let ret;

@@ -38,3 +38,8 @@ export const logger: Logger = createLogger({
 		new transports.File({ filename: "logs/server-all.log", level: "silly", options: { flags: "a" } }),
 	],
 });
+
+export async function displayRequest(req: Request): Promise<void> {
+	const reqet = await req.clone().json();
+	logger.verbose(Deno.inspect(reqet));
+}

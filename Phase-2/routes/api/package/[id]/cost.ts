@@ -3,7 +3,7 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { PackageCost } from "~/types/index.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB, Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
@@ -12,7 +12,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package cost
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}/cost: GET`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		// Extract the package ID from the request parameters
 		const id = parseInt(ctx.params.id);

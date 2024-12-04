@@ -3,7 +3,7 @@
 
 import { Handlers } from "$fresh/server.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo, type userAuthInfo } from "~/utils/validation.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { adminCreateAccount } from "~/utils/userManagement.ts";
@@ -24,7 +24,7 @@ export const handler: Handlers = {
 	async DELETE(req) {
 		logger.info("--> /reset: DELETE");
 
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");

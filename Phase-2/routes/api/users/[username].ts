@@ -3,12 +3,12 @@ import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { deleteAccount } from "~/utils/userManagement.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	async PUT(req, ctx) {
 		logger.info(`--> /users/{username}: PUT`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";

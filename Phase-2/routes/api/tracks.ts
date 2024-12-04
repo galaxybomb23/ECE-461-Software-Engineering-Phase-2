@@ -2,14 +2,14 @@
 // Description: Get the list of tracks a student has planned to implement in their code
 
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve planned tracks
 	GET(req) {
 		// Implement tracks retrieval logic here
 		logger.info(`--> /tracks: GET`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		try {
 			const tracks = {
 				plannedTracks: [

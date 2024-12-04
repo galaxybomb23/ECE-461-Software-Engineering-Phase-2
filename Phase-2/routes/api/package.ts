@@ -1,5 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
@@ -14,7 +14,7 @@ import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/cod
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 
 		const db = new DB(DATABASEFILE);
 

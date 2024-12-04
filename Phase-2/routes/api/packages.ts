@@ -2,7 +2,7 @@
 // Description: Get the packages from the registry. (BASELINE)
 import { Handlers } from "https://deno.land/x/fresh@1.7.2/server.ts";
 import { PackageMetadata, PackageQuery, packagesRequest } from "../../types/index.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import type { Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import * as semver from "https://deno.land/x/semver@v1.4.0/mod.ts";
@@ -35,7 +35,7 @@ export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
 		logger.info("--> /packages: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		displayRequest(req);
 		let body;
 		try {
 			body = await req.json();
