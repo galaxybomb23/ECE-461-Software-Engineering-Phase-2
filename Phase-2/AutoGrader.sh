@@ -131,6 +131,10 @@ download_log() {
   --data "$DATA"
 }
 
+server_logs() {
+  curl --location --request GET "$API_ENDPOINT/logs" > logs/server_logs.log
+}
+
 # Parse flags and execute corresponding function
 case "$1" in
   "register")
@@ -150,6 +154,9 @@ case "$1" in
     ;;
   "logs")
     download_log "$2"
+    ;;
+  "server_logs")
+    server_logs
     ;;
   *)
     echo "Usage: $0 {register|schedule|monitor|best|last|download_log}"

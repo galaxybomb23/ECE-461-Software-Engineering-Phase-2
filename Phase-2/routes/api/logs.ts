@@ -5,7 +5,7 @@ import { logger } from "~/src/logFile.ts";
 // THIS SHOULD NOT BE ON MAIN
 export const handler: Handlers = {
     async GET(_req) {
-        logger.info("--> /api/logs: GET");
+        logger.silly("--> /api/logs: GET");
         const logContent = await Deno.readTextFile("logs/server-all.log");
         return new Response(logContent, {
             headers: { "Content-Type": "text/plain" },
