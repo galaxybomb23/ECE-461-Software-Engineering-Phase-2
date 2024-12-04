@@ -40,6 +40,11 @@ export const logger: Logger = createLogger({
 });
 
 export async function displayRequest(req: Request): Promise<void> {
-	const reqet = await req.clone().json();
-	logger.verbose(`Request:\n ${Deno.inspect(reqet)}`);
+	try {
+		const reqet = await req.clone().json();
+		logger.verbose(`Request:\n ${Deno.inspect(reqet)}`);
+	} catch (e) {
+		logger.error(`Error in displayRequest: ${e}`);
+		logger.verbose(`Request:\n ${Deno.inspect(req)}`);
+	}
 }
