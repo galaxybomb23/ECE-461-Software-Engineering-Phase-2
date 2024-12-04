@@ -169,3 +169,15 @@ export async function get_all_user_info(db = new DB(DATABASEFILE), autoCloseDB =
 		}
 	}
 }
+
+if (import.meta.main) {
+	adminCreateAccount(
+		"newUser",
+		"correcthorsebatterystaple123(!__+@**(A'\\\"`;DROP TABLE packages;",
+		true,
+		true,
+		true,
+		"user",
+		false,
+	);
+}
