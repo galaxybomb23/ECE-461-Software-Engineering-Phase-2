@@ -1,4 +1,7 @@
-export const APIBaseURL = new URL("http://localhost:8000/api/"); // Server URL: http://54.224.103.25/api/
+import process from "node:process";
+export const APIBaseURL = process.env.IS_LOCAL
+	? new URL("http://localhost:8000/api")
+	: new URL("http://54.224.103.25/api/");
 
 export interface Package {
 	metadata: PackageMetadata;
