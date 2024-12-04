@@ -78,37 +78,37 @@ export async function resetDatabase(
 		logger.debug(`Packages deleted (${db.changes}): ${packages.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'packages'");
 
-		//reset package sequence
-		const users = await db.query("SELECT * FROM users");
-		await db.execute("DELETE FROM users");
+		//reset  users
+		const users = await db.query("SELECT * FROM users WHERE username != 'ece30861defaultadminuser'");
+		await db.execute("DELETE FROM users WHERE username != 'ece30861defaultadminuser'");
 		logger.debug(`Users deleted (${db.changes}): ${users.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'users'");
 
-		// add default admin user
-		if (
-			!(await adminCreateAccount(
-				// username
-				"ece30861defaultadminuser",
-				// password
-				"correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
-				// can_search
-				true,
-				// can_download
-				true,
-				// can_upload
-				true,
-				// user_group
-				"admin",
-				// is_admin
-				true,
-				// token
-				db,
-				// autoCloseDB
-				false,
-			))
-		) {
-			throw new Error("Failed to add default admin user");
-		}
+		// // add default admin user
+		// if (
+		// 	!(await adminCreateAccount(
+		// 		// username
+		// 		"ece30861defaultadminuser",
+		// 		// password
+		// 		"correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
+		// 		// can_search
+		// 		true,
+		// 		// can_download
+		// 		true,
+		// 		// can_upload
+		// 		true,
+		// 		// user_group
+		// 		"admin",
+		// 		// is_admin
+		// 		true,
+		// 		// token
+		// 		db,
+		// 		// autoCloseDB
+		// 		false,
+		// 	))
+		// ) {
+		// 	throw new Error("Failed to add default admin user");
+		// }
 
 		logger.info("Database reset successfully");
 		return new Response("Database reset", { status: 200 });
