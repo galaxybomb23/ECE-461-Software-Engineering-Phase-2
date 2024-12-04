@@ -7,6 +7,7 @@ import * as $_app from "./routes/_app.tsx";
 import * as $admin from "./routes/admin.tsx";
 import * as $api_authenticate from "./routes/api/authenticate.ts";
 import * as $api_joke from "./routes/api/joke.ts";
+import * as $api_logs from "./routes/api/logs.ts";
 import * as $api_package from "./routes/api/package.ts";
 import * as $api_package_id_ from "./routes/api/package/[id].ts";
 import * as $api_package_id_cost from "./routes/api/package/[id]/cost.ts";
@@ -44,6 +45,7 @@ const manifest = {
 		"./routes/admin.tsx": $admin,
 		"./routes/api/authenticate.ts": $api_authenticate,
 		"./routes/api/joke.ts": $api_joke,
+		"./routes/api/logs.ts": $api_logs,
 		"./routes/api/package.ts": $api_package,
 		"./routes/api/package/[id].ts": $api_package_id_,
 		"./routes/api/package/[id]/cost.ts": $api_package_id_cost,
