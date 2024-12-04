@@ -71,15 +71,17 @@ export const handler: Handlers = {
 		const offsetValue = offset ? parseInt(offset, 10) : undefined;
 
 		// Validate PackageQuery fields
-		if (typeof requestBody.Version !== "string") {
-			logger.warn(`Invalid request: 'Version' must be a string not ${typeof requestBody.Version}`);
-			return new Response("Invalid request: 'Version' must be a string", {
-				status: 400,
-			});
-		}
 		if (typeof requestBody.Name !== "string") {
 			logger.warn("Invalid request: 'Name' must be a string");
 			return new Response("Invalid request: 'Name' must be a string", {
+				status: 400,
+			});
+		}
+
+		// Version required if Name is not "*"
+		if (requestBody.Name !== "*" && typeof requestBody.Version !== "string") {
+			logger.warn(`Invalid request: 'Version' must be a string not ${typeof requestBody.Version}`);
+			return new Response("Invalid request: 'Version' must be a string", {
 				status: 400,
 			});
 		}
@@ -155,7 +157,11 @@ export async function listPackages(
 		// Parse filter based on version type
 		const packages: PackageMetadata[] = rows.map(mapRowToPackage);
 		let filteredPackages: PackageMetadata[] = [];
-		if (Version?.startsWith("Exact")) {
+		if (Name === "*" && !Version) { // if Name is "*" and version it is not specified
+			filteredPackages = packages;
+			versionType = "All";
+			versionValue = "All";
+		} else if (Version?.startsWith("Exact")) {
 			versionType = "Exact";
 			versionValue = Version.replace("Exact (", "").replace(")", "").trim();
 			filteredPackages = packages.filter((pkg) => semver.eq(pkg.Version, versionValue));
