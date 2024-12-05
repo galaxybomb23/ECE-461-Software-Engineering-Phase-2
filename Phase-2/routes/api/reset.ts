@@ -83,6 +83,7 @@ export async function resetDatabase(
 		await db.execute("DELETE FROM users WHERE username != 'ece30861defaultadminuser'");
 		logger.debug(`Users deleted (${db.changes}): ${users.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'users'");
+		await db.execute("UPDATE sqlite_sequence SET seq = 1 WHERE name = 'users'");
 
 		// // add default admin user
 		// if (

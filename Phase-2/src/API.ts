@@ -25,7 +25,8 @@ export async function fetchJsonFromApi<T = unknown>(
 ): Promise<T | Record<string, never>> {
 	// Get the token from environment variables
 	const token = process.env.GITHUB_TOKEN;
-	logger.shadowRealm(
+	logger.log(
+		"shadowRealm",
 		`fetchJsonFromApi - Start Preparing to fetch JSON data from the API. API link: ${apiLink}`,
 	);
 

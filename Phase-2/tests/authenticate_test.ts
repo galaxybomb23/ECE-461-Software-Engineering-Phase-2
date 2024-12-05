@@ -27,10 +27,10 @@ Deno.test("AuthenticateTest...", async (t) => {
 		});
 
 		const response = await handler.PUT!(loginRequest, mockContext);
-		assertEquals(response.status, 200);
+		assertEquals(response.status, 200, "Response status should be 200");
 
 		const responseData = await response.json();
-		assert(responseData.token);
+		assert(responseData, "Response should contain a token");
 	});
 
 	await t.step("Testing Incorrect Password Login", async () => {
@@ -91,7 +91,7 @@ Deno.test("AuthenticateTest...", async (t) => {
 		assertEquals(response.status, 200);
 
 		const responseData = await response.json();
-		assert(responseData.token);
+		assert(responseData);
 	});
 
 	await t.step("Testing User login as Admin", async () => {

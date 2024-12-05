@@ -86,6 +86,12 @@ export const handler: Handlers = {
 					status: 400,
 				});
 			}
+			if (requestBody.Name === "*" && requestBodyarr.length != 1) {
+				logger.warn('Invalid request: "*" can only be used as a single query');
+				return new Response('Invalid request: "*" can only be used as a single query', {
+					status: 400,
+				});
+			}
 			// // apparently this is not needed
 			// if(requestBody.Version && typeof requestBody.Version !== "string") {
 			// 	logger.warn("Invalid request: 'Version' field must be a string");
@@ -172,7 +178,7 @@ export async function listPackages(
 			let filteredPackages: PackageMetadata[] = [];
 
 			const packages: PackageMetadata[] = rows.map(mapRowToPackage);
-			if (!Version || Name === "*") { // just use name
+			if (!Version) { // just use name
 				filteredPackages = packages;
 				versionType = "All";
 				versionValue = "All";
