@@ -155,7 +155,11 @@ export async function handleContent(
 	old_version?: [string],
 	debloat?: boolean,
 ) {
-	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
+	logger.silly(
+		`handleContent(${content.substring(0, 20)}...${
+			content.slice(-20)
+		}, ${url}, ${via_content},..., ${old_version})`,
+	);
 	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);

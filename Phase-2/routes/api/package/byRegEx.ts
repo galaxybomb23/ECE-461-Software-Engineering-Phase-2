@@ -65,7 +65,6 @@ export function getPackagesByRegEx(
 	autoCloseDB = true,
 ): Response {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
-	logDatabase(db, false);
 	try {
 		// add regex function to sqlite
 		db.createFunction(
