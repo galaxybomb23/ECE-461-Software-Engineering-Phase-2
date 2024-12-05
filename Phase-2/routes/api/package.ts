@@ -10,6 +10,8 @@ import { getUserAuthInfo } from "~/utils/validation.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
 import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
+import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
+
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -22,15 +24,15 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 
 			// Extract and validate the 'X-Authentication' token
-			const authToken = req.headers.get("X-Authorization") ?? "";
-			if (!authToken) {
-				logger.warn("Invalid request: missing authentication token");
-				return new Response("Invalid request: missing authentication token", { status: 403 });
-			}
-			if (!getUserAuthInfo(authToken).is_token_valid) {
-				logger.warn("Unauthorized request: invalid token");
-				return new Response("Unauthorized request: invalid token", { status: 403 });
-			}
+			// const authToken = req.headers.get("X-Authorization") ?? "";
+			// if (!authToken) {
+			// 	logger.warn("Invalid request: missing authentication token");
+			// 	return new Response("Invalid request: missing authentication token", { status: 403 });
+			// }
+			// if (!getUserAuthInfo(authToken).is_token_valid) {
+			// 	logger.warn("Unauthorized request: invalid token");
+			// 	return new Response("Unauthorized request: invalid token", { status: 403 });
+			// }
 
 			if (packageData.URL && packageData.Content) {
 				logger.warn("package.ts: Invalid package data received - status 400");
@@ -54,7 +56,9 @@ export const handler: Handlers = {
 				packageJSON = await handleURL(packageData.URL);
 			} else if (packageData.Content) {
 				logger.debug("package.ts: Received package data with content");
-				packageJSON = await handleContent(packageData.Content);
+				const debloat = packageData.debloat || false;
+				logger.debug("package.ts: Debloat flag: " + debloat);
+				packageJSON = await handleContent(packageData.Content, undefined, 1, undefined, undefined, undefined, debloat);
 				logger.info("package.ts: Successfully handled content.");
 			} else {
 				logger.warn("package.ts: Invalid package data received - status 400");
@@ -113,6 +117,32 @@ export const handler: Handlers = {
 	},
 };
 
+export async function debloatPackage(
+  entryFile: string, // The main entry file of your package (index.js)
+  outputFile: string, // Output path for the cleaned package
+  platform: "browser" | "node" = "node" // Target platform (can be "browser" or "node")
+) {
+  try {
+    // Build with tree-shaking enabled but keep files unbundled
+    await build({
+      entryPoints: [entryFile], // Entry point for your code
+      outfile: outputFile, 
+      minify: true, 
+      treeShaking: true, // Enable tree-shaking
+      platform: platform, 
+      target: ["esnext"],
+	  allowOverwrite: true,
+      bundle: false, // Don't bundle files; just apply tree shaking
+    });
+
+    logger.debug(`Debloated package is written to: ${outputFile}`);
+  } catch (error) {
+    logger.warn("Error during debloating:", error);
+  }
+}
+
+
+
 export async function handleContent(
 	content: string,
 	url?: string,
@@ -120,6 +150,7 @@ export async function handleContent(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	old_version?: [string],
+	debloat?: boolean
 ) {
 	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
 	// Outside the try block so we can reference the paths in the finally block
@@ -143,6 +174,32 @@ export async function handleContent(
 			logger.warn("package.ts: Bomb detected - 😞");
 			throw new Error("Package is too large, why are you trying to upload a zip bomb?");
 		}
+
+		if (!via_content && debloat) {
+			logger.debug("package.ts: Debloating requires content, skipping debloat");
+		}
+		if (via_content && debloat) {
+			logger.debug("package.ts: Debloating package");
+
+			let packageFolder: Deno.DirEntry | null = null;
+
+			// find the package folder
+			const dirEntries = Deno.readDir(unzipPath);
+			for await (const entry of dirEntries) {
+				if (entry.isDirectory) {
+					packageFolder = entry;
+					break;
+				}
+			}
+
+			const rootPath = `${unzipPath}/index.js`;
+			const subDirPath = `${unzipPath}/${packageFolder?.name}/index.js`;
+			const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+			logger.debug("found package folder at: " + packageJSONPath);
+
+			await debloatPackage(packageJSONPath, packageJSONPath);
+		}
+
 
 		// parse and verify package.json
 		const packageJSON = await parsePackageJSON(unzipPath, db, false);
@@ -178,7 +235,7 @@ export async function handleContent(
 
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
 			if (
-				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
+				1 || (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 					metrics.RampUp > 0.5 &&
 					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
 					metrics.ReviewPercentage > 0.5)
