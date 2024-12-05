@@ -172,6 +172,7 @@ case "$1" in
     ;;
   "schedule")
     schedule
+    monitor_runs
     ;;
   "monitor")
     monitor_runs
