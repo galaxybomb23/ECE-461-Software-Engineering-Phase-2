@@ -3,15 +3,12 @@ import { logger } from "~/src/logFile.ts";
 import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
-import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
+import { BlobReader, Uint8ArrayWriter, ZipReader, ZipWriter } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
-import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
-import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
 import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
-
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -58,7 +55,15 @@ export const handler: Handlers = {
 				logger.debug("package.ts: Received package data with content");
 				const debloat = packageData.debloat || false;
 				logger.debug("package.ts: Debloat flag: " + debloat);
-				packageJSON = await handleContent(packageData.Content, undefined, 1, undefined, undefined, undefined, debloat);
+				packageJSON = await handleContent(
+					packageData.Content,
+					undefined,
+					1,
+					undefined,
+					undefined,
+					undefined,
+					debloat,
+				);
 				logger.info("package.ts: Successfully handled content.");
 			} else {
 				logger.warn("package.ts: Invalid package data received - status 400");
@@ -82,7 +87,7 @@ export const handler: Handlers = {
 					Content: packageJSON.data.Content,
 					JSProgram:
 						"if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
-					debloat: true, // TODO: CHANGE TO READ FROM DB
+					debloat: packageData.debloat || false,
 				},
 			};
 
@@ -118,30 +123,28 @@ export const handler: Handlers = {
 };
 
 export async function debloatPackage(
-  entryFile: string, // The main entry file of your package (index.js)
-  outputFile: string, // Output path for the cleaned package
-  platform: "browser" | "node" = "node" // Target platform (can be "browser" or "node")
+	entryFile: string, // The main entry file of your package (index.js)
+	outputFile: string, // Output path for the cleaned package
+	platform: "browser" | "node" = "node", // Target platform (can be "browser" or "node")
 ) {
-  try {
-    // Build with tree-shaking enabled but keep files unbundled
-    await build({
-      entryPoints: [entryFile], // Entry point for your code
-      outfile: outputFile, 
-      minify: true, 
-      treeShaking: true, // Enable tree-shaking
-      platform: platform, 
-      target: ["esnext"],
-	  allowOverwrite: true,
-      bundle: false, // Don't bundle files; just apply tree shaking
-    });
+	try {
+		// Build with tree-shaking enabled but keep files unbundled
+		await build({
+			entryPoints: [entryFile], // Entry point for your code
+			outfile: outputFile,
+			minify: true,
+			treeShaking: true, // Enable tree-shaking
+			platform: platform,
+			target: ["esnext"],
+			allowOverwrite: true,
+			bundle: false, // Don't bundle files; just apply tree shaking
+		});
 
-    logger.debug(`Debloated package is written to: ${outputFile}`);
-  } catch (error) {
-    logger.warn("Error during debloating:", error);
-  }
+		logger.debug(`Debloated package is written to: ${outputFile}`);
+	} catch (error) {
+		logger.error("Error during debloating:", error);
+	}
 }
-
-
 
 export async function handleContent(
 	content: string,
@@ -150,7 +153,7 @@ export async function handleContent(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	old_version?: [string],
-	debloat?: boolean
+	debloat?: boolean,
 ) {
 	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
 	// Outside the try block so we can reference the paths in the finally block
@@ -169,6 +172,7 @@ export async function handleContent(
 
 		// Check if the package is a zip bomb (> 1GB)
 		if (!(await pleaseDontZipBombMe(tempFilePath, 1024 * 1024 * 1024))) {
+			logger.debug("package.ts: No zip bomb detected - 😊");
 			await unzipFile(tempFilePath, unzipPath);
 		} else {
 			logger.warn("package.ts: Bomb detected - 😞");
@@ -195,11 +199,40 @@ export async function handleContent(
 			const rootPath = `${unzipPath}/index.js`;
 			const subDirPath = `${unzipPath}/${packageFolder?.name}/index.js`;
 			const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
-			logger.debug("found package folder at: " + packageJSONPath);
 
-			await debloatPackage(packageJSONPath, packageJSONPath);
+			// check actually exists
+			const packageJSONExists = await Deno.stat(packageJSONPath).then(() => true).catch(() => false);
+			if (packageJSONExists) {
+				logger.debug("found package folder at: " + packageJSONPath);
+
+				await debloatPackage(packageJSONPath, packageJSONPath);
+
+				// rezip at original name
+				logger.debug(
+					"package.ts: Rezipping package after debloating, src path: " + unzipPath + " and dest path: " +
+						tempFilePath,
+				);
+
+				const command = new Deno.Command("zip", {
+					args: ["-r", "-9", "-Z", "deflate", "-X", "../pkg_" + suffix + ".zip", "."],
+					cwd: unzipPath,
+				});
+
+				try {
+					const { code, stdout, stderr } = await command.output();
+
+					if (code !== 0) {
+						const errorMsg = new TextDecoder().decode(stderr);
+						logger.warn("package.ts: Error while rezipping package - " + errorMsg);
+						throw new Error(errorMsg);
+					}
+				} catch (error) {
+					logger.warn("package.ts: Error while rezipping package - " + error);
+				}
+			} else {
+				logger.warn("package.ts: No package folder found for debloating, skipping");
+			}
 		}
-
 
 		// parse and verify package.json
 		const packageJSON = await parsePackageJSON(unzipPath, db, false);
@@ -235,7 +268,7 @@ export async function handleContent(
 
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
 			if (
-				1 || (metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
+				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 					metrics.RampUp > 0.5 &&
 					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
 					metrics.ReviewPercentage > 0.5)
@@ -431,37 +464,10 @@ export async function computeDependencies(
 
 export async function unzipFile(zipFilePath: string, outputDir: string) {
 	logger.silly(`unzipFile(${zipFilePath}, ${outputDir})`);
-	// Ensure the output directory exists
-	await ensureDir(outputDir);
 
-	// Read the ZIP file as a Blob
-	const zipData = await Deno.readFile(zipFilePath);
-	const zipBlob = new Blob([zipData]);
-
-	// Create a ZipReader
-	const zipReader = new ZipReader(new BlobReader(zipBlob));
-
-	// Get all entries in the ZIP file
-	const entries = await zipReader.getEntries();
-
-	for (const entry of entries) {
-		const outputPath = `${outputDir}/${entry.filename}`;
-
-		if (await entry.directory) {
-			// Create directories for folder entries
-			await ensureDir(outputPath);
-		} else {
-			// Extract files
-			if (entry && entry.getData) {
-				const fileData = await entry.getData(new Uint8ArrayWriter());
-				await Deno.writeFile(outputPath, fileData);
-			}
-		}
-	}
-
-	// Close the reader
-	await zipReader.close();
-	await terminateWorkers();
+	// unzip the file
+	const cmd = new Deno.Command("unzip", { args: ["-q", zipFilePath, "-d", outputDir] });
+	await cmd.output();
 }
 
 // Uploads the package zip to the SQLite database
