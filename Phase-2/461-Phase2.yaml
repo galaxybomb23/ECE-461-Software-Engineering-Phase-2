@@ -540,7 +540,7 @@ paths:
   /users:
     get:
       summary: Get all users (NON-BASELINE)
-      description: Retrieve a list of all users.
+      description: Retrieve a list of all users. Token must belong to an admin.
       responses:
         "200":
           description: List of all users retrieved successfully.
@@ -588,7 +588,7 @@ paths:
             $ref: '#/components/schemas/AuthenticationToken'
     post:
       summary: Create a new user (NON-BASELINE)
-      description: Create a new user account.
+      description: Create a new user account. Token must belong to an admin.
       requestBody:
         required: true
         content:
@@ -629,10 +629,16 @@ paths:
           description: Missing required fields or invalid input.
         "500":
           description: Internal Server Error occurred.
+      parameters:
+        - name: X-Authorization
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/AuthenticationToken'
   /users/{username}:
     put:
       summary: Update an existing user (NON-BASELINE)
-      description: Update the details of an existing user.
+      description: Update the details of an existing user. Token must belong to an admin.
       parameters:
         - name: username
           in: path
@@ -684,7 +690,7 @@ paths:
           description: Internal Server Error occurred.
     delete:
       summary: Delete an existing user (NON-BASELINE)
-      description: Remove a user account.
+      description: Remove a user account. Token must belong to an admin or the matching account.
       parameters:
         - name: username
           in: path
@@ -708,6 +714,24 @@ paths:
           description: User not found.
         "500":
           description: Internal Server Error occurred.
+  /joke:
+    get:
+      summary: Get a random programming joke (NON-BASELINE)
+      description: |
+        Returns a random joke from a predefined list of programming jokes.
+        The jokes are humorous and related to programming, development, and technology.
+      responses:
+        "200":
+          description: A random programming joke.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Why did the developer get kicked out of the party? He couldn’t stop talking about his stack."
+        "500":
+          description: Server error while fetching the joke.
+      operationId: GetRandomJoke
+    
 
 components:
   schemas:

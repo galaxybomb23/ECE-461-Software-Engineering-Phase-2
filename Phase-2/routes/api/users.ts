@@ -46,6 +46,17 @@ export const handler: Handlers = {
 		logger.info(`--> /users: POST`);
 		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
+		
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.warn("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!getUserAuthInfo(authToken).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
+
 		try {
 			let ret;
 			// Parse the request body
