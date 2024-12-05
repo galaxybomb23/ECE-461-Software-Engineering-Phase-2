@@ -32,13 +32,15 @@ export async function calculateResponsiveMaintainer(
 			openIssuesCount++;
 		}
 	}
-	logger.debug(
-		`calculateResponsiveMaintainer Counted issues - Open: ${openIssuesCount}, Closed: ${closedIssuesCount}`,
-	);
+	
 
 	// Use open_issues_count from repoData if available
 	openIssuesCount = (repoData as RepoData).open_issues_count ||
 		openIssuesCount;
+		
+	logger.debug(
+		`calculateResponsiveMaintainer Counted issues - Open: ${openIssuesCount}, Closed: ${closedIssuesCount}`,
+	);
 
 	// Calculate the ratio of open to closed issues
 	const ratio = closedIssuesCount > 0 ? openIssuesCount / closedIssuesCount : 0; // Avoid division by zero
