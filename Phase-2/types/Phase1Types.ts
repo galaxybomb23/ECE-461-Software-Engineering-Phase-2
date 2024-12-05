@@ -1,6 +1,7 @@
 export interface RepoData {
 	size: number;
 	open_issues_count: number;
+	has_issues: boolean;
 }
 
 export interface SearchResult {
