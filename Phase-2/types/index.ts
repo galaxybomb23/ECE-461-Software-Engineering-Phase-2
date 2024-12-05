@@ -107,7 +107,7 @@ export type AuthenticationToken = string;
 export interface packagesRequest {
 	offset?: number;
 	authToken: string;
-	requestBody: PackageQuery;
+	requestBody: PackageQuery[];
 }
 
 export interface PackageQuery {
