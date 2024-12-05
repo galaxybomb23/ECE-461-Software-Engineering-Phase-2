@@ -46,7 +46,7 @@ export const handler: Handlers = {
 		logger.info(`--> /users: POST`);
 		displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
-		
+
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");
