@@ -56,7 +56,7 @@ export default function Admin() {
 				.split("; ")
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
-			
+
 			if (!authToken) {
 				setIsAuthorized(false);
 				return;
@@ -159,7 +159,7 @@ export default function Admin() {
 				.split("; ")
 				.find((row) => row.startsWith("authToken="))
 				?.split("=")[1];
-			
+
 			if (!authToken) {
 				setIsAuthorized(false);
 				return;

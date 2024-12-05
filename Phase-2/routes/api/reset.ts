@@ -6,7 +6,6 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo, type userAuthInfo } from "~/utils/validation.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
-import { adminCreateAccount } from "~/utils/userManagement.ts";
 
 /**
  * Handles DELETE request to reset the database.

@@ -4,7 +4,7 @@
 // DELETE /package/{id} - Delete a package (NON-BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { logger, displayRequest } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
