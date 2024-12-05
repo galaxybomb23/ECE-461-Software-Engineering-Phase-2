@@ -74,9 +74,15 @@ export const handler: Handlers = {
 
 		// Validate PackageQuery field of each item in the request body
 		for (const requestBody of requestBodyarr) {
+			if (!requestBody.Name || !requestBody.Version) {
+				logger.warn("Invalid request: missing required fields");
+				return new Response("Invalid request: missing required fields", {
+					status: 400,
+				});
+			}
 			if (typeof requestBody.Name !== "string") {
-				logger.warn("Invalid request: missing 'Name' field ");
-				return new Response("Invalid request: missing 'Name' field", {
+				logger.warn("Invalid request: name field must be a string");
+				return new Response("Invalid request: name field must be a string", {
 					status: 400,
 				});
 			}
