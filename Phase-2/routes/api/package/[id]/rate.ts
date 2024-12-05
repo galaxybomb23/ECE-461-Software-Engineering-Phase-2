@@ -12,7 +12,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package rating
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}/rate: GET`);
-		displayRequest(req);
+		await displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		try {
 			// Extract the package ID from the request parameters

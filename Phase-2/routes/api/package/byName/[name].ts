@@ -12,7 +12,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package history by name
 	async GET(req, ctx) {
 		logger.info(`--> /package/byName/{name}: GET`);
-		displayRequest(req);
+		await displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 		const { name } = ctx.params;
 

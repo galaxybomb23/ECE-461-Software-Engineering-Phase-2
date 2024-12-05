@@ -35,7 +35,7 @@ export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
 		logger.info("--> /packages: POST");
-		displayRequest(req);
+		await displayRequest(req);
 		let body;
 		try {
 			body = await req.json();

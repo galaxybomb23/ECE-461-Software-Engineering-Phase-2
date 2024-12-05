@@ -6,10 +6,10 @@ import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	// Handles GET request to retrieve planned tracks
-	GET(req) {
+	async GET(req) {
 		// Implement tracks retrieval logic here
 		logger.info(`--> /tracks: GET`);
-		displayRequest(req);
+		await displayRequest(req);
 		try {
 			const tracks = {
 				plannedTracks: [

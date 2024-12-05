@@ -23,7 +23,7 @@ export const handler: Handlers = {
 	async DELETE(req) {
 		logger.info("--> /reset: DELETE");
 
-		displayRequest(req);
+		await displayRequest(req);
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");

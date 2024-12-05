@@ -6,7 +6,7 @@ import { displayRequest, logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
-		displayRequest(req);
+		await displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
@@ -44,9 +44,9 @@ export const handler: Handlers = {
 	},
 	async POST(req, _ctx) {
 		logger.info(`--> /users: POST`);
-		displayRequest(req);
+		await displayRequest(req);
 		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
-		
+
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");

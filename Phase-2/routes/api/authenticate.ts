@@ -30,7 +30,7 @@ export const handler: Handlers = {
 	async PUT(req) {
 		logger.info("--> /authenticate: PUT");
 
-		displayRequest(req);
+		await displayRequest(req);
 		let name, is_admin, password;
 
 		try {

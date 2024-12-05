@@ -12,7 +12,7 @@ import { logDatabase } from "~/utils/logDataBase.ts";
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package/byRegEx: POST");
-		displayRequest(req);
+		await displayRequest(req);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {

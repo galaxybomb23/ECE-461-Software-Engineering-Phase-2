@@ -13,7 +13,7 @@ import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package: POST");
-		displayRequest(req);
+		await displayRequest(req);
 
 		const db = new DB(DATABASEFILE);
 

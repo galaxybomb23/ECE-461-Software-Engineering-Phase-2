@@ -68,17 +68,34 @@ schedule() {
 
 # Function to monitor all runs
 monitor_runs() {
-  echo "Monitor list ..."
-  DATA='{
-    "group": '"$GROUP_NUMBER"',
-    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
-  }'
-  
-  # echo "Request data: $DATA"
+  while true; do
+    DATA='{
+      "group": '"$GROUP_NUMBER"',
+      "gh_token": "'"${AUTOGRADER_TOKEN}"'"
+    }'
+    
+    RESPONSE=$(curl --silent --location --request GET "$BASE_URL/run/all" \
+      --header 'Content-Type: application/json' \
+      --data "$DATA")
+    
+    echo  -n "Response: $RESPONSE"
+    echo -n "   Monitoring Runs "
+      for i in {1..5}; do
+        echo -n "."
+        sleep 1
+      done
+    echo -ne '\r'
 
-  curl --location --request GET "$BASE_URL/run/all" \
-  --header 'Content-Type: application/json' \
-  --data "$DATA"
+    
+    if [[ "$RESPONSE" != *$GROUP_NUMBER* ]]; then
+      last_run
+      break
+    fi
+
+    echo -ne '\r\033[K'
+    
+    
+  done
 }
 
 # Function to get the best run score
