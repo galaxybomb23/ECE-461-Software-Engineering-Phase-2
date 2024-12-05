@@ -135,6 +135,12 @@ server_logs() {
   curl --location --request GET "$API_ENDPOINT/logs" > logs/server_logs.log
 }
 
+stats() {
+  curl --location --request GET "$BASE_URL/stats" \
+    --header 'Content-Type: application/json' \
+    --data '{"gh_token": "token here"}' | python3 -m json.tool
+}
+
 # function to analyse the logs
 #!/bin/bash
 
@@ -191,6 +197,9 @@ case "$1" in
     ;;
   "anal_logs")
     filter_logs_by_endpoint "$2"
+    ;;
+  "stats")
+    stats
     ;;
   *)
     echo "Usage: $0 {register|schedule|monitor|best|last|download_log}"
