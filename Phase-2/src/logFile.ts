@@ -3,6 +3,7 @@
 import dotenv from "npm:dotenv";
 import { createLogger, format, Logger, transports } from "npm:winston";
 import process from "node:process";
+
 dotenv.config();
 
 // Environment variables for the log file path and name
@@ -50,11 +51,25 @@ const customLevels = {
 	},
 };
 
+const formatTimestamp = (): string => {
+	return new Intl.DateTimeFormat("en-US", {
+		timeZone: "America/New_York",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	}).format(new Date());
+};
+
 export const logger: Logger = createLogger({
 	levels: customLevels.levels,
 	level: log_level,
 	format: format.combine(
-		format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+		format.timestamp({
+			format: formatTimestamp,
+		}),
 		format.printf(({ timestamp, level, message }) => `${timestamp} [${level.toUpperCase()}]: ${message}`),
 	),
 	transports: [
