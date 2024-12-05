@@ -3,13 +3,12 @@ import { logger } from "~/src/logFile.ts";
 import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
-import { BlobReader, Uint8ArrayWriter, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
+import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
-import { ensureDir } from "https://deno.land/std@0.224.0/fs/mod.ts";
-import { terminateWorkers } from "https://deno.land/x/zipjs@v2.7.53/lib/core/codec-pool.js";
+import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -54,7 +53,17 @@ export const handler: Handlers = {
 				packageJSON = await handleURL(packageData.URL);
 			} else if (packageData.Content) {
 				logger.debug("package.ts: Received package data with content");
-				packageJSON = await handleContent(packageData.Content);
+				const debloat = packageData.debloat || false;
+				logger.debug("package.ts: Debloat flag: " + debloat);
+				packageJSON = await handleContent(
+					packageData.Content,
+					undefined,
+					1,
+					undefined,
+					undefined,
+					undefined,
+					debloat,
+				);
 				logger.info("package.ts: Successfully handled content.");
 			} else {
 				logger.warn("package.ts: Invalid package data received - status 400");
@@ -78,7 +87,7 @@ export const handler: Handlers = {
 					Content: packageJSON.data.Content,
 					JSProgram:
 						"if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
-					debloat: true, // TODO: CHANGE TO READ FROM DB
+					debloat: packageData.debloat || false,
 				},
 			};
 
@@ -113,6 +122,30 @@ export const handler: Handlers = {
 	},
 };
 
+export async function debloatPackage(
+	entryFile: string, // The main entry file of your package (index.js)
+	outputFile: string, // Output path for the cleaned package
+	platform: "browser" | "node" = "node", // Target platform (can be "browser" or "node")
+) {
+	try {
+		// Build with tree-shaking enabled but keep files unbundled
+		await build({
+			entryPoints: [entryFile], // Entry point for your code
+			outfile: outputFile,
+			minify: true,
+			treeShaking: true, // Enable tree-shaking
+			platform: platform,
+			target: ["esnext"],
+			allowOverwrite: true,
+			bundle: false, // Don't bundle files; just apply tree shaking
+		});
+
+		logger.debug(`Debloated package is written to: ${outputFile}`);
+	} catch (error) {
+		logger.error("Error during debloating:", error);
+	}
+}
+
 export async function handleContent(
 	content: string,
 	url?: string,
@@ -120,6 +153,7 @@ export async function handleContent(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	old_version?: [string],
+	debloat?: boolean,
 ) {
 	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
 	// Outside the try block so we can reference the paths in the finally block
@@ -138,10 +172,80 @@ export async function handleContent(
 
 		// Check if the package is a zip bomb (> 1GB)
 		if (!(await pleaseDontZipBombMe(tempFilePath, 1024 * 1024 * 1024))) {
+			logger.debug("package.ts: No zip bomb detected - 😊");
 			await unzipFile(tempFilePath, unzipPath);
 		} else {
 			logger.warn("package.ts: Bomb detected - 😞");
 			throw new Error("Package is too large, why are you trying to upload a zip bomb?");
+		}
+
+		if (!via_content && debloat) {
+			logger.debug("package.ts: Debloating requires content, skipping debloat");
+		}
+
+		// find the package folder
+		let packageFolder: Deno.DirEntry | null = null;
+		const dirEntries = Deno.readDir(unzipPath);
+		for await (const entry of dirEntries) {
+			if (entry.isDirectory) {
+				packageFolder = entry;
+				break;
+			}
+		}
+
+		if (via_content && debloat) {
+			logger.debug("package.ts: Debloating package");
+
+			const rootPath = `${unzipPath}/index.js`;
+			const subDirPath = `${unzipPath}/${packageFolder?.name}/index.js`;
+			const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+
+			// check actually exists
+			const packageJSONExists = await Deno.stat(packageJSONPath).then(() => true).catch(() => false);
+			if (packageJSONExists) {
+				logger.debug("found package folder at: " + packageJSONPath);
+
+				await debloatPackage(packageJSONPath, packageJSONPath);
+
+				// rezip at original name
+				logger.debug(
+					"package.ts: Rezipping package after debloating, src path: " + unzipPath + " and dest path: " +
+						tempFilePath,
+				);
+
+				const command = new Deno.Command("zip", {
+					args: ["-r", "-9", "-Z", "deflate", "-X", "../pkg_" + suffix + ".zip", "."],
+					cwd: unzipPath,
+				});
+
+				try {
+					const { code, stderr } = await command.output();
+
+					if (code !== 0) {
+						const errorMsg = new TextDecoder().decode(stderr);
+						logger.warn("package.ts: Error while rezipping package - " + errorMsg);
+						throw new Error(errorMsg);
+					}
+				} catch (error) {
+					logger.warn("package.ts: Error while rezipping package - " + error);
+				}
+			} else {
+				logger.warn("package.ts: No package folder found for debloating, skipping");
+			}
+		}
+
+		// grab README.md
+		const rootPath = `${unzipPath}/README.md`;
+		const subDirPath = `${unzipPath}/${packageFolder?.name}/README.md`;
+		const READMEPATH = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		const readme_exists = await Deno.stat(READMEPATH).then(() => true).catch(() => false);
+
+		let readme_content = "";
+		if (readme_exists) {
+			readme_content = await Deno.readTextFile(READMEPATH);
+			logger.debug("package.ts: Found README.md file");
+		} else {
+			logger.warn("package.ts: No README.md file found, skipping readme column upload");
 		}
 
 		// parse and verify package.json
@@ -205,6 +309,7 @@ export async function handleContent(
 					metrics.NetScore_Latency,
 					db,
 					false,
+					readme_content,
 				);
 
 				// Now we add the dependency cost
@@ -306,10 +411,6 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		}
 		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
-		// Find number of dependencies. Required for some retrieving cost of packages later
-		// const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
-		// 	Object.keys(packageJSON.devDependencies || {}).length;
-
 		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
 			string,
 			string
@@ -374,37 +475,10 @@ export async function computeDependencies(
 
 export async function unzipFile(zipFilePath: string, outputDir: string) {
 	logger.silly(`unzipFile(${zipFilePath}, ${outputDir})`);
-	// Ensure the output directory exists
-	await ensureDir(outputDir);
 
-	// Read the ZIP file as a Blob
-	const zipData = await Deno.readFile(zipFilePath);
-	const zipBlob = new Blob([zipData]);
-
-	// Create a ZipReader
-	const zipReader = new ZipReader(new BlobReader(zipBlob));
-
-	// Get all entries in the ZIP file
-	const entries = await zipReader.getEntries();
-
-	for (const entry of entries) {
-		const outputPath = `${outputDir}/${entry.filename}`;
-
-		if (await entry.directory) {
-			// Create directories for folder entries
-			await ensureDir(outputPath);
-		} else {
-			// Extract files
-			if (entry && entry.getData) {
-				const fileData = await entry.getData(new Uint8ArrayWriter());
-				await Deno.writeFile(outputPath, fileData);
-			}
-		}
-	}
-
-	// Close the reader
-	await zipReader.close();
-	await terminateWorkers();
+	// unzip the file
+	const cmd = new Deno.Command("unzip", { args: ["-q", zipFilePath, "-d", outputDir] });
+	await cmd.output();
 }
 
 // Uploads the package zip to the SQLite database
@@ -431,6 +505,7 @@ export async function uploadZipToSQLite(
 	netscoreLatency: number,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
+	readme_content?: string,
 ) {
 	logger.silly(
 		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${dependencyPinning}, ${dependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
@@ -462,18 +537,19 @@ export async function uploadZipToSQLite(
 		// Insert the package into the database
 		await db.query(
 			`INSERT OR IGNORE INTO packages (
-			name, url, version, base64_content, 
+			name, url, version, base64_content, readme,
 			license_score, license_latency, netscore, netscore_latency, 
 			dependency_pinning_score, dependency_pinning_latency, 
 			rampup_score, rampup_latency, review_percentage_score, 
 			review_percentage_latency, bus_factor, bus_factor_latency, 
 			correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				packageJSON.metadata.Name,
 				packageJSON.data.URL,
 				packageJSON.metadata.Version,
 				zipBase64,
+				readme_content,
 				license,
 				licenseLatency,
 				netscore,
