@@ -1,43 +1,20 @@
 import { getGitHubAPILink } from "../githubData.ts";
-import { fetchJsonFromApi } from "../API.ts";
 import { getTimestampWithThreeDecimalPlaces } from "./getLatency.ts";
 import { logger } from "../logFile.ts";
-import { Issue, MetricsResult, RepoData } from "../../types/Phase1Types.ts";
+import { MetricsResult } from "../../types/Phase1Types.ts";
 
-/**
- * Calculates the Responsive Maintainer score based on the recency of updates.
- * A higher score is given if the package has been updated within the last 6 months.
- *
- * @param {string} URL - The GitHub repository URL.
- * @returns {Promise<MetricsResult>} - The Responsive Maintainer score (0-1) and fetch latency.
- */
 export async function calculateResponsiveMaintainer(
 	URL: string,
 ): Promise<MetricsResult> {
 	const latency_start = getTimestampWithThreeDecimalPlaces();
 	const API_link = getGitHubAPILink(URL);
-	const [repoData, issuesData] = await Promise.all([
-		fetchJsonFromApi(API_link),
-		fetchJsonFromApi(`${API_link}/issues?state=all`),
+
+	// Fetch total open and closed issues
+	const [openIssuesCount, closedIssuesCount] = await Promise.all([
+		getIssueCount(API_link, "open"),
+		getIssueCount(API_link, "closed"),
 	]);
 
-	let openIssuesCount = 0;
-	let closedIssuesCount = 0;
-
-	// Count open and closed issues
-	for (const issue of issuesData as Issue[]) {
-		if (issue.closed_at) {
-			closedIssuesCount++;
-		} else {
-			openIssuesCount++;
-		}
-	}
-	
-
-	// Use open_issues_count from repoData if available
-	openIssuesCount = (repoData as RepoData).open_issues_count ||
-		openIssuesCount;
-		
 	logger.debug(
 		`calculateResponsiveMaintainer Counted issues - Open: ${openIssuesCount}, Closed: ${closedIssuesCount}`,
 	);
@@ -58,4 +35,32 @@ export async function calculateResponsiveMaintainer(
 	);
 
 	return { score, latency: latencyMs }; // Return score and latency
+}
+
+/**
+ * Fetches the total count of issues with a specific state (open/closed).
+ */
+async function getIssueCount(API_link: string, state: "open" | "closed"): Promise<number> {
+	// Fetch issues with ?per_page=1 to minimize response size
+	const response = await fetch(
+		`${API_link}/issues?state=${state}&per_page=1`,
+		{ method: "GET" },
+	);
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${state} issues: ${response.statusText}`);
+	}
+
+	// Check the Link header for total count
+	const linkHeader = response.headers.get("Link");
+	if (linkHeader) {
+		const match = linkHeader.match(/&page=(\d+)>; rel="last"/);
+		if (match) {
+			return parseInt(match[1], 10); // Extract total pages (i.e., total count)
+		}
+	}
+
+	// If no Link header, fallback to counting manually
+	const issuesData = await response.json();
+	return issuesData.length;
 }
