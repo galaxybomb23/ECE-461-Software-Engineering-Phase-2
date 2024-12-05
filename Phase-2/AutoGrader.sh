@@ -27,10 +27,9 @@ else
 fi
 
 if [[ -z "$AUTOGRADER_TOKEN" ]]; then
-  echo "GITHUB_TOKEN is not set in the .env file."
+  echo "AUTOGRADER_TOKEN is not set in the .env file."
   exit 1
 fi
-# echo "${GITHUB_TOKEN}"
 
 # Function to register
 register() {
@@ -148,18 +147,17 @@ download_log() {
   --data "$DATA"
 }
 
+# function to pull server logs
 server_logs() {
   curl --location --request GET "$API_ENDPOINT/logs" > logs/server_logs.log
 }
 
+# function to get stats
 stats() {
   curl --location --request GET "$BASE_URL/stats" \
     --header 'Content-Type: application/json' \
     --data '{"gh_token": "token here"}' | python3 -m json.tool
 }
-
-# function to analyse the logs
-#!/bin/bash
 
 # Function to filter logs for a specific endpoint
 filter_logs_by_endpoint() {
