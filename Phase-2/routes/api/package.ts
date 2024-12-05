@@ -3,7 +3,7 @@ import { logger } from "~/src/logFile.ts";
 import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
-import { BlobReader, Uint8ArrayWriter, ZipReader, ZipWriter } from "https://deno.land/x/zipjs@v2.7.53/index.js";
+import { BlobReader, ZipReader } from "https://deno.land/x/zipjs@v2.7.53/index.js";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
@@ -21,15 +21,15 @@ export const handler: Handlers = {
 			const packageData = await req.json() as PackageData; // Define PackageData type as needed
 
 			// Extract and validate the 'X-Authentication' token
-			// const authToken = req.headers.get("X-Authorization") ?? "";
-			// if (!authToken) {
-			// 	logger.warn("Invalid request: missing authentication token");
-			// 	return new Response("Invalid request: missing authentication token", { status: 403 });
-			// }
-			// if (!getUserAuthInfo(authToken).is_token_valid) {
-			// 	logger.warn("Unauthorized request: invalid token");
-			// 	return new Response("Unauthorized request: invalid token", { status: 403 });
-			// }
+			const authToken = req.headers.get("X-Authorization") ?? "";
+			if (!authToken) {
+				logger.warn("Invalid request: missing authentication token");
+				return new Response("Invalid request: missing authentication token", { status: 403 });
+			}
+			if (!getUserAuthInfo(authToken).is_token_valid) {
+				logger.warn("Unauthorized request: invalid token");
+				return new Response("Unauthorized request: invalid token", { status: 403 });
+			}
 
 			if (packageData.URL && packageData.Content) {
 				logger.warn("package.ts: Invalid package data received - status 400");
@@ -182,19 +182,19 @@ export async function handleContent(
 		if (!via_content && debloat) {
 			logger.debug("package.ts: Debloating requires content, skipping debloat");
 		}
+
+		// find the package folder
+		let packageFolder: Deno.DirEntry | null = null;
+		const dirEntries = Deno.readDir(unzipPath);
+		for await (const entry of dirEntries) {
+			if (entry.isDirectory) {
+				packageFolder = entry;
+				break;
+			}
+		}
+
 		if (via_content && debloat) {
 			logger.debug("package.ts: Debloating package");
-
-			let packageFolder: Deno.DirEntry | null = null;
-
-			// find the package folder
-			const dirEntries = Deno.readDir(unzipPath);
-			for await (const entry of dirEntries) {
-				if (entry.isDirectory) {
-					packageFolder = entry;
-					break;
-				}
-			}
 
 			const rootPath = `${unzipPath}/index.js`;
 			const subDirPath = `${unzipPath}/${packageFolder?.name}/index.js`;
@@ -219,7 +219,7 @@ export async function handleContent(
 				});
 
 				try {
-					const { code, stdout, stderr } = await command.output();
+					const { code, stderr } = await command.output();
 
 					if (code !== 0) {
 						const errorMsg = new TextDecoder().decode(stderr);
@@ -232,6 +232,20 @@ export async function handleContent(
 			} else {
 				logger.warn("package.ts: No package folder found for debloating, skipping");
 			}
+		}
+
+		// grab README.md
+		const rootPath = `${unzipPath}/README.md`;
+		const subDirPath = `${unzipPath}/${packageFolder?.name}/README.md`;
+		const READMEPATH = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		const readme_exists = await Deno.stat(READMEPATH).then(() => true).catch(() => false);
+
+		let readme_content = "";
+		if (readme_exists) {
+			readme_content = await Deno.readTextFile(READMEPATH);
+			logger.debug("package.ts: Found README.md file");
+		} else {
+			logger.warn("package.ts: No README.md file found, skipping readme column upload");
 		}
 
 		// parse and verify package.json
@@ -295,6 +309,7 @@ export async function handleContent(
 					metrics.NetScore_Latency,
 					db,
 					false,
+					readme_content,
 				);
 
 				// Now we add the dependency cost
@@ -396,10 +411,6 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		}
 		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
-		// Find number of dependencies. Required for some retrieving cost of packages later
-		// const numberDependencies = Object.keys(packageJSON.dependencies || {}).length +
-		// 	Object.keys(packageJSON.devDependencies || {}).length;
-
 		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
 			string,
 			string
@@ -494,6 +505,7 @@ export async function uploadZipToSQLite(
 	netscoreLatency: number,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
+	readme_content?: string,
 ) {
 	logger.silly(
 		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${dependencyPinning}, ${dependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
@@ -525,18 +537,19 @@ export async function uploadZipToSQLite(
 		// Insert the package into the database
 		await db.query(
 			`INSERT OR IGNORE INTO packages (
-			name, url, version, base64_content, 
+			name, url, version, base64_content, readme,
 			license_score, license_latency, netscore, netscore_latency, 
 			dependency_pinning_score, dependency_pinning_latency, 
 			rampup_score, rampup_latency, review_percentage_score, 
 			review_percentage_latency, bus_factor, bus_factor_latency, 
 			correctness, correctness_latency, responsive_maintainer, responsive_maintainer_latency
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				packageJSON.metadata.Name,
 				packageJSON.data.URL,
 				packageJSON.metadata.Version,
 				zipBase64,
+				readme_content,
 				license,
 				licenseLatency,
 				netscore,
