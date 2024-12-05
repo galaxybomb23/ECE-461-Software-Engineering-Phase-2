@@ -7,6 +7,7 @@ import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { PackageMetadata, regexRequest } from "~/types/index.ts";
+import { logDatabase } from "~/utils/logDataBase.ts";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -65,6 +66,7 @@ export function getPackagesByRegEx(
 	autoCloseDB = true,
 ): Response {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
+	logDatabase(db, false);
 	try {
 		// add regex function to sqlite
 		db.createFunction(
