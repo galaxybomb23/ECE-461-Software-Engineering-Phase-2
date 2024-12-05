@@ -135,6 +135,36 @@ server_logs() {
   curl --location --request GET "$API_ENDPOINT/logs" > logs/server_logs.log
 }
 
+# function to analyse the logs
+#!/bin/bash
+
+# Function to filter logs for a specific endpoint
+filter_logs_by_endpoint() {
+  local endpoint="$1"
+  local logfile="logs/server_logs.log"
+  local print=false
+
+  while IFS= read -r line; do
+    # Check if the line marks the start of an endpoint
+    if [[ "$line" =~ \[INFO\]:\ --\>\ /([^:]+): ]]; then
+      # Extract the endpoint name
+      local current_endpoint="${BASH_REMATCH[1]}"
+      # Toggle printing based on whether it's the desired endpoint
+      if [ "$current_endpoint" == "$endpoint" ]; then
+        print=true
+      else
+        print=false
+      fi
+    fi
+
+    # Print the line if we're in the desired endpoint's logs
+    if $print; then
+      echo "$line"
+    fi
+  done < "$logfile"
+}
+
+
 # Parse flags and execute corresponding function
 case "$1" in
   "register")
@@ -157,6 +187,9 @@ case "$1" in
     ;;
   "server_logs")
     server_logs
+    ;;
+  "anal_logs")
+    filter_logs_by_endpoint "$2"
     ;;
   *)
     echo "Usage: $0 {register|schedule|monitor|best|last|download_log}"

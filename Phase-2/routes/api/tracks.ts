@@ -23,7 +23,7 @@ export const handler: Handlers = {
 				headers: { "Content-Type": "application/json" },
 				status: 200,
 			});
-			logger.debug(`Response: ${JSON.stringify(tracks)}\n`);
+			logger.verbose(`Response: ${JSON.stringify(tracks)}\n`);
 			return ret;
 		} catch (error) { // Error handling
 			logger.error(`Error in getting planned tracks: ${error}`);
