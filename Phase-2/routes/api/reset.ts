@@ -72,13 +72,13 @@ export async function resetDatabase(
 	try {
 		// database open
 		// delete all packages
-		const packages = await db.query("SELECT * FROM packages");
+		const packages = await db.query("SELECT name FROM packages");
 		await db.execute("DELETE FROM packages");
 		logger.debug(`Packages deleted (${db.changes}): ${packages.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'packages'");
 
 		//reset  users
-		const users = await db.query("SELECT * FROM users WHERE username != 'ece30861defaultadminuser'");
+		const users = await db.query("SELECT username FROM users WHERE username != 'ece30861defaultadminuser'");
 		await db.execute("DELETE FROM users WHERE username != 'ece30861defaultadminuser'");
 		logger.debug(`Users deleted (${db.changes}): ${users.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'users'");
