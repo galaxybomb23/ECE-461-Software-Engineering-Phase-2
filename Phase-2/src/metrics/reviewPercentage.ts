@@ -16,6 +16,7 @@ export async function getReviewPercentage(
 	try {
 		// Fetch pull requests from the repository
 		const pullRequestAPI = `${getGitHubAPILink(URL)}/pulls?state=closed&per_page=15`;
+
 		const pullRequests: PullRequest[] = await fetchJsonFromApi(
 			pullRequestAPI,
 		) as PullRequest[];
@@ -35,6 +36,10 @@ export async function getReviewPercentage(
 			// Fetch code reviews for each merged pull request
 			const reviewsAPI = `${getGitHubAPILink(URL)}/pulls/${pr.number}/reviews`;
 			const reviews: Review[] = await fetchJsonFromApi(reviewsAPI) as Review[];
+
+			logger.debug(
+				`getReviewPercentage Fetched data from GitHub. PR: ${pr.number}, Lines Changed: ${linesChanged}, Reviews: ${reviews.length}`,
+			);
 
 			// If there is at least one review, count the lines from this PR as reviewed
 			if (reviews.length > 0) {
@@ -60,6 +65,7 @@ export async function getReviewPercentage(
 	const latencyMs = parseFloat(
 		(getTimestampWithThreeDecimalPlaces() - latency_start).toFixed(3),
 	);
+
 	logger.debug(
 		`getReviewPercentage Calculated fetch latency. Latency: ${latencyMs} ms`,
 	);
