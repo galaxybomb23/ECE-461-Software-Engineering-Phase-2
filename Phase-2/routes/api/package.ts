@@ -286,7 +286,6 @@ export async function handleContent(
 
 			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
 			if (
-				1 ||
 				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 					metrics.RampUp > 0.5 &&
 					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
