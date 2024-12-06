@@ -73,7 +73,8 @@ export async function calculateCorrectness(
 async function getIssueCount(API_link: string, state: "open" | "closed"): Promise<number> {
 	const response = await fetch(`${API_link}/issues?state=${state}&per_page=1`, { method: "GET" });
 	if (!response.ok) {
-		throw new Error(`Failed to fetch ${state} issues: ${response.statusText}`);
+		logger.error(`Failed to fetch ${state} issues: ${response.statusText}`);
+		return 0;
 	}
 
 	// Check the Link header for total count
@@ -96,7 +97,8 @@ async function getIssueCount(API_link: string, state: "open" | "closed"): Promis
 async function getPullRequestCount(API_link: string, state: "open" | "closed"): Promise<number> {
 	const response = await fetch(`${API_link}/pulls?state=${state}&per_page=1`, { method: "GET" });
 	if (!response.ok) {
-		throw new Error(`Failed to fetch ${state} pull requests: ${response.statusText}`);
+		logger.error(`Failed to fetch ${state} pull requests: ${response.statusText}`);
+		return 0;
 	}
 
 	// Check the Link header for total count
