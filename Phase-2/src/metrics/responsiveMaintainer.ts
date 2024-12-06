@@ -49,7 +49,9 @@ async function getIssueCount(API_link: string, state: "open" | "closed"): Promis
 	);
 
 	if (!response.ok) {
-		throw new Error(`Failed to fetch ${state} issues: ${response.statusText}`);
+		logger.error(`Failed to fetch ${state} issues: ${response.statusText}`);
+		// Return a 0 count if the request fails
+		return 0;
 	}
 
 	// Check the Link header for total count

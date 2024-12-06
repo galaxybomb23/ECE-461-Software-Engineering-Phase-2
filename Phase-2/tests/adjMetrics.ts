@@ -20,42 +20,42 @@ const netScore = [];
 // get curernt api token status
 const token = Deno.env.get("GITHUB_TOKEN");
 if (!token) {
-    console.error("No token provided");
-    Deno.exit(1);
+	console.error("No token provided");
+	Deno.exit(1);
 } else {
-    const OCTOKIT = new Octokit({ auth: token });
-    const status = await OCTOKIT.rateLimit.get();
-    console.log("Rate limit remaining: ", status.data.rate.remaining);
+	const OCTOKIT = new Octokit({ auth: token });
+	const status = await OCTOKIT.rateLimit.get();
+	console.log("Rate limit remaining: ", status.data.rate.remaining);
 }
 
 let passcnt = 0;
 // loop through each url and get the metrics
 for (const url of urls.split("\n")) {
-    // console.log(url);
-    const metrics = await getMetrics(url);
-    const json = JSON.parse(metrics);
-    busFactor.push(json.BusFactor);
-    correctness.push(json.Correctness);
-    license.push(json.License);
-    rampUp.push(json.RampUp);
-    responsiveMaintainer.push(json.ResponsiveMaintainer);
-    dependencyPinning.push(json.DependencyPinning);
-    reviewPercentage.push(json.ReviewPercentage);
-    netScore.push(json.NetScore);
+	// console.log(url);
+	const metrics = await getMetrics(url);
+	const json = JSON.parse(metrics);
+	busFactor.push(json.BusFactor);
+	correctness.push(json.Correctness);
+	license.push(json.License);
+	rampUp.push(json.RampUp);
+	responsiveMaintainer.push(json.ResponsiveMaintainer);
+	dependencyPinning.push(json.DependencyPinning);
+	reviewPercentage.push(json.ReviewPercentage);
+	netScore.push(json.NetScore);
 
-    // count how many pass
-    if (
-        busFactor[busFactor.length - 1] >= 0.5 && correctness[correctness.length - 1] >= 0.5 &&
-        license[license.length - 1] >= 0.5 && rampUp[rampUp.length - 1] >= 0.5 &&
-        responsiveMaintainer[responsiveMaintainer.length - 1] >= 0.5 &&
-        dependencyPinning[dependencyPinning.length - 1] >= 0.5 &&
-        reviewPercentage[reviewPercentage.length - 1] >= 0.5 && netScore[netScore.length - 1] >= 0.5
-    ) {
-        passcnt++;
-    }
+	// count how many pass
+	if (
+		busFactor[busFactor.length - 1] >= 0.5 && correctness[correctness.length - 1] >= 0.5 &&
+		license[license.length - 1] >= 0.5 && rampUp[rampUp.length - 1] >= 0.5 &&
+		responsiveMaintainer[responsiveMaintainer.length - 1] >= 0.5 &&
+		dependencyPinning[dependencyPinning.length - 1] >= 0.5 &&
+		reviewPercentage[reviewPercentage.length - 1] >= 0.5 && netScore[netScore.length - 1] >= 0.5
+	) {
+		passcnt++;
+	}
 
-    // console.log(json);
-    Deno.writeFileSync(LOGFILE, encoder.encode(JSON.stringify(json) + "\n"), { append: true });
+	// console.log(json);
+	Deno.writeFileSync(LOGFILE, encoder.encode(JSON.stringify(json) + "\n"), { append: true });
 }
 
 // calculate the average for each metric
@@ -84,13 +84,13 @@ Deno.writeFileSync(LOGFILE, encoder.encode("Average Correctness: " + averageCorr
 Deno.writeFileSync(LOGFILE, encoder.encode("Average License: " + averageLicense + "\n"), { append: true });
 Deno.writeFileSync(LOGFILE, encoder.encode("Average Ramp Up: " + averageRampUp + "\n"), { append: true });
 Deno.writeFileSync(LOGFILE, encoder.encode("Average Responsive Maintainer: " + averageResponsiveMaintainer + "\n"), {
-    append: true,
+	append: true,
 });
 Deno.writeFileSync(LOGFILE, encoder.encode("Average Dependency Pinning: " + averageDependencyPinning + "\n"), {
-    append: true,
+	append: true,
 });
 Deno.writeFileSync(LOGFILE, encoder.encode("Average Review Percentage: " + averageReviewPercentage + "\n"), {
-    append: true,
+	append: true,
 });
 Deno.writeFileSync(LOGFILE, encoder.encode("Average Net Score: " + averageNetScore + "\n"), { append: true });
 Deno.writeFileSync(LOGFILE, encoder.encode("Pass Count: " + passcnt + "\n"), { append: true });
