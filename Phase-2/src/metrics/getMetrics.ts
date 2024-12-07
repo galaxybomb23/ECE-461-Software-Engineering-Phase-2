@@ -66,8 +66,8 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.RampUp_Latency = rampUpLatency;
 	repo_data.ResponsiveMaintainer = responsiveMaintainerScore;
 	repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
-	repo_data.dependencyPinning = dependencyPinningScore;
-	repo_data.dependencyPinning_Latency = dependencyPinningLatency;
+	repo_data.DependencyPinning = dependencyPinningScore;
+	repo_data.DependencyPinning_Latency = dependencyPinningLatency;
 	repo_data.ReviewPercentage = reviewPercentageScore;
 	repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 
@@ -103,4 +103,23 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.NetScore_Latency = netScore_Latency;
 
 	return formatJSON(repo_data); // Return the formatted JSON string
+}
+
+
+// Test function
+async function testResponsiveMaintainer() {
+	// const rateLimitAPI = "https://api.github.com/rate_limit";
+	// const rateLimit = await fetchJsonFromApi(rateLimitAPI);
+	// console.log(`Rate Limit: ${JSON.stringify(rateLimit, null, 2)}`);
+	
+	const URL = "https://github.com/inversify/InversifyJS";
+
+	const result = await getMetrics(URL);
+
+	console.log(result);
+}
+
+if (import.meta.main) {
+	console.log("Troy");
+	await testResponsiveMaintainer();
 }
