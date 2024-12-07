@@ -154,6 +154,7 @@ export async function handleContent(
 	autoCloseDB = true,
 	old_version?: [string],
 	debloat?: boolean,
+	update?: boolean,
 ) {
 	logger.silly(
 		`handleContent(${content.substring(0, 20)}...${
@@ -286,7 +287,7 @@ export async function handleContent(
 
 			// For content, ALL metrics must be above 0.5, if URL, only NetScore must be above 0.5
 			if (
-				1 || (!via_content &&
+				(!via_content &&
 					(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 						metrics.RampUp > 0.5 &&
 						metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 &&
@@ -315,6 +316,7 @@ export async function handleContent(
 					db,
 					false,
 					readme_content,
+					update,
 				);
 
 				// Now we add the dependency cost
@@ -558,6 +560,7 @@ export async function uploadZipToSQLite(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	readme_content?: string,
+	update?: boolean,
 ) {
 	logger.silly(
 		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${DependencyPinning}, ${DependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
@@ -572,18 +575,20 @@ export async function uploadZipToSQLite(
 				tempFilePath + " to SQLite database",
 		);
 
-		// Check if the package already exists in the database
-		const packageExists = await db.query(
-			"SELECT * FROM packages WHERE name = ? AND version = ?",
-			[packageJSON.metadata.Name, packageJSON.metadata.Version],
-		);
-
-		if (packageExists.length > 0) {
-			logger.debug(
-				"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-					"] already exists in database - status 409",
+		if (!update) {
+			// Check if the package already exists in the database
+			const packageExists = await db.query(
+				"SELECT * FROM packages WHERE name = ? AND version = ?",
+				[packageJSON.metadata.Name, packageJSON.metadata.Version],
 			);
-			throw new Error("Package already exists in database");
+
+			if (packageExists.length > 0) {
+				logger.debug(
+					"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
+						"] already exists in database - status 409",
+				);
+				throw new Error("Package already exists in database");
+			}
 		}
 
 		// Insert the package into the database
