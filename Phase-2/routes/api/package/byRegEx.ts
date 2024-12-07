@@ -7,6 +7,7 @@ import { getUserAuthInfo } from "~/utils/validation.ts";
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { PackageMetadata, regexRequest } from "~/types/index.ts";
+import XRegExp from "https://deno.land/x/xregexp/src/index.js";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -66,30 +67,17 @@ export function getPackagesByRegEx(
 ): Response {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
 	try {
-		// add regex function to sqlite
-		db.createFunction(
-			(pattern: string, value: string): boolean => {
-				try {
-					const regex = new RegExp(pattern, "i");
-					return regex.test(value);
-				} catch {
-					return false; // Return false for invalid regex patterns
-				}
-			},
-			{ name: "REGEXP", deterministic: true },
-		);
-
 		// Query the database
-		const query = `SELECT name, version, id FROM packages WHERE name REGEXP ? OR readme REGEXP ?`;
-		const params = [body.RegEx, body.RegEx];
+		const query = db.query(`SELECT name, version, id, readme FROM packages `) as Array<
+			[string, string, string, string]
+		>;
+		const regEx = new RegExp(body.RegEx);
 
 		const packages: PackageMetadata[] = [];
-		for (const [name, version, id] of db.query(query, params)) {
-			packages.push({
-				Name: String(name),
-				Version: String(version),
-				ID: String(id),
-			});
+		for (const [name, version, id, readme] of query) {
+			if (regEx.test(name) || regEx.test(readme)) {
+				packages.push({ Name: name, Version: version, ID: id });
+			}
 		}
 
 		if (packages.length === 0) {
@@ -111,7 +99,7 @@ export function getPackagesByRegEx(
 function isValidRegex(pattern: string): boolean {
 	logger.silly(`isValidRegex(${pattern})`);
 	try {
-		new RegExp(pattern);
+		new XRegExp(pattern);
 		return true; // Regex is valid
 	} catch {
 		return false; // Regex is invalid
