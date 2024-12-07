@@ -20,8 +20,8 @@ interface DataObject {
 	ResponsiveMaintainer_Latency: number | null; // Latency for responsive maintainer score
 	License: number | null; // License metric
 	License_Latency: number | null; // Latency for license metric
-	dependencyPinning: number | null; // Dependency pinning metric
-	dependencyPinning_Latency: number | null; // Latency for dependency pinning metric
+	DependencyPinning: number | null; // Dependency pinning metric
+	DependencyPinning_Latency: number | null; // Latency for dependency pinning metric
 	ReviewPercentage: number | null;
 	ReviewPercentage_Latency: number | null;
 }
@@ -46,8 +46,8 @@ export function initJSON(): RepoMetrics {
 		ResponsiveMaintainer_Latency: null,
 		License: null,
 		License_Latency: null,
-		dependencyPinning: null,
-		dependencyPinning_Latency: null,
+		DependencyPinning: null,
+		DependencyPinning_Latency: null,
 		ReviewPercentage: null,
 		ReviewPercentage_Latency: null,
 	};

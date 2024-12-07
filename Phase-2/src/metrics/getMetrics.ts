@@ -43,7 +43,7 @@ export async function getMetrics(URL: string): Promise<string> {
 			score: responsiveMaintainerScore,
 			latency: responsiveMaintainerLatency,
 		},
-		{ score: dependencyPinningScore, latency: dependencyPinningLatency },
+		{ score: DependencyPinningScore, latency: DependencyPinningLatency },
 		{ score: reviewPercentageScore, latency: reviewPercentageLatency },
 	] = await Promise.all([
 		getBusFactor(URL),
@@ -66,8 +66,8 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.RampUp_Latency = rampUpLatency;
 	repo_data.ResponsiveMaintainer = responsiveMaintainerScore;
 	repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
-	repo_data.DependencyPinning = dependencyPinningScore;
-	repo_data.DependencyPinning_Latency = dependencyPinningLatency;
+	repo_data.DependencyPinning = DependencyPinningScore;
+	repo_data.DependencyPinning_Latency = DependencyPinningLatency;
 	repo_data.ReviewPercentage = reviewPercentageScore;
 	repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 
@@ -77,7 +77,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorScore,
 		responsiveMaintainerScore,
 		licenseScore,
-		dependencyPinningScore,
+		DependencyPinningScore,
 		reviewPercentageScore,
 	);
 
@@ -87,7 +87,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorLatency,
 		responsiveMaintainerLatency,
 		licenseLatency,
-		dependencyPinningLatency,
+		DependencyPinningLatency,
 		reviewPercentageLatency,
 	);
 
@@ -115,7 +115,6 @@ async function testResponsiveMaintainer() {
 	const URL = "https://github.com/inversify/InversifyJS";
 
 	const result = await getMetrics(URL);
-
 	console.log(result);
 }
 

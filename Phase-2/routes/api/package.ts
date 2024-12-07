@@ -288,7 +288,7 @@ export async function handleContent(
 			if (
 				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 					metrics.RampUp > 0.5 &&
-					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
+					metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 &&
 					metrics.ReviewPercentage > 0.5)
 			) {
 				// metrics
@@ -305,8 +305,8 @@ export async function handleContent(
 					metrics.RampUp_Latency,
 					metrics.ResponsiveMaintainer,
 					metrics.ResponsiveMaintainer_Latency,
-					metrics.dependencyPinning,
-					metrics.dependencyPinning_Latency,
+					metrics.DependencyPinning,
+					metrics.DependencyPinning_Latency,
 					metrics.ReviewPercentage,
 					metrics.ReviewPercentage_Latency,
 					metrics.NetScore,
@@ -509,8 +509,8 @@ export async function uploadZipToSQLite(
 	rampUpLatency: number,
 	responsiveMaintainer: number,
 	responsiveMaintainerLatency: number,
-	dependencyPinning: number,
-	dependencyPinningLatency: number,
+	DependencyPinning: number,
+	DependencyPinningLatency: number,
 	reviewPercentage: number,
 	reviewPercentageLatency: number,
 	netscore: number,
@@ -520,7 +520,7 @@ export async function uploadZipToSQLite(
 	readme_content?: string,
 ) {
 	logger.silly(
-		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${dependencyPinning}, ${dependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
+		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${DependencyPinning}, ${DependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
 	);
 	try {
 		const zipData = await Deno.readFile(tempFilePath);
@@ -566,8 +566,8 @@ export async function uploadZipToSQLite(
 				licenseLatency,
 				netscore,
 				netscoreLatency,
-				dependencyPinning,
-				dependencyPinningLatency,
+				DependencyPinning,
+				DependencyPinningLatency,
 				rampUp,
 				rampUpLatency,
 				reviewPercentage,
