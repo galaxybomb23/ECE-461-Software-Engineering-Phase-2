@@ -108,17 +108,22 @@ export async function getMetrics(URL: string): Promise<string> {
 
 // Test function
 async function testResponsiveMaintainer() {
-	// const rateLimitAPI = "https://api.github.com/rate_limit";
-	// const rateLimit = await fetchJsonFromApi(rateLimitAPI);
-	// console.log(`Rate Limit: ${JSON.stringify(rateLimit, null, 2)}`);
-	
 	const URL = "https://github.com/inversify/InversifyJS";
-
+  
 	const result = await getMetrics(URL);
-	console.log(result);
-}
+  
+	// Parse the result and filter out keys ending with "_Latency"
+	const metrics = JSON.parse(result);
+	const filteredMetrics = Object.fromEntries(
+	  Object.entries(metrics).filter(([key]) => !key.endsWith("_Latency"))
+	);
+  
+	// Print the filtered metrics in a structured format
+	console.log("=== Metrics Report ===");
+	console.log(JSON.stringify(filteredMetrics, null, 2));
+	console.log("======================");
+  }
 
 if (import.meta.main) {
-	console.log("Troy");
 	await testResponsiveMaintainer();
 }
