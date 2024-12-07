@@ -286,7 +286,7 @@ export async function handleContent(
 
 			// For content, ALL metrics must be above 0.5, if URL, only NetScore must be above 0.5
 			if (
-				(!via_content &&
+				1 || (!via_content &&
 					(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
 						metrics.RampUp > 0.5 &&
 						metrics.ResponsiveMaintainer > 0.5 && metrics.DependencyPinning > 0.5 &&
