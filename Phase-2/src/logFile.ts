@@ -83,20 +83,20 @@ export async function displayRequest(req: Request, Ctx?: FreshContext): Promise<
 	try {
 		const reqet = await req.clone().json();
 		if (!Ctx) {
-			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(reqet)}\n<==EndRequest`);
+			logger.verbose(`\nStartRequest==>\nRequest:${Deno.inspect(reqet)}\n<==EndRequest`);
 			return;
 		} else {
 			const contet = JSON.stringify(Ctx);
-			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(reqet)}\nCtx:${contet}}\n<==EndRequest`);
+			logger.verbose(`\nStartRequest==>\nRequest:\n${Deno.inspect(reqet)},\nCtx:${contet}\n<==EndRequest`);
 		}
 	} catch {
 		// logger.error(`Error in displayRequest: ${e}`); // this error is not useful
 		if (!Ctx) {
-			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(req)}`);
+			logger.verbose(`\nStartRequest==>\n${Deno.inspect(req)}\n<==EndRequest`);
 			return;
 		} else {
 			logger.verbose(
-				`Request:\nStartRequest==>\n${Deno.inspect(req)}\nCtx:${JSON.stringify(Ctx)}\n<==EndRequest`,
+				`\nStartRequest==>\n${Deno.inspect(req)},\nCtx:${Deno.inspect(Ctx)}\n<==EndRequest`,
 			);
 		}
 	}
