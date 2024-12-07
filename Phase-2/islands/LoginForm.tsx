@@ -97,6 +97,11 @@ export default function LoginForm() {
 	const handleDeleteAccount = async () => {
 		setShowDeleteModal(false);
 
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
 		try {
 			if (!loggedInUser.value) {
 				throw new Error("No logged-in user to delete.");
@@ -106,6 +111,7 @@ export default function LoginForm() {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
+					"X-Authorization": authToken,
 				},
 			});
 
