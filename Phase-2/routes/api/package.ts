@@ -364,7 +364,7 @@ export async function handleContent(
 
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
-export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string) {
+export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string, update?: boolean) {
 	logger.silly(`handleURL(${url},..., ${old_version})`);
 	try {
 		// First, parse the GitHub URL to get owner and repo
@@ -410,7 +410,7 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 		);
 
-		const packageJSON = await handleContent(base64Content, url, 0, db, false);
+		const packageJSON = await handleContent(base64Content, url, 0, db, false, old_version ? [old_version] : undefined, undefined, update ? true : false);
 		return packageJSON;
 	} finally {
 		if (autoCloseDB) db.close();

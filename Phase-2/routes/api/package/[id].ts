@@ -193,7 +193,7 @@ export async function updatePackageContent(
 				packageJSON = await handleContent(content, undefined, 1, db, false, version, undefined, true);
 			}
 			if (URL) {
-				packageJSON = await handleURL(URL, db, false, undefined);
+				packageJSON = await handleURL(URL, db, false, undefined, true);
 			}
 
 			if (packageJSON) {
