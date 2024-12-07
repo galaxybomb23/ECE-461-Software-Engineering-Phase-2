@@ -2,7 +2,7 @@ import { logger } from "../logFile.ts";
 import { getTimestampWithThreeDecimalPlaces } from "./getLatency.ts";
 import { fetchJsonFromApi } from "../API.ts";
 import { getGitHubAPILink } from "../githubData.ts";
-import { MetricsResult, PRDetails, PullRequest, Review } from "../../types/Phase1Types.ts";
+import { MetricsResult,  PullRequest } from "../../types/Phase1Types.ts";
 
 export async function getReviewPercentage(
 	URL: string,
