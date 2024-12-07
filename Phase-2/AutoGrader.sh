@@ -87,7 +87,10 @@ monitor_runs() {
 
     
     if [[ "$RESPONSE" != *'"2"'* ]]; then
-      last_run
+      local JSON_STRING=$(last_run)
+      local LOG_FILE_PATH=$(echo "$JSON_STRING" | jq -r '.autgrader_run_log')
+      echo "Last Run Logs"
+      download_log "$LOG_FILE_PATH"
       break
     fi
 
@@ -120,9 +123,10 @@ last_run() {
   
   # echo "Request data: $DATA"
 
-  curl --location --request GET "$BASE_URL/last_run" \
+  OUT=$(curl --location --request GET "$BASE_URL/last_run" \
   --header 'Content-Type: application/json' \
-  --data "$DATA" | python3 -m json.tool
+  --data "$DATA" | python3 -m json.tool)
+  echo "$OUT"
 }
 
 # Function to download a log file
@@ -184,6 +188,7 @@ filter_logs_by_endpoint() {
     fi
   done < "$logfile"
 }
+
 
 
 # Parse flags and execute corresponding function
