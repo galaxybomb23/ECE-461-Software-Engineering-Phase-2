@@ -8,7 +8,7 @@ import { displayRequest, logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async PUT(req, ctx) {
 		logger.info(`--> /users/{username}: PUT`);
-		await displayRequest(req);
+		await displayRequest(req, ctx);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";

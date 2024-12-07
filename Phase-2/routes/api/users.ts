@@ -6,8 +6,7 @@ import { displayRequest, logger } from "~/src/logFile.ts";
 export const handler: Handlers = {
 	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
-		await displayRequest(req);
-		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
@@ -44,8 +43,7 @@ export const handler: Handlers = {
 	},
 	async POST(req, _ctx) {
 		logger.info(`--> /users: POST`);
-		await displayRequest(req);
-		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, _ctx);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {

@@ -53,8 +53,8 @@ export const handler: Handlers = {
 	// Handles POST request to update a package
 	async POST(req, ctx) {
 		logger.info(`--> /package/{id}: POST`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		await displayRequest(req, ctx);
+
 		const body = await req.json();
 
 		try {
@@ -131,8 +131,8 @@ export const handler: Handlers = {
 	// Handles DELETE request to delete a package
 	async DELETE(req, ctx) {
 		logger.info(`--> /package/{id}: DELETE`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		await displayRequest(req, ctx);
+
 		const { id } = ctx.params;
 
 		try {
@@ -161,6 +161,7 @@ export const handler: Handlers = {
 };
 
 export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	logger.silly(`deletePackage(${id})`);
 	try {
 		const query = "DELETE FROM packages WHERE ID = ?";
 		const params = [id];
@@ -183,6 +184,7 @@ export async function updatePackageContent(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(`updatePackageContent(${id}, ${name}, ${URL?.slice(0, 50)}, ${content?.slice(0, 50)})`);
 	try {
 		// Check if the package already exists
 		if (await queryPackageById(id, name, undefined, db, false)) {
@@ -220,6 +222,7 @@ export async function queryPackageById(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(`queryPackageById(${id}, ${name}, ${version})`);
 	try {
 		let query = "SELECT * FROM packages";
 		const queryParams: string[] = [];
