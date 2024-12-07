@@ -8,8 +8,8 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve planned tracks
 	async GET(req) {
 		// Implement tracks retrieval logic here
-		logger.info(`--> /tracks: GET`);
 		logger.info("/==== AUTOGRADER STARTING ====/");
+		logger.info(`--> /tracks: GET`);
 		await displayRequest(req);
 		try {
 			const tracks = {

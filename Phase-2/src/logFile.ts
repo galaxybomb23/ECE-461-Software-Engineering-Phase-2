@@ -3,6 +3,7 @@
 import dotenv from "npm:dotenv";
 import { createLogger, format, Logger, transports } from "npm:winston";
 import process from "node:process";
+import type { FreshContext } from "$fresh/server.ts";
 
 dotenv.config();
 
@@ -78,12 +79,25 @@ export const logger: Logger = createLogger({
 	],
 });
 
-export async function displayRequest(req: Request): Promise<void> {
+export async function displayRequest(req: Request, Ctx?: FreshContext): Promise<void> {
 	try {
 		const reqet = await req.clone().json();
-		logger.verbose(`Request:\n ${Deno.inspect(reqet)}`);
+		if (!Ctx) {
+			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(reqet)}\n<==EndRequest`);
+			return;
+		} else {
+			const contet = JSON.stringify(Ctx);
+			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(reqet)}\nCtx:${contet}}\n<==EndRequest`);
+		}
 	} catch {
 		// logger.error(`Error in displayRequest: ${e}`); // this error is not useful
-		logger.verbose(`Request:\n ${Deno.inspect(req)}`);
+		if (!Ctx) {
+			logger.verbose(`Request:\nStartRequest==>\n${Deno.inspect(req)}`);
+			return;
+		} else {
+			logger.verbose(
+				`Request:\nStartRequest==>\n${Deno.inspect(req)}\nCtx:${JSON.stringify(Ctx)}\n<==EndRequest`,
+			);
+		}
 	}
 }

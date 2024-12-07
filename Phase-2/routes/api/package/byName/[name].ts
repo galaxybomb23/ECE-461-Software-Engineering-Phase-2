@@ -5,6 +5,7 @@ import { Handlers } from "$fresh/server.ts";
 import { PackageHistoryEntry } from "~/types/index.ts";
 import { logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
+import { displayRequest } from "~/src/logFile.ts";
 // import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 // import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 
@@ -12,8 +13,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve package history by name
 	async GET(req, ctx) {
 		logger.info(`--> /package/byName/{name}: GET`);
-		await displayRequest(req);
-		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 		const { name } = ctx.params;
 
 		// check name

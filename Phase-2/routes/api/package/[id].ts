@@ -17,8 +17,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}: GET`);
-		await displayRequest(req);
-		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 
 		const { id } = ctx.params;
 
