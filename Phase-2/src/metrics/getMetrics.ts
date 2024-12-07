@@ -108,7 +108,7 @@ export async function getMetrics(URL: string): Promise<string> {
 
 // Test function
 async function testResponsiveMaintainer() {
-	const URL = "https://github.com/inversify/InversifyJS";
+	const URL = "https://github.com/lquixada/cross-fetch";
   
 	const result = await getMetrics(URL);
   

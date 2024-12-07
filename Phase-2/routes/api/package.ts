@@ -364,32 +364,62 @@ export async function handleContent(
 export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string) {
 	logger.silly(`handleURL(${url},..., ${old_version})`);
 	try {
-		// Use these URLs fetch the .zip for a package
-		let response = await fetch(url + "/zipball/master");
-		if (!response.ok) {
-			response = await fetch(url + "/zipball/main");
-		}
-
-		if (!response.ok) {
-			const errMsg = `Failed to fetch: ${response.status} ${response.statusText}`;
-			logger.debug("package.ts: " + errMsg);
-			throw new Error(errMsg);
-		}
-
-		// After we have the .zip, we base64 encode it and handle it as Content
-		// This is done since the logic for handling the package is the same for both URL and Content after getting the .zip
-		const content = await response.arrayBuffer();
-		logger.debug("package.ts: Successfully read package content");
-		const base64Content = btoa(
-			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
-		);
-
-		const packageJSON = await handleContent(base64Content, url, 0, db, false); // we do NOT pass the version, since by URL we pull the latest version always
-		return packageJSON;
+	  // First, parse the GitHub URL to get owner and repo
+	  const { owner, repo } = parseGithubURL(url);
+	  if (!owner || !repo) {
+		throw new Error("Invalid GitHub URL");
+	  }
+  
+	  // Fetch repository metadata from the GitHub API
+	  const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+	  const repoResponse = await fetch(apiUrl);
+	  if (!repoResponse.ok) {
+		const errMsg = `Failed to fetch repo metadata: ${repoResponse.status} ${repoResponse.statusText}`;
+		logger.debug("package.ts: " + errMsg);
+		throw new Error(errMsg);
+	  }
+	  const repoData = await repoResponse.json();
+	  const defaultBranch = repoData.default_branch || "main";
+  
+	  // Now fetch the zipball of the default branch
+	  const zipballUrl = `${url}/zipball/${defaultBranch}`;
+	  const response = await fetch(zipballUrl);
+  
+	  if (!response.ok) {
+		const errMsg = `Failed to fetch zipball: ${response.status} ${response.statusText}`;
+		logger.debug("package.ts: " + errMsg);
+		throw new Error(errMsg);
+	  }
+  
+	  // After we have the .zip, we base64-encode it and handle it as Content
+	  const content = await response.arrayBuffer();
+	  logger.debug("package.ts: Successfully read package content");
+	  const base64Content = btoa(
+		new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
+	  );
+  
+	  const packageJSON = await handleContent(base64Content, url, 0, db, false); 
+	  return packageJSON;
 	} finally {
-		if (autoCloseDB) db.close();
+	  if (autoCloseDB) db.close();
 	}
-}
+  }
+  
+  /**
+   * Utility function to parse GitHub URL of the form https://github.com/{owner}/{repo}
+   */
+  function parseGithubURL(url: string): { owner: string | null; repo: string | null } {
+	try {
+	  const u = new URL(url);
+	  const pathParts = u.pathname.split("/").filter(Boolean); // remove empty segments
+	  if (pathParts.length >= 2) {
+		return { owner: pathParts[0], repo: pathParts[1] };
+	  }
+	  return { owner: null, repo: null };
+	} catch {
+	  return { owner: null, repo: null };
+	}
+  }
 
 export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
 	logger.silly(`parsePackageJSON(${filePath})`);
