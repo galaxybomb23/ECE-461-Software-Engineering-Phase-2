@@ -144,11 +144,27 @@ download_log() {
     "log": "'"$log_path"'"
   }'
 
+
   # echo "Request data: $DATA"
 
   curl --location --request GET "$BASE_URL/log/download" \
   --header 'Content-Type: application/json' \
   --data "$DATA"
+}
+
+
+unschedule() {
+  DATA='{
+    "group": '"$GROUP_NUMBER"',
+    "gh_token": "'"${AUTOGRADER_TOKEN}"'"
+    }'
+
+   curl --location --request DELETE "$BASE_URL/run" \
+  --header 'Content-Type: application/json' \
+  --data "$DATA"
+
+
+  
 }
 
 # function to pull server logs
@@ -220,6 +236,10 @@ case "$1" in
     ;;
   "stats")
     stats
+    ;;
+
+  "unschedule")
+    unschedule
     ;;
   *)
     echo "Usage: $0 {register|schedule|monitor|best|last|download_log}"
