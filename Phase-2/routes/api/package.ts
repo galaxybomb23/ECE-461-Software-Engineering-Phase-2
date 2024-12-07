@@ -371,9 +371,18 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 			throw new Error("Invalid GitHub URL");
 		}
 
+		// Retrieve the GitHub token from environment variables
+		const token = Deno.env.get("GITHUB_TOKEN");
+		if (!token) {
+		  logger.warn("No GitHub token found. Ensure GITHUB_TOKEN is set in the environment.");
+		}
+	
+		// Define headers for authentication
+		const headers = token ? { Authorization: token } : {};
+
 		// Fetch repository metadata from the GitHub API
 		const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
-		const repoResponse = await fetch(apiUrl);
+		const repoResponse = await fetch(apiUrl, { headers });
 		if (!repoResponse.ok) {
 			const errMsg = `Failed to fetch repo metadata: ${repoResponse.status} ${repoResponse.statusText}`;
 			logger.debug("package.ts: " + errMsg);
