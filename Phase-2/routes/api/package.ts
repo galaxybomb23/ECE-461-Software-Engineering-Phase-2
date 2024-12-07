@@ -408,11 +408,19 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		const rootPath = `${filePath}/package.json`;
 		const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
 
-		const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		const packageJSONPath = await Deno.stat(rootPath)
+			.then(() => rootPath)
+			.catch(() =>
+				Deno.stat(subDirPath)
+					.then(() => subDirPath)
+					.catch(() => null) // If subDirPath is not found, set packageJSONPath to null
+			);
+
 		if (!packageJSONPath) {
 			logger.debug("package.ts: package.json not found - status 400");
 			throw new Error("package.json not found");
 		}
+
 		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
 		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
