@@ -105,24 +105,23 @@ export async function getMetrics(URL: string): Promise<string> {
 	return formatJSON(repo_data); // Return the formatted JSON string
 }
 
-
 // Test function
 async function testResponsiveMaintainer() {
 	const URL = "https://github.com/lquixada/cross-fetch";
-  
+
 	const result = await getMetrics(URL);
-  
+
 	// Parse the result and filter out keys ending with "_Latency"
 	const metrics = JSON.parse(result);
 	const filteredMetrics = Object.fromEntries(
-	  Object.entries(metrics).filter(([key]) => !key.endsWith("_Latency"))
+		Object.entries(metrics).filter(([key]) => !key.endsWith("_Latency")),
 	);
-  
+
 	// Print the filtered metrics in a structured format
 	console.log("=== Metrics Report ===");
 	console.log(JSON.stringify(filteredMetrics, null, 2));
 	console.log("======================");
-  }
+}
 
 if (import.meta.main) {
 	await testResponsiveMaintainer();
