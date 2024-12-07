@@ -86,7 +86,7 @@ monitor_runs() {
     echo -ne '\r'
 
     
-    if [[ "$RESPONSE" != *'"'"$GROUP_NUMBER"'"'* ]]; then
+    if [[ "$RESPONSE" != *'"2"'* ]]; then
       last_run
       break
     fi
