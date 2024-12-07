@@ -82,8 +82,8 @@ export async function displayRequest(req: Request): Promise<void> {
 	try {
 		const reqet = await req.clone().json();
 		logger.verbose(`Request:\n ${Deno.inspect(reqet)}`);
-	} catch (e) {
-		logger.error(`Error in displayRequest: ${e}`);
+	} catch {
+		// logger.error(`Error in displayRequest: ${e}`); // this error is not useful
 		logger.verbose(`Request:\n ${Deno.inspect(req)}`);
 	}
 }
