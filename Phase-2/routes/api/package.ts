@@ -9,6 +9,7 @@ import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
 import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
+import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
 
 export const handler: Handlers = {
 	async POST(req) {
@@ -288,7 +289,7 @@ export async function handleContent(
 			// For content, ALL metrics must be above 0.5; if URL, only NetScore must be above 0.5 <- OLD RULES
 			// For content, accept; if URL, only NetScore must be above 0.7 <- NEW RULES
 			if (
-				(!via_content && metrics.NetScore > 0.7) || (via_content)
+				(!via_content && metrics.NetScore > 0.7) || via_content
 			) {
 				// metrics
 				await uploadZipToSQLite(
@@ -361,7 +362,13 @@ export async function handleContent(
 
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
-export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string, update?: boolean) {
+export async function handleURL(
+	url: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+	old_version?: string,
+	update?: boolean,
+) {
 	logger.silly(`handleURL(${url},..., ${old_version})`);
 	try {
 		// First, parse the GitHub URL to get owner and repo
@@ -373,9 +380,9 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 		// Retrieve the GitHub token from environment variables
 		const token = Deno.env.get("GITHUB_TOKEN");
 		if (!token) {
-		  logger.warn("No GitHub token found. Ensure GITHUB_TOKEN is set in the environment.");
+			logger.warn("No GitHub token found. Ensure GITHUB_TOKEN is set in the environment.");
 		}
-	
+
 		// Define headers for authentication
 		const headers = token ? { Authorization: token } : {};
 
@@ -407,7 +414,16 @@ export async function handleURL(url: string, db = new DB(DATABASEFILE), autoClos
 			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 		);
 
-		const packageJSON = await handleContent(base64Content, url, 0, db, false, old_version ? [old_version] : undefined, undefined, update ? true : false);
+		const packageJSON = await handleContent(
+			base64Content,
+			url,
+			0,
+			db,
+			false,
+			old_version ? [old_version] : undefined,
+			undefined,
+			update ? true : false,
+		);
 		return packageJSON;
 	} finally {
 		if (autoCloseDB) db.close();
