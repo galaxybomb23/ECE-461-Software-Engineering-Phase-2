@@ -285,7 +285,8 @@ export async function handleContent(
 		if (metrics) {
 			metrics = JSON.parse(metrics);
 
-			// For content, ALL metrics must be above 0.5, if URL, only NetScore must be above 0.5
+			// For content, ALL metrics must be above 0.5; if URL, only NetScore must be above 0.5 <- OLD RULES
+			// For content, accept; if URL, only NetScore must be above 0.7 <- NEW RULES
 			if (
 				(!via_content && metrics.NetScore > 0.7) || (via_content)
 			) {
