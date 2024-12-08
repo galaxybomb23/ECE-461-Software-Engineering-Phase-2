@@ -9,7 +9,6 @@ import { getGithubUrlFromNpm } from "~/src/API.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { queryPackageById } from "~/routes/api/package/[id].ts";
 import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
-import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
 
 export const handler: Handlers = {
 	async POST(req) {

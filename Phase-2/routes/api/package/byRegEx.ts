@@ -76,7 +76,7 @@ export function getPackagesByRegEx(
 		const packages: PackageMetadata[] = [];
 		for (const [name, version, id, readme] of query) {
 			if (regEx.test(name) || regEx.test(readme)) {
-				packages.push({ Name: name, Version: version, ID: id });
+				packages.push({ Name: name as string, Version: version as string, ID: id.toString() });
 			}
 		}
 
