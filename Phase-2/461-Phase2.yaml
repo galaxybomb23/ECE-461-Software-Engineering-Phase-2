@@ -92,7 +92,7 @@ paths:
 
                 If an array with multiple queries is provided, each query will be processed with an 'OR' relationship, returning results that match any of the specified queries.
 
-                The response is paginated; the response header includes the offset to use in the next query.
+                The response is paginated into pages of 10; the response header includes the offset to use in the next query. If a request results in more than 100 packags a 413 will be returned.
 
                 In the Request Body below, "Version" has all the possible inputs. The "Version" cannot be a combinaiton of the different possibilities.
         parameters:
@@ -113,7 +113,7 @@ paths:
                     description: Authentication failed due to invalid or missing AuthenticationToken.
             operationId: RegistryReset
             summary: Reset the registry. (BASELINE)
-            description: Reset the registry to a system default state.
+            description: Reset the registry to a system default state with 0 packags and 1 default user.
         parameters:
             - name: X-Authorization
               description: ""
@@ -146,14 +146,7 @@ paths:
                                         data:
                                             Content: |
                                                 UEsDBAoAAAAAACAfUFkAAAAAAAAAAAAAAAASAAkAdW5kZXJzY29yZS1t.........fQFQAoADBkODIwZWY3MjkyY2RlYzI4ZGQ4YjVkNTY1OTIxYjgxMDBjYTMzOTc=
-                                            JSProgram: |
-                                                if (process.argv.length === 7) {
-                                                console.log('Success')
-                                                process.exit(0)
-                                                } else {
-                                                console.log('Failed')
-                                                process.exit(1)
-                                                }
+
                                 ExampleResponseWithURL:
                                     value:
                                         metadata:
@@ -164,24 +157,17 @@ paths:
                                             Content: |
                                                 UEsDBAoAAAAAACAfUFkAAAAAAAAAAAAAAAASAAkAdW5kZXJzY29yZS1t.........fQFQAoADBkODIwZWY3MjkyY2RlYzI4ZGQ4YjVkNTY1OTIxYjgxMDBjYTMzOTc=
                                             URL: https://github.com/jashkenas/underscore
-                                            JSProgram: |
-                                                if (process.argv.length === 7) {
-                                                console.log('Success')
-                                                process.exit(0)
-                                                } else {
-                                                console.log('Failed')
-                                                process.exit(1)
-                                                }
+
                     description: Return the package. Content is required.
                 "400":
                     description: "There is missing field(s) in the PackageID or it is formed improperly, or is invalid."
-                403:
+                "403":
                     description: Authentication failed due to invalid or missing AuthenticationToken.
                 "404":
                     description: Package does not exist.
             operationId: PackageRetrieve
             summary: Interact with the package with this ID. (BASELINE)
-            description: Return this package.
+            description: Return the package from the registry with the given ID.
         post:
             requestBody:
                 content:
@@ -242,26 +228,10 @@ paths:
                                 value:
                                     Content: |
                                         UEsDBAoAAAAAACAfUFkAAAAAAAAAAAAAAAASAAkAdW5kZXJzY29yZS1t.........fQFQAoADBkODIwZWY3MjkyY2RlYzI4ZGQ4YjVkNTY1OTIxYjgxMDBjYTMzOTc=
-                                    JSProgram: |
-                                        if (process.argv.length === 7) {
-                                        console.log('Success')
-                                        process.exit(0)
-                                        } else {
-                                        console.log('Failed')
-                                        process.exit(1)
-                                        }
                                     debloat: false
                                     Name: cool-package
                             ExampleRequestWithURL:
                                 value:
-                                    JSProgram: |
-                                        if (process.argv.length === 7) {
-                                        console.log('Success')
-                                        process.exit(0)
-                                        } else {
-                                        console.log('Failed')
-                                        process.exit(1)
-                                        }
                                     URL: https://github.com/jashkenas/underscore
                 required: true
             responses:
@@ -281,14 +251,7 @@ paths:
                                             Content: |
                                                 UEsDBAoAAAAAACAfUFkAAAAAAAAAAAAAAAASAAkAdW5kZXJzY29yZS1t.........fQFQAoADBkODIwZWY3MjkyY2RlYzI4ZGQ4YjVkNTY1OTIxYjgxMDBjYTMzOTc=
                                             URL: https://github.com/jashkenas/underscore
-                                            JSProgram: |
-                                                if (process.argv.length === 7) {
-                                                console.log('Success')
-                                                process.exit(0)
-                                                } else {
-                                                console.log('Failed')
-                                                process.exit(1)
-                                                }
+
                                 ExampleResponseWithContent:
                                     value:
                                         metadata:
@@ -298,14 +261,6 @@ paths:
                                         data:
                                             Content: |
                                                 UEsDBAoAAAAAACAfUFkAAAAAAAAAAAAAAAASAAkAdW5kZXJzY29yZS1t.........fQFQAoADBkODIwZWY3MjkyY2RlYzI4ZGQ4YjVkNTY1OTIxYjgxMDBjYTMzOTc=
-                                            JSProgram: |
-                                                if (process.argv.length === 7) {
-                                                console.log('Success')
-                                                process.exit(0)
-                                                } else {
-                                                console.log('Failed')
-                                                process.exit(1)
-                                                }
 
                     description: Success. Check the ID in the returned metadata for the official
                         ID.
@@ -320,7 +275,7 @@ paths:
             operationId: PackageCreate
             summary: Upload or Ingest a new package. (BASELINE)
             description: |-
-                Upload or Ingest a new package. Packages that are uploaded may have the same name but a new version. Refer to the description above to see how an id is formed for a pacakge.
+                Upload or Ingest a new package. Packages that are uploaded may have the same name but a new version. The endpoint will return metadata of the uploaded package, or an error code if it already exists or has disqualifying rating.
         parameters:
             - name: X-Authorization
               description: ""
@@ -348,6 +303,8 @@ paths:
                     description: The package rating system choked on at least one of the metrics.
             operationId: PackageRate
             summary: "Get ratings for this package. (BASELINE)"
+            description: |-
+                This endpoint returns the PackageRating of the desired package.
         parameters:
             - name: id
               schema:
@@ -360,6 +317,7 @@ paths:
                   $ref: "#/components/schemas/AuthenticationToken"
               in: header
               required: true
+
     /package/{id}/cost:
         get:
             responses:
@@ -398,6 +356,10 @@ paths:
                 500:
                     description: The package rating system choked on at least one of the metrics.
             summary: "Get the cost of a package (BASELINE)"
+            description: |-
+                Endpoint Calculates the cost of a package proportional to the size of the content in MB. If the dependency flag is true it calculates the total cost and returns a list of dependencies in the database.
+
+                Note: it does not ingest dependencies to the database.
         parameters:
             - name: id
               schema:
@@ -458,7 +420,7 @@ paths:
                     description: This system does not support authentication.
             operationId: CreateAuthToken
             summary: (NON-BASELINE)
-            description: Create an access token.
+            description: Authenticate a user given password and Username and returns the X-Authorization token.
     /package/byRegEx:
         post:
             requestBody:
@@ -515,7 +477,7 @@ paths:
     /tracks:
         get:
             summary: "Get the list of tracks a student has planned to implement in their code"
-
+            description: Returns the track(s) the team has implimented
             responses:
                 200:
                     description: Return the list of tracks the student plans to implement
