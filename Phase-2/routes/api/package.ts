@@ -532,6 +532,11 @@ export async function computeDependencies(
 					costs += pkg.metadata.ID + ":" + program_length + ",";
 				}
 			}
+			// if package not found, add flat 0.05MB
+			else {
+				costs += "-1:50000,"; // 50KB
+				logger.debug("package.ts: Package not found in db, adding 0.05 to total cost. totalCost is now: " + costs);
+			}
 		}
 		return costs; // either empty string or id:cost, id:cost, id:cost,
 	} finally {

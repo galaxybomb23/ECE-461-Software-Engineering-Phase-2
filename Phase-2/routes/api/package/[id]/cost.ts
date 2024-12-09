@@ -73,7 +73,12 @@ export async function calcPackageCost(
 		let totalCost = base_pkg_cost;
 		for (let i = 0; i < dependency_cost.length; i++) {
 			if (dependency_cost[i] == "") continue;
-			// const id = dependency_cost[i].split(":")[0];
+			const id   = dependency_cost[i].split(":")[0];
+
+			if (id == "-1") {
+				logger.debug("cost.ts: Package not found in db, adding 0.05 to total cost. totalCost is now: " + totalCost + 0.05);
+			}
+
 			const cost = dependency_cost[i].split(":")[1] ?? 0;
 			totalCost += parseInt(cost);
 		}
@@ -88,6 +93,11 @@ export async function calcPackageCost(
 
 				// pkg_id is either the dependency's ID or current package's ID
 				let pkg_id = dependency_cost[i].split(":")[0];
+				
+				// if id is -1, this indicates we don't have an entry in the db, so we just added 0.05 to the total cost. 
+				// We skip this entry since it's not a package, just added to total cost above
+				if (pkg_id == "-1") continue;
+
 				let pkg_cost = parseInt(dependency_cost[i].split(":")[1] ?? 0);
 
 				if (i == 0) {
