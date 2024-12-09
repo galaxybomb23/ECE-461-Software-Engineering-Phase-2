@@ -49,7 +49,7 @@ export const handler: Handlers = {
 			return new Response("Invalid request: invalid regex", { status: 400 });
 		}
 		// handle error codes 200, 404 in function
-		const ret: Response = getPackagesByRegEx(body);
+		const ret: Response = await getPackagesByRegEx(body);
 		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
@@ -60,16 +60,16 @@ export const handler: Handlers = {
  * @param {PackageRegex} body - The request body containing the regular expression.
  * @returns {Response} The response containing the packages that match the regular expression.
  */
-export function getPackagesByRegEx(
+export async function getPackagesByRegEx(
 	body: regexRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-): Response {
+): Promise<Response> {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
 	try {
 		// Query the database
-		const query = db.query(`SELECT name, version, id, readme FROM packages `) as Array<
-			[string, string, string, string]
+		const query = await db.query(`SELECT name, version, id, readme FROM packages `) as Array<
+			[string, string, number, string]
 		>;
 		const regEx = new RegExp(body.RegEx);
 
