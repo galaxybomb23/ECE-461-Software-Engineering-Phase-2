@@ -4,7 +4,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { AuthenticationRequest } from "../../types/index.ts";
 import { login } from "~/utils/userManagement.ts";
-import { logger } from "../../src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	/**
@@ -30,7 +30,7 @@ export const handler: Handlers = {
 	async PUT(req) {
 		logger.info("--> /authenticate: PUT");
 
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req);
 		let name, is_admin, password;
 
 		try {
@@ -53,7 +53,7 @@ export const handler: Handlers = {
 
 			// Return a response indicating that there are missing or improperly formed fields
 			return new Response(
-				"There is missing field(s) in the AuthenticationRequest or it is formed improperly.",
+				"The is missing field(s) in the AuthenticationRequest or it is formed improperly.",
 				{
 					status: 400,
 				},
@@ -70,7 +70,7 @@ export const handler: Handlers = {
 				logger.info(`${name} login was successful`);
 
 				// Return a success response with the authentication token
-				return new Response(JSON.stringify({ token }), {
+				return new Response(`"${token}"`, {
 					headers: { "Content-Type": "application/json" },
 					status: 200,
 				});

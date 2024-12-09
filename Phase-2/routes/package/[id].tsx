@@ -188,10 +188,10 @@ export default function Ident({
 								<strong>License Score:</strong> {rateData?.LicenseScore ?? "N/A"}
 							</li>
 							<li>
-								<strong>Good Pinning Practice:</strong> {rateData?.GoodPinningPractice ?? "N/A"}
+								<strong>Dependency Pinning:</strong> {rateData?.GoodPinningPractice ?? "N/A"}
 							</li>
 							<li>
-								<strong>Pull Request:</strong> {rateData?.PullRequest ?? "N/A"}
+								<strong>Review Percentage:</strong> {rateData?.PullRequest ?? "N/A"}
 							</li>
 						</ul>
 					</div>

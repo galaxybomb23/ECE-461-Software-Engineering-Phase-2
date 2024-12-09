@@ -1,19 +1,19 @@
 import { Handlers } from "$fresh/server.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
 import { adminCreateAccount, get_all_user_info } from "~/utils/userManagement.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	async GET(req, ctx) {
 		logger.info(`--> /users: GET`);
-		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
@@ -43,8 +43,18 @@ export const handler: Handlers = {
 	},
 	async POST(req, _ctx) {
 		logger.info(`--> /users: POST`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
-		logger.verbose(`Ctx: ${Deno.inspect(_ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, _ctx);
+
+		const authToken = req.headers.get("X-Authorization") ?? "";
+		if (!authToken) {
+			logger.warn("Invalid request: missing authentication token");
+			return new Response("Invalid request: missing authentication token", { status: 403 });
+		}
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
+			logger.warn("Unauthorized request: invalid token");
+			return new Response("Unauthorized request: invalid token", { status: 403 });
+		}
+
 		try {
 			let ret;
 			// Parse the request body

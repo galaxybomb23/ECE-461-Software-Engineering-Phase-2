@@ -1,4 +1,5 @@
-export const APIBaseURL = new URL("http://54.224.103.25/api/"); // Server URL: http://54.224.103.25/api/
+export const APIBaseURL = new URL("http://54.224.103.25/api/");
+// export const APIBaseURL = new URL("http://localhost:8000/api/");
 
 export interface Package {
 	metadata: PackageMetadata;
@@ -106,7 +107,7 @@ export type AuthenticationToken = string;
 export interface packagesRequest {
 	offset?: number;
 	authToken: string;
-	requestBody: PackageQuery;
+	requestBody: PackageQuery[];
 }
 
 export interface PackageQuery {

@@ -1,6 +1,6 @@
 import { assertNotEquals } from "$std/assert/assert_not_equals.ts";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
 
 // Import functions to be tested

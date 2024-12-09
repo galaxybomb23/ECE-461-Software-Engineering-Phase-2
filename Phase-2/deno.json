@@ -14,7 +14,8 @@
 			"tags": [
 				"fresh",
 				"recommended"
-			]
+			],
+			"exclude": ["no-unused-vars", "require-await"]
 		}
 	},
 	"exclude": [

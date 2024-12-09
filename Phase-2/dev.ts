@@ -6,5 +6,5 @@ import "$std/dotenv/load.ts";
 import { logger } from "~/src/logFile.ts";
 
 // await populateDatabase();
-logger.info("Starting dev server...");
+logger.shadowRealm("Starting dev server...");
 await dev(import.meta.url, "./main.ts", config);

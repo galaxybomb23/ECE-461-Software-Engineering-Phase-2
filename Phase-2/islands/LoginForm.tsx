@@ -67,11 +67,12 @@ export default function LoginForm() {
 				return;
 			}
 
-			const data = await response.json();
+			const data = await response.text() as string;
+			const token = data.substring(1, data.length - 1); // Strip quotes
 
 			localStorage.setItem("username", username);
 			document.cookie = `isAdmin=${isAdmin}; path=/;`;
-			document.cookie = `authToken=${data.token}; path=/;`;
+			document.cookie = `authToken=${token}; path=/;`;
 
 			checkLoginState();
 			setLoginStatus("Login successful!");
@@ -96,6 +97,11 @@ export default function LoginForm() {
 	const handleDeleteAccount = async () => {
 		setShowDeleteModal(false);
 
+		const authToken = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("authToken="))
+			?.split("=")[1];
+
 		try {
 			if (!loggedInUser.value) {
 				throw new Error("No logged-in user to delete.");
@@ -105,6 +111,7 @@ export default function LoginForm() {
 				method: "DELETE",
 				headers: {
 					"Content-Type": "application/json",
+					"X-Authorization": authToken,
 				},
 			});
 

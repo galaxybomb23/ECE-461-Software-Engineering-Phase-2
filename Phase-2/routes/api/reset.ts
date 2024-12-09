@@ -2,11 +2,10 @@
 // Description: Reset the registry. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { logger } from "~/src/logFile.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo, type userAuthInfo } from "~/utils/validation.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
-import { adminCreateAccount } from "~/utils/userManagement.ts";
 
 /**
  * Handles DELETE request to reset the database.
@@ -24,7 +23,7 @@ export const handler: Handlers = {
 	async DELETE(req) {
 		logger.info("--> /reset: DELETE");
 
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req);
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
 			logger.warn("Invalid request: missing authentication token");
@@ -32,7 +31,7 @@ export const handler: Handlers = {
 				status: 403,
 			});
 		}
-		const userAuthInfo: userAuthInfo = getUserAuthInfo(authToken);
+		const userAuthInfo: userAuthInfo = await getUserAuthInfo(authToken);
 		// Check the validity of the authentication token
 		if (!userAuthInfo.is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
@@ -73,42 +72,17 @@ export async function resetDatabase(
 	try {
 		// database open
 		// delete all packages
-		const packages = await db.query("SELECT * FROM packages");
+		const packages = await db.query("SELECT name FROM packages");
 		await db.execute("DELETE FROM packages");
 		logger.debug(`Packages deleted (${db.changes}): ${packages.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'packages'");
 
-		//reset package sequence
-		const users = await db.query("SELECT * FROM users");
-		await db.execute("DELETE FROM users");
+		//reset  users
+		const users = await db.query("SELECT username FROM users WHERE username != 'ece30861defaultadminuser'");
+		await db.execute("DELETE FROM users WHERE username != 'ece30861defaultadminuser'");
 		logger.debug(`Users deleted (${db.changes}): ${users.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'users'");
-
-		// add default admin user
-		if (
-			!(await adminCreateAccount(
-				// username
-				"ece30861defaultadminuser",
-				// password
-				"correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
-				// can_search
-				true,
-				// can_download
-				true,
-				// can_upload
-				true,
-				// user_group
-				"admin",
-				// is_admin
-				true,
-				// token
-				db,
-				// autoCloseDB
-				false,
-			))
-		) {
-			throw new Error("Failed to add default admin user");
-		}
+		await db.execute("UPDATE sqlite_sequence SET seq = 1 WHERE name = 'users'");
 
 		logger.info("Database reset successfully");
 		return new Response("Database reset", { status: 200 });

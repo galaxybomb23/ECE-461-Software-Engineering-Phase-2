@@ -43,7 +43,7 @@ export async function getMetrics(URL: string): Promise<string> {
 			score: responsiveMaintainerScore,
 			latency: responsiveMaintainerLatency,
 		},
-		{ score: dependencyPinningScore, latency: dependencyPinningLatency },
+		{ score: DependencyPinningScore, latency: DependencyPinningLatency },
 		{ score: reviewPercentageScore, latency: reviewPercentageLatency },
 	] = await Promise.all([
 		getBusFactor(URL),
@@ -66,8 +66,8 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.RampUp_Latency = rampUpLatency;
 	repo_data.ResponsiveMaintainer = responsiveMaintainerScore;
 	repo_data.ResponsiveMaintainer_Latency = responsiveMaintainerLatency;
-	repo_data.dependencyPinning = dependencyPinningScore;
-	repo_data.dependencyPinning_Latency = dependencyPinningLatency;
+	repo_data.DependencyPinning = DependencyPinningScore;
+	repo_data.DependencyPinning_Latency = DependencyPinningLatency;
 	repo_data.ReviewPercentage = reviewPercentageScore;
 	repo_data.ReviewPercentage_Latency = reviewPercentageLatency;
 
@@ -77,7 +77,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorScore,
 		responsiveMaintainerScore,
 		licenseScore,
-		dependencyPinningScore,
+		DependencyPinningScore,
 		reviewPercentageScore,
 	);
 
@@ -87,7 +87,7 @@ export async function getMetrics(URL: string): Promise<string> {
 		busFactorLatency,
 		responsiveMaintainerLatency,
 		licenseLatency,
-		dependencyPinningLatency,
+		DependencyPinningLatency,
 		reviewPercentageLatency,
 	);
 
@@ -103,4 +103,26 @@ export async function getMetrics(URL: string): Promise<string> {
 	repo_data.NetScore_Latency = netScore_Latency;
 
 	return formatJSON(repo_data); // Return the formatted JSON string
+}
+
+// Test function
+async function testResponsiveMaintainer() {
+	const URL = "https://github.com/lquixada/cross-fetch";
+
+	const result = await getMetrics(URL);
+
+	// Parse the result and filter out keys ending with "_Latency"
+	const metrics = JSON.parse(result);
+	const filteredMetrics = Object.fromEntries(
+		Object.entries(metrics).filter(([key]) => !key.endsWith("_Latency")),
+	);
+
+	// Print the filtered metrics in a structured format
+	console.log("=== Metrics Report ===");
+	console.log(JSON.stringify(filteredMetrics, null, 2));
+	console.log("======================");
+}
+
+if (import.meta.main) {
+	await testResponsiveMaintainer();
 }

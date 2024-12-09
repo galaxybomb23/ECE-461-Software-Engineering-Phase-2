@@ -1,5 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { ExtendedPackage, Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { getMetrics } from "~/src/metrics/getMetrics.ts";
@@ -13,7 +13,7 @@ import { build } from "https://deno.land/x/esbuild@v0.14.24/mod.js";
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req);
 
 		const db = new DB(DATABASEFILE);
 
@@ -26,7 +26,7 @@ export const handler: Handlers = {
 				logger.warn("Invalid request: missing authentication token");
 				return new Response("Invalid request: missing authentication token", { status: 403 });
 			}
-			if (!getUserAuthInfo(authToken).is_token_valid) {
+			if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 				logger.warn("Unauthorized request: invalid token");
 				return new Response("Unauthorized request: invalid token", { status: 403 });
 			}
@@ -154,8 +154,13 @@ export async function handleContent(
 	autoCloseDB = true,
 	old_version?: [string],
 	debloat?: boolean,
+	update?: boolean,
 ) {
-	logger.silly(`handleContent(${content}, ${url}, ${via_content},..., ${old_version})`);
+	logger.silly(
+		`handleContent(${content.substring(0, 20)}...${
+			content.slice(-20)
+		}, ${url}, ${via_content},..., ${old_version})`,
+	);
 	// Outside the try block so we can reference the paths in the finally block
 	// Generate a unique suffix for the temp file. 36 is the base (26 letters + 10 digits) and 7 is number of characters to use
 	const suffix = Date.now() + Math.random().toString(36).substring(7);
@@ -280,12 +285,10 @@ export async function handleContent(
 		if (metrics) {
 			metrics = JSON.parse(metrics);
 
-			// ☢️ DO NOT KEEP 1 || IN PRODUCTION ☢️
+			// For content, ALL metrics must be above 0.5; if URL, only NetScore must be above 0.5 <- OLD RULES
+			// For content, accept; if URL, only NetScore must be above 0.7 <- NEW RULES
 			if (
-				(metrics.BusFactor > 0.5 && metrics.Correctness > 0.5 && metrics.License > 0.5 &&
-					metrics.RampUp > 0.5 &&
-					metrics.ResponsiveMaintainer > 0.5 && metrics.dependencyPinning > 0.5 &&
-					metrics.ReviewPercentage > 0.5)
+				(!via_content && metrics.NetScore > 0.7) || via_content
 			) {
 				// metrics
 				await uploadZipToSQLite(
@@ -301,8 +304,8 @@ export async function handleContent(
 					metrics.RampUp_Latency,
 					metrics.ResponsiveMaintainer,
 					metrics.ResponsiveMaintainer_Latency,
-					metrics.dependencyPinning,
-					metrics.dependencyPinning_Latency,
+					metrics.DependencyPinning,
+					metrics.DependencyPinning_Latency,
 					metrics.ReviewPercentage,
 					metrics.ReviewPercentage_Latency,
 					metrics.NetScore,
@@ -310,6 +313,7 @@ export async function handleContent(
 					db,
 					false,
 					readme_content,
+					update,
 				);
 
 				// Now we add the dependency cost
@@ -330,7 +334,7 @@ export async function handleContent(
 			} else {
 				logger.debug(
 					"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-						"] failed metric check - status 424",
+						"] Stats:\n" + metrics,
 				);
 
 				throw new Error("Package is not uploaded due to the disqualified rating");
@@ -357,33 +361,87 @@ export async function handleContent(
 
 // Handles the URL of the package
 // Fetches the .zip from the URL and processes it
-export async function handleURL(url: string, db = new DB(DATABASEFILE), autoCloseDB = true, old_version?: string) {
+export async function handleURL(
+	url: string,
+	db = new DB(DATABASEFILE),
+	autoCloseDB = true,
+	old_version?: string,
+	update?: boolean,
+) {
 	logger.silly(`handleURL(${url},..., ${old_version})`);
 	try {
-		// Use these URLs fetch the .zip for a package
-		let response = await fetch(url + "/zipball/master");
-		if (!response.ok) {
-			response = await fetch(url + "/zipball/main");
+		// First, parse the GitHub URL to get owner and repo
+		const { owner, repo } = parseGithubURL(url);
+		if (!owner || !repo) {
+			throw new Error("Invalid GitHub URL");
 		}
 
+		// Retrieve the GitHub token from environment variables
+		const token = Deno.env.get("GITHUB_TOKEN");
+		if (!token) {
+			logger.warn("No GitHub token found. Ensure GITHUB_TOKEN is set in the environment.");
+		}
+
+		// Define headers for authentication
+		const headers = token ? { Authorization: token } : {};
+
+		// Fetch repository metadata from the GitHub API
+		const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+		const repoResponse = await fetch(apiUrl, { headers });
+		if (!repoResponse.ok) {
+			const errMsg = `Failed to fetch repo metadata: ${repoResponse.status} ${repoResponse.statusText}`;
+			logger.debug("package.ts: " + errMsg);
+			throw new Error(errMsg);
+		}
+		const repoData = await repoResponse.json();
+		const defaultBranch = repoData.default_branch || "main";
+
+		// Now fetch the zipball of the default branch
+		const zipballUrl = `${url}/zipball/${defaultBranch}`;
+		const response = await fetch(zipballUrl);
+
 		if (!response.ok) {
-			const errMsg = `Failed to fetch: ${response.status} ${response.statusText}`;
+			const errMsg = `Failed to fetch zipball: ${response.status} ${response.statusText}`;
 			logger.debug("package.ts: " + errMsg);
 			throw new Error(errMsg);
 		}
 
-		// After we have the .zip, we base64 encode it and handle it as Content
-		// This is done since the logic for handling the package is the same for both URL and Content after getting the .zip
+		// After we have the .zip, we base64-encode it and handle it as Content
 		const content = await response.arrayBuffer();
 		logger.debug("package.ts: Successfully read package content");
 		const base64Content = btoa(
 			new Uint8Array(content).reduce((data, byte) => data + String.fromCharCode(byte), ""),
 		);
 
-		const packageJSON = await handleContent(base64Content, url, 0, db, false); // we do NOT pass the version, since by URL we pull the latest version always
+		const packageJSON = await handleContent(
+			base64Content,
+			url,
+			0,
+			db,
+			false,
+			old_version ? [old_version] : undefined,
+			undefined,
+			update ? true : false,
+		);
 		return packageJSON;
 	} finally {
 		if (autoCloseDB) db.close();
+	}
+}
+
+/**
+ * Utility function to parse GitHub URL of the form https://github.com/{owner}/{repo}
+ */
+function parseGithubURL(url: string): { owner: string | null; repo: string | null } {
+	try {
+		const u = new URL(url);
+		const pathParts = u.pathname.split("/").filter(Boolean); // remove empty segments
+		if (pathParts.length >= 2) {
+			return { owner: pathParts[0], repo: pathParts[1] };
+		}
+		return { owner: null, repo: null };
+	} catch {
+		return { owner: null, repo: null };
 	}
 }
 
@@ -404,11 +462,19 @@ export async function parsePackageJSON(filePath: string, db = new DB(DATABASEFIL
 		const rootPath = `${filePath}/package.json`;
 		const subDirPath = `${filePath}/${packageFolder?.name}/package.json`;
 
-		const packageJSONPath = await Deno.stat(rootPath).then(() => rootPath).catch(() => subDirPath);
+		const packageJSONPath = await Deno.stat(rootPath)
+			.then(() => rootPath)
+			.catch(() =>
+				Deno.stat(subDirPath)
+					.then(() => subDirPath)
+					.catch(() => null) // If subDirPath is not found, set packageJSONPath to null
+			);
+
 		if (!packageJSONPath) {
 			logger.debug("package.ts: package.json not found - status 400");
 			throw new Error("package.json not found");
 		}
+
 		const packageJSON = JSON.parse(await Deno.readTextFile(packageJSONPath));
 
 		const fullDependencies = { ...packageJSON.dependencies, ...packageJSON.devDependencies } as Record<
@@ -465,6 +531,12 @@ export async function computeDependencies(
 					const program_length = base64_content[0][0].length;
 					costs += pkg.metadata.ID + ":" + program_length + ",";
 				}
+			} // if package not found, add flat 0.05MB
+			else {
+				costs += "-1:50000,"; // 50KB
+				logger.debug(
+					"package.ts: Package not found in db, adding 0.05 to total cost. totalCost is now: " + costs,
+				);
 			}
 		}
 		return costs; // either empty string or id:cost, id:cost, id:cost,
@@ -497,8 +569,8 @@ export async function uploadZipToSQLite(
 	rampUpLatency: number,
 	responsiveMaintainer: number,
 	responsiveMaintainerLatency: number,
-	dependencyPinning: number,
-	dependencyPinningLatency: number,
+	DependencyPinning: number,
+	DependencyPinningLatency: number,
 	reviewPercentage: number,
 	reviewPercentageLatency: number,
 	netscore: number,
@@ -506,9 +578,10 @@ export async function uploadZipToSQLite(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 	readme_content?: string,
+	update?: boolean,
 ) {
 	logger.silly(
-		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${dependencyPinning}, ${dependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
+		`uploadZipToSQLite(${tempFilePath}, ${packageJSON}, ${busFactor}, ${busFactorLatency}, ${correctness}, ${correctnessLatency}, ${license}, ${licenseLatency}, ${rampUp}, ${rampUpLatency}, ${responsiveMaintainer}, ${responsiveMaintainerLatency}, ${DependencyPinning}, ${DependencyPinningLatency}, ${reviewPercentage}, ${reviewPercentageLatency}, ${netscore}, ${netscoreLatency})`,
 	);
 	try {
 		const zipData = await Deno.readFile(tempFilePath);
@@ -520,18 +593,20 @@ export async function uploadZipToSQLite(
 				tempFilePath + " to SQLite database",
 		);
 
-		// Check if the package already exists in the database
-		const packageExists = await db.query(
-			"SELECT * FROM packages WHERE name = ? AND version = ?",
-			[packageJSON.metadata.Name, packageJSON.metadata.Version],
-		);
-
-		if (packageExists.length > 0) {
-			logger.debug(
-				"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
-					"] already exists in database - status 409",
+		if (!update) {
+			// Check if the package already exists in the database
+			const packageExists = await db.query(
+				"SELECT * FROM packages WHERE name = ? AND version = ?",
+				[packageJSON.metadata.Name, packageJSON.metadata.Version],
 			);
-			throw new Error("Package already exists in database");
+
+			if (packageExists.length > 0) {
+				logger.debug(
+					"package.ts: Package [" + packageJSON.metadata.Name + "] @ [" + packageJSON.metadata.Version +
+						"] already exists in database - status 409",
+				);
+				throw new Error("Package already exists in database");
+			}
 		}
 
 		// Insert the package into the database
@@ -554,8 +629,8 @@ export async function uploadZipToSQLite(
 				licenseLatency,
 				netscore,
 				netscoreLatency,
-				dependencyPinning,
-				dependencyPinningLatency,
+				DependencyPinning,
+				DependencyPinningLatency,
 				rampUp,
 				rampUpLatency,
 				reviewPercentage,

@@ -3,12 +3,12 @@ import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { deleteAccount } from "~/utils/userManagement.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 
 export const handler: Handlers = {
 	async PUT(req, ctx) {
 		logger.info(`--> /users/{username}: PUT`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
 
 		const authToken = req.headers.get("X-Authorization") ?? "";
@@ -16,7 +16,7 @@ export const handler: Handlers = {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
@@ -56,7 +56,7 @@ export const handler: Handlers = {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}

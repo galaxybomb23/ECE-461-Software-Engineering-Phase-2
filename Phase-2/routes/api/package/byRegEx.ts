@@ -2,16 +2,17 @@
 // Description: Get the packages from the registry that match the given regular expression. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { PackageMetadata, regexRequest } from "~/types/index.ts";
+import XRegExp from "https://deno.land/x/xregexp/src/index.js";
 
 export const handler: Handlers = {
 	async POST(req) {
 		logger.info("--> /package/byRegEx: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req);
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
 		if (!authToken) {
@@ -20,7 +21,7 @@ export const handler: Handlers = {
 				status: 403,
 			});
 		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", {
 				status: 403,
@@ -48,7 +49,7 @@ export const handler: Handlers = {
 			return new Response("Invalid request: invalid regex", { status: 400 });
 		}
 		// handle error codes 200, 404 in function
-		const ret: Response = getPackagesByRegEx(body);
+		const ret: Response = await getPackagesByRegEx(body);
 		logger.debug(`Response: ${await ret.clone().text()}\n`);
 		return ret;
 	},
@@ -59,37 +60,24 @@ export const handler: Handlers = {
  * @param {PackageRegex} body - The request body containing the regular expression.
  * @returns {Response} The response containing the packages that match the regular expression.
  */
-export function getPackagesByRegEx(
+export async function getPackagesByRegEx(
 	body: regexRequest,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-): Response {
+): Promise<Response> {
 	logger.silly(`getPackagesByRegEx(${JSON.stringify(body)})`);
 	try {
-		// add regex function to sqlite
-		db.createFunction(
-			(pattern: string, value: string): boolean => {
-				try {
-					const regex = new RegExp(pattern, "i");
-					return regex.test(value);
-				} catch {
-					return false; // Return false for invalid regex patterns
-				}
-			},
-			{ name: "REGEXP", deterministic: true },
-		);
-
 		// Query the database
-		const query = `SELECT name, version, id FROM packages WHERE name REGEXP ? OR readme REGEXP ?`;
-		const params = [body.RegEx, body.RegEx];
+		const query = await db.query(`SELECT name, version, id, readme FROM packages `) as Array<
+			[string, string, number, string]
+		>;
+		const regEx = new RegExp(body.RegEx);
 
 		const packages: PackageMetadata[] = [];
-		for (const [name, version, id] of db.query(query, params)) {
-			packages.push({
-				Name: String(name),
-				Version: String(version),
-				ID: String(id),
-			});
+		for (const [name, version, id, readme] of query) {
+			if (regEx.test(name) || regEx.test(readme)) {
+				packages.push({ Name: name as string, Version: version as string, ID: id.toString() });
+			}
 		}
 
 		if (packages.length === 0) {
@@ -111,7 +99,7 @@ export function getPackagesByRegEx(
 function isValidRegex(pattern: string): boolean {
 	logger.silly(`isValidRegex(${pattern})`);
 	try {
-		new RegExp(pattern);
+		new XRegExp(pattern);
 		return true; // Regex is valid
 	} catch {
 		return false; // Regex is invalid

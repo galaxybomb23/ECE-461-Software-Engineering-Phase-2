@@ -2,7 +2,7 @@
 // Description: Get the packages from the registry. (BASELINE)
 import { Handlers } from "https://deno.land/x/fresh@1.7.2/server.ts";
 import { PackageMetadata, PackageQuery, packagesRequest } from "../../types/index.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import type { Row } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import * as semver from "https://deno.land/x/semver@v1.4.0/mod.ts";
@@ -35,7 +35,7 @@ export const handler: Handlers = {
 	// Handles POST request to list packages
 	async POST(req: Request): Promise<Response> {
 		logger.info("--> /packages: POST");
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
+		await displayRequest(req);
 		let body;
 		try {
 			body = await req.json();
@@ -54,7 +54,9 @@ export const handler: Handlers = {
 			});
 		}
 
-		const requestBody = body[0] as PackageQuery;
+		const requestBodyarr = Array.from(new Set(body.map((item: PackageQuery) => JSON.stringify(item)))).map((
+			item: string,
+		) => JSON.parse(item)) as PackageQuery[];
 
 		// Extract and validate the 'X-Authentication' token
 		const authToken = req.headers.get("X-Authorization") ?? "";
@@ -70,22 +72,36 @@ export const handler: Handlers = {
 		const offset = url.searchParams.get("offset");
 		const offsetValue = offset ? parseInt(offset, 10) : undefined;
 
-		// Validate PackageQuery fields
-		if (typeof requestBody.Version !== "string") {
-			logger.warn(`Invalid request: 'Version' must be a string not ${typeof requestBody.Version}`);
-			return new Response("Invalid request: 'Version' must be a string", {
-				status: 400,
-			});
-		}
-		if (typeof requestBody.Name !== "string") {
-			logger.warn("Invalid request: 'Name' must be a string");
-			return new Response("Invalid request: 'Name' must be a string", {
-				status: 400,
-			});
+		// Validate PackageQuery field of each item in the request body
+		for (const requestBody of requestBodyarr) {
+			if (!requestBody.Name) {
+				logger.warn("Invalid request: missing Name fields");
+				return new Response("Invalid request: missing Name fields", {
+					status: 400,
+				});
+			}
+			if (typeof requestBody.Name !== "string") {
+				logger.warn("Invalid request: name field must be a string");
+				return new Response("Invalid request: name field must be a string", {
+					status: 400,
+				});
+			}
+			if (requestBody.Name === "*" && requestBodyarr.length != 1) {
+				logger.warn('Invalid request: "*" can only be used as a single query');
+				return new Response('Invalid request: "*" can only be used as a single query', {
+					status: 400,
+				});
+			}
+			// // apparently this is not needed
+			// if(requestBody.Version && typeof requestBody.Version !== "string") {
+			// 	logger.warn("Invalid request: 'Version' field must be a string");
+			// 	return new Response("Invalid request: 'Version' field must be a string", {
+			// 		status: 400,
+			// 	});
 		}
 
 		// Check the validity of the authentication token
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized access", { status: 403 });
 		}
@@ -93,13 +109,13 @@ export const handler: Handlers = {
 		// Construct packagesRequest
 		const packagesRequest: packagesRequest = {
 			authToken,
-			requestBody,
+			requestBody: requestBodyarr,
 			offset: offsetValue,
 		};
 
 		// Implement package listing logic
 		const response = await listPackages(packagesRequest);
-		logger.debug(`Response: ${JSON.stringify(response)}\n`);
+		logger.verbose(`Response: ${await response.clone().text()}\n`);
 		return response;
 	},
 };
@@ -117,77 +133,96 @@ export const handler: Handlers = {
  * - 413: Too many packages returned.
  */
 export async function listPackages(
-	req: packagesRequest,
+	requests: packagesRequest,
 	db = new DB(DATABASEFILE),
-	autoCloseDB = true,
+	_autoCloseDB = true,
 ): Promise<Response> {
-	logger.silly(`listPackages(${JSON.stringify(req)})`);
+	logger.silly(`listPackages(${JSON.stringify(requests)})`);
 	try {
 		// database open
 		logger.debug(
-			`Listing packages with query: ${JSON.stringify(req.requestBody)}`,
+			`Listing packages with query: ${JSON.stringify(requests.requestBody)}`,
 		);
 		const entriesPerPage = 10;
-		const { Version, Name } = req.requestBody; // Assuming single package query for now
-
-		// Query the database for packages with the specified name
-		const rows: Row[] = Name === "*" ? await db.query("SELECT id, name, version FROM packages") : await db.query(
-			"SELECT id, name, version FROM packages WHERE name = ?",
-			[Name],
-		);
-		if (autoCloseDB) db.close(); // Close the database connection after querying
-
-		// check for "too many results" error // NOTE: 100 is an arbitrary limit set by me
-		if (rows.length > 100) {
-			logger.error("Too many results: ", rows.length);
-			return new Response("Too many Packages returned", { status: 413 });
-		}
+		let offset = requests.offset ?? 1;
 
 		//validate the offset
-		if (!req.offset || req.offset < 1) {
-			req.offset = 1;
+		if (!offset || offset < 1) {
+			offset = 1;
 		}
 
-		// Parse the version type and value from the Version field
-		let versionType: string;
-		let versionValue: string;
+		let finalPackages: PackageMetadata[] = [];
+		// OR all the requests together
+		for (const req in requests.requestBody) {
+			const { Version, Name } = requests.requestBody[req] as PackageQuery; // Assuming single package query for now
 
-		// Parse filter based on version type
-		const packages: PackageMetadata[] = rows.map(mapRowToPackage);
-		let filteredPackages: PackageMetadata[] = [];
-		if (Version?.startsWith("Exact")) {
-			versionType = "Exact";
-			versionValue = Version.replace("Exact (", "").replace(")", "").trim();
-			filteredPackages = packages.filter((pkg) => semver.eq(pkg.Version, versionValue));
-		} else if (Version?.startsWith("Bounded range")) {
-			versionType = "Bounded range";
-			versionValue = Version.replace("Bounded range (", "")
-				.replace(")", "")
-				.trim();
-			const [minVersion, maxVersion] = versionValue.split("-");
-			filteredPackages = packages.filter(
-				(pkg) =>
-					semver.gte(pkg.Version, minVersion) &&
-					semver.lte(pkg.Version, maxVersion),
-			);
-		} else if (Version?.startsWith("Carat")) {
-			versionType = "Carat";
-			versionValue = Version.replace("Carat (", "").replace(")", "").trim();
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
-		} else if (Version?.startsWith("Tilde")) {
-			versionType = "Tilde";
-			versionValue = Version.replace("Tilde (", "").replace(")", "").trim();
-			filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
-		} else {
-			logger.error("Unknown version type: ", Version);
-			throw new Error(`Unknown version type: ${Version}`);
+			// Query the database for packages with the specified name
+			const rows: Row[] = Name === "*"
+				? await db.query("SELECT id, name, version FROM packages")
+				: await db.query(
+					"SELECT id, name, version FROM packages WHERE name = ?",
+					[Name],
+				);
+
+			// check for "too many results" error // NOTE: 100 is an arbitrary limit set by me
+			if (rows.length > 100) {
+				logger.error("Too many results: ", rows.length);
+				return new Response("Too many Packages returned", { status: 413 });
+			}
+
+			// Parse the version type and value from the Version field
+			let versionType: string;
+			let versionValue: string;
+
+			// Parse filter based on version type
+			let filteredPackages: PackageMetadata[] = [];
+
+			const packages: PackageMetadata[] = rows.map(mapRowToPackage);
+			if (!Version) { // just use name
+				filteredPackages = packages;
+				versionType = "All";
+				versionValue = "All";
+			} else if (Version?.startsWith("Exact")) {
+				versionType = "Exact";
+				versionValue = Version.replace("Exact (", "").replace(")", "").trim();
+				filteredPackages = packages.filter((pkg) => semver.eq(pkg.Version, versionValue));
+			} else if (Version?.startsWith("Bounded range")) {
+				versionType = "Bounded range";
+				versionValue = Version.replace("Bounded range (", "")
+					.replace(")", "")
+					.trim();
+				const [minVersion, maxVersion] = versionValue.split("-");
+				filteredPackages = packages.filter(
+					(pkg) =>
+						semver.gte(pkg.Version, minVersion) &&
+						semver.lte(pkg.Version, maxVersion),
+				);
+			} else if (Version?.startsWith("Carat")) {
+				versionType = "Carat";
+				versionValue = Version.replace("Carat (", "").replace(")", "").trim();
+				filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
+			} else if (Version?.startsWith("Tilde")) {
+				versionType = "Tilde";
+				versionValue = Version.replace("Tilde (", "").replace(")", "").trim();
+				filteredPackages = packages.filter((pkg) => semver.satisfies(pkg.Version, `${versionValue}`));
+			} else {
+				logger.error("Unknown version type: ", Version);
+				throw new Error(`Unknown version type: ${Version}`);
+			}
+			logger.debug(`Parsed version type: ${versionType}, value: ${versionValue}`);
+
+			finalPackages = finalPackages.concat(filteredPackages);
 		}
-		logger.debug(`Parsed version type: ${versionType}, value: ${versionValue}`);
+
+		//remove duplicates
+		finalPackages = Array.from(new Set(finalPackages.map((a) => a.ID))).map((id) => {
+			return finalPackages.find((a) => a.ID === id) as PackageMetadata;
+		});
 
 		// Implement pagination
-		const paginatedPackages = filteredPackages.slice(
-			(req.offset - 1) * entriesPerPage,
-			req.offset * entriesPerPage,
+		const paginatedPackages = finalPackages.slice(
+			(offset - 1) * entriesPerPage,
+			offset * entriesPerPage,
 		);
 		logger.debug(`Returning ${paginatedPackages.length} packages`);
 		for (const pkg of paginatedPackages) {
@@ -201,7 +236,7 @@ export async function listPackages(
 		});
 	} finally {
 		// mem safety close
-		if (autoCloseDB) {
+		if (_autoCloseDB) {
 			db.close(true);
 		}
 	}

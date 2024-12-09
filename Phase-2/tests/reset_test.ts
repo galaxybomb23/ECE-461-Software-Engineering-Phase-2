@@ -38,8 +38,8 @@ Deno.test("ResetTest...", async (t) => {
 		);
 		assertEquals(
 			userSequence.length,
-			1,
-			"User sequence should be 1 for 2 users",
+			0,
+			"User sequence should be 0 for 0 users",
 		);
 		testLogger.debug(`Packages: ${packages.toString()}`);
 

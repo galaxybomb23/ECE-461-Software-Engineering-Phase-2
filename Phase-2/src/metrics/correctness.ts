@@ -1,11 +1,12 @@
 import { getGitHubAPILink } from "../githubData.ts";
-import { fetchJsonFromApi } from "../API.ts";
 import { getTimestampWithThreeDecimalPlaces } from "./getLatency.ts";
 import { logger } from "../logFile.ts";
-import { Issue, MetricsResult, PullRequest, RepoData } from "../../types/Phase1Types.ts";
+import { MetricsResult, RepoData } from "../../types/Phase1Types.ts";
+import { fetchJsonFromApi } from "../API.ts";
+
 /**
  * Calculates the Correctness score based on various repository factors such as open issues,
- * closed pull requests, and merge rates. Fetches data in parallel to speed up the process.
+ * closed pull requests, and merge rates. Fetches data efficiently using pagination headers.
  *
  * @param {string} URL - The GitHub repository URL.
  * @returns {Promise<MetricsResult>} - The Correctness score (0-1) and fetch latency.
@@ -18,44 +19,29 @@ export async function calculateCorrectness(
 	const API_link = getGitHubAPILink(URL);
 
 	// Fetch the data in parallel
-	const [
-		repoData,
-		closedPullData,
-		openPullData,
-		closedIssuesData,
-		openIssuesData,
-	] = await Promise.all([
-		fetchJsonFromApi(API_link) as Promise<RepoData>, // Fetch repository data (open issues count)
-		fetchJsonFromApi(API_link + "/pulls?state=closed") as Promise<
-			PullRequest[]
-		>, // Fetch closed pull requests
-		fetchJsonFromApi(API_link + "/pulls?state=open") as Promise<
-			PullRequest[]
-		>, // Fetch open pull requests
-		fetchJsonFromApi(API_link + "/issues?state=closed") as Promise<Issue[]>, // Fetch closed issues
-		fetchJsonFromApi(API_link + "/issues?state=open") as Promise<Issue[]>, // Fetch open issues
+	const [_repoData, openIssuesCount, closedIssuesCount, openPullsCount, closedPullsCount] = await Promise.all([
+		fetchJsonFromApi(API_link) as Promise<RepoData>, // Fetch repository data (includes open issues count)
+		getIssueCount(API_link, "open"), // Fetch open issues count
+		getIssueCount(API_link, "closed"), // Fetch closed issues count
+		getPullRequestCount(API_link, "open"), // Fetch open pull requests count
+		getPullRequestCount(API_link, "closed"), // Fetch closed pull requests count
 	]);
 
-	// Calculate useful metrics
-	const totalIssues: number = closedIssuesData.length + openIssuesData.length;
-	const totalPullRequests: number = closedPullData.length +
-		openPullData.length;
+	// Calculate total issues and pull requests
+	const totalIssues = openIssuesCount + closedIssuesCount;
+	const totalPullRequests = openPullsCount + closedPullsCount;
 
-	const issueResolutionRate = totalIssues ? closedIssuesData.length / totalIssues : 1; // Calculate issue resolution rate
-	const pullRequestMergeRate = totalPullRequests ? closedPullData.length / totalPullRequests : 1; // Calculate pull request merge rate
-
-	const openIssuesCount = repoData.open_issues_count || openIssuesData.length; // Get the count of open issues
+	// Calculate metrics
+	const issueResolutionRate = totalIssues ? closedIssuesCount / totalIssues : 1; // Rate of resolved issues
+	const pullRequestMergeRate = totalPullRequests ? closedPullsCount / totalPullRequests : 1; // Rate of merged pull requests
 
 	// Define reasonable maximums for issues and pull requests
 	const MAX_ISSUES = 150;
 	const MAX_PULL_REQUESTS = 300;
 
-	// Normalize the open issues and pull requests to create a score
+	// Normalize scores
 	const issueScore = 1 - Math.min(openIssuesCount / MAX_ISSUES, 1); // Score based on open issues
-	const pullRequestScore = Math.min(
-		closedPullData.length / MAX_PULL_REQUESTS,
-		1,
-	); // Score based on closed pull requests
+	const pullRequestScore = Math.min(closedPullsCount / MAX_PULL_REQUESTS, 1); // Score based on closed pull requests
 	logger.debug(
 		`calculateCorrectness Normalizing scores. Issue Score: ${issueScore}, Pull Request Score: ${pullRequestScore}`,
 	);
@@ -79,4 +65,52 @@ export async function calculateCorrectness(
 	);
 
 	return { score: roundedScore, latency: latencyMs }; // Return the final score and latency
+}
+
+/**
+ * Fetches the total count of issues with a specific state (open/closed).
+ */
+async function getIssueCount(API_link: string, state: "open" | "closed"): Promise<number> {
+	const response = await fetch(`${API_link}/issues?state=${state}&per_page=1`, { method: "GET" });
+	if (!response.ok) {
+		logger.error(`Failed to fetch ${state} issues: ${response.statusText}`);
+		return 0;
+	}
+
+	// Check the Link header for total count
+	const linkHeader = response.headers.get("Link");
+	if (linkHeader) {
+		const match = linkHeader.match(/&page=(\d+)>; rel="last"/);
+		if (match) {
+			return parseInt(match[1], 10); // Extract total pages (i.e., total count)
+		}
+	}
+
+	// Fallback to single issue count if no pagination data is available
+	const issuesData = await response.json();
+	return issuesData.length;
+}
+
+/**
+ * Fetches the total count of pull requests with a specific state (open/closed).
+ */
+async function getPullRequestCount(API_link: string, state: "open" | "closed"): Promise<number> {
+	const response = await fetch(`${API_link}/pulls?state=${state}&per_page=1`, { method: "GET" });
+	if (!response.ok) {
+		logger.error(`Failed to fetch ${state} pull requests: ${response.statusText}`);
+		return 0;
+	}
+
+	// Check the Link header for total count
+	const linkHeader = response.headers.get("Link");
+	if (linkHeader) {
+		const match = linkHeader.match(/&page=(\d+)>; rel="last"/);
+		if (match) {
+			return parseInt(match[1], 10); // Extract total pages (i.e., total count)
+		}
+	}
+
+	// Fallback to single pull request count if no pagination data is available
+	const pullRequestData = await response.json();
+	return pullRequestData.length;
 }

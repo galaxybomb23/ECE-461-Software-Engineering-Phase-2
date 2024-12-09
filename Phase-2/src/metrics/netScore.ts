@@ -19,7 +19,7 @@ export function getNetScore(
 	bus_factor: number,
 	responsive_maintainer: number,
 	license: number,
-	dependencyPinning: number,
+	DependencyPinning: number,
 	review_percentage: number,
 ): number {
 	// Initialize net score to zero
@@ -30,7 +30,7 @@ export function getNetScore(
 	net_score += (0.2) * responsive_maintainer; // Weighted Responsive Maintainer Score (20%)
 	net_score += (0.2) * correctness; // Weighted Correctness score (20%)
 	net_score += (0.2) * ramp_up_time; // Weighted Ramp-Up Time score (10%)
-	net_score += (0.1) * dependencyPinning;
+	net_score += (0.1) * DependencyPinning;
 	net_score += (0.1) * review_percentage;
 	net_score = license ? net_score : 0; // Weighted License score (10%)
 
@@ -60,7 +60,7 @@ export function getNetScoreLatency(
 	bus_factor_latency: number,
 	responsive_maintainer_latency: number,
 	license_latency: number,
-	dependencyPinning_latency: number,
+	DependencyPinning_latency: number,
 	review_percentage_latency: number,
 ): number {
 	// Calculate total latency by summing individual latencies
@@ -69,7 +69,7 @@ export function getNetScoreLatency(
 		bus_factor_latency +
 		responsive_maintainer_latency +
 		license_latency +
-		dependencyPinning_latency +
+		DependencyPinning_latency +
 		review_percentage_latency;
 
 	logger.debug(

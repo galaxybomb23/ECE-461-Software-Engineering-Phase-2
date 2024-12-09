@@ -4,7 +4,7 @@
 // DELETE /package/{id} - Delete a package (NON-BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { logger } from "~/src/logFile.ts";
+import { displayRequest, logger } from "~/src/logFile.ts";
 import { Package, PackageData, PackageMetadata } from "~/types/index.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // SQLite3 import
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
@@ -17,8 +17,7 @@ export const handler: Handlers = {
 	// Handles GET request to retrieve a package
 	async GET(req, ctx) {
 		logger.info(`--> /package/{id}: GET`);
-		logger.verbose(`Request: ${Deno.inspect(req, { depth: 10, colors: false })}`);
-		logger.verbose(`Ctx: ${Deno.inspect(ctx, { depth: 10, colors: false })}`);
+		await displayRequest(req, ctx);
 
 		const { id } = ctx.params;
 
@@ -28,7 +27,7 @@ export const handler: Handlers = {
 			logger.warn("Invalid request: missing authentication token");
 			return new Response("Invalid request: missing authentication token", { status: 403 });
 		}
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized request: invalid token", { status: 403 });
 		}
@@ -54,8 +53,8 @@ export const handler: Handlers = {
 	// Handles POST request to update a package
 	async POST(req, ctx) {
 		logger.info(`--> /package/{id}: POST`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		await displayRequest(req, ctx);
+
 		const body = await req.json();
 
 		try {
@@ -132,8 +131,8 @@ export const handler: Handlers = {
 	// Handles DELETE request to delete a package
 	async DELETE(req, ctx) {
 		logger.info(`--> /package/{id}: DELETE`);
-		logger.debug(`Request: ${JSON.stringify(req)}`);
-		logger.debug(`Ctx: ${JSON.stringify(ctx)}`);
+		await displayRequest(req, ctx);
+
 		const { id } = ctx.params;
 
 		try {
@@ -162,6 +161,7 @@ export const handler: Handlers = {
 };
 
 export async function deletePackage(id: string, db = new DB(DATABASEFILE), autoCloseDB = true) {
+	logger.silly(`deletePackage(${id})`);
 	try {
 		const query = "DELETE FROM packages WHERE ID = ?";
 		const params = [id];
@@ -184,15 +184,16 @@ export async function updatePackageContent(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(`updatePackageContent(${id}, ${name}, ${URL?.slice(0, 50)}, ${content?.slice(0, 50)})`);
 	try {
 		// Check if the package already exists
 		if (await queryPackageById(id, name, undefined, db, false)) {
 			let packageJSON: Package | null = null;
 			if (content) {
-				packageJSON = await handleContent(content, undefined, 1, db, false, version);
+				packageJSON = await handleContent(content, undefined, 1, db, false, version, undefined, true);
 			}
 			if (URL) {
-				packageJSON = await handleURL(URL, db, false, undefined);
+				packageJSON = await handleURL(URL, db, false, undefined, true);
 			}
 
 			if (packageJSON) {
@@ -221,6 +222,7 @@ export async function queryPackageById(
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
 ) {
+	logger.silly(`queryPackageById(${id}, ${name}, ${version})`);
 	try {
 		let query = "SELECT * FROM packages";
 		const queryParams: string[] = [];
