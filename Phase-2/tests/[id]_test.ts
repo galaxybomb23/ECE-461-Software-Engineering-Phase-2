@@ -1,6 +1,6 @@
 import { assertNotEquals } from "$std/assert/assert_not_equals.ts";
 import { cleanup, setup, testLogger } from "./testSuite.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts"; // if needed
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts"; // if needed
 import { assertEquals } from "jsr:@std/assert";
 
 // Import functions to be tested
@@ -35,7 +35,7 @@ Deno.test("PackageIdTest...", async (t) => {
 			);
 		}
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 
@@ -47,7 +47,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		const pkg = await queryPackageById(id, "", "", db, false);
 		assertEquals(pkg, null, "Package should be null");
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 
@@ -96,7 +96,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		// disqualified
 		assertEquals(success, false, "Package should not be updated");
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 
@@ -124,7 +124,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		const updatedPkg = await queryPackageById(id + 1, name, version, db, false);
 		assertEquals(updatedPkg, null, "Package should still be null");
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 
@@ -164,7 +164,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		const deletedPkg = await queryPackageById(id, name, version, db, false);
 		assertEquals(deletedPkg, null, "Package should be null");
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 
@@ -182,7 +182,7 @@ Deno.test("PackageIdTest...", async (t) => {
 		const deletedPkg = await queryPackageById(id, "", "", db, false);
 		assertEquals(deletedPkg, null, "Package should still be null");
 
-		await new Promise((r) => setTimeout(r, 100));
+		await new Promise((r) => setTimeout(r, 10));
 		await cleanup(db);
 	});
 });
