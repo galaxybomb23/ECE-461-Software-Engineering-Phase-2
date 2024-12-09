@@ -31,7 +31,7 @@ export const handler: Handlers = {
 				status: 403,
 			});
 		}
-		const userAuthInfo: userAuthInfo = getUserAuthInfo(authToken);
+		const userAuthInfo: userAuthInfo = await getUserAuthInfo(authToken);
 		// Check the validity of the authentication token
 		if (!userAuthInfo.is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");

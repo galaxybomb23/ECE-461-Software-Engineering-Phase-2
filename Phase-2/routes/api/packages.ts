@@ -101,7 +101,7 @@ export const handler: Handlers = {
 		}
 
 		// Check the validity of the authentication token
-		if (!getUserAuthInfo(authToken).is_token_valid) {
+		if (!(await getUserAuthInfo(authToken)).is_token_valid) {
 			logger.warn("Unauthorized request: invalid token");
 			return new Response("Unauthorized access", { status: 403 });
 		}

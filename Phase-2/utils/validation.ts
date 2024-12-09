@@ -13,11 +13,11 @@ export interface userAuthInfo {
 	username: string;
 }
 
-export function getUserAuthInfo(
+export async function getUserAuthInfo(
 	token: string,
 	db = new DB(DATABASEFILE),
 	autoCloseDB = true,
-): userAuthInfo {
+): Promise<userAuthInfo> {
 	logger.silly(`getUserAuthInfo(${token})`);
 	try {
 		if (token === "bearer 613ebe28-bc19-4a6c-a5f8-fd2f3ec38485") {
@@ -43,7 +43,7 @@ export function getUserAuthInfo(
 			boolean,
 			string,
 		];
-		const query = db.query(
+		const query = await db.query(
 			`SELECT can_search, can_download, can_upload, token_start_time, token_api_interactions, user_group, is_admin, username FROM users WHERE token = ?`,
 			[token],
 		);
