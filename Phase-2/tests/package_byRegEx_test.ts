@@ -162,7 +162,7 @@ Deno.test("PackagesByRegexTest...", async (t) => {
 		await cleanup(db); // cleanup the database if used
 	});
 
-	await await populateDatabase(); // populate the database if needed
+	await populateDatabase(); // populate the database if needed
 	let mockContext: FreshContext;
 
 	// <--- Handler Test --->

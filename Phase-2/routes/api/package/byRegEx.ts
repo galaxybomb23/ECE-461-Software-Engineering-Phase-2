@@ -4,7 +4,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo } from "~/utils/validation.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
 import { PackageMetadata, regexRequest } from "~/types/index.ts";
 import XRegExp from "https://deno.land/x/xregexp/src/index.js";

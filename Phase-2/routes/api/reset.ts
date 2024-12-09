@@ -2,7 +2,7 @@
 // Description: Reset the registry. (BASELINE)
 
 import { Handlers } from "$fresh/server.ts";
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { displayRequest, logger } from "~/src/logFile.ts";
 import { getUserAuthInfo, type userAuthInfo } from "~/utils/validation.ts";
 import { DATABASEFILE } from "~/utils/dbSingleton.ts";
@@ -83,32 +83,6 @@ export async function resetDatabase(
 		logger.debug(`Users deleted (${db.changes}): ${users.toString()}`);
 		await db.execute("DELETE FROM sqlite_sequence WHERE name = 'users'");
 		await db.execute("UPDATE sqlite_sequence SET seq = 1 WHERE name = 'users'");
-
-		// // add default admin user
-		// if (
-		// 	!(await adminCreateAccount(
-		// 		// username
-		// 		"ece30861defaultadminuser",
-		// 		// password
-		// 		"correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
-		// 		// can_search
-		// 		true,
-		// 		// can_download
-		// 		true,
-		// 		// can_upload
-		// 		true,
-		// 		// user_group
-		// 		"admin",
-		// 		// is_admin
-		// 		true,
-		// 		// token
-		// 		db,
-		// 		// autoCloseDB
-		// 		false,
-		// 	))
-		// ) {
-		// 	throw new Error("Failed to add default admin user");
-		// }
 
 		logger.info("Database reset successfully");
 		return new Response("Database reset", { status: 200 });
